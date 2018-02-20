@@ -9,6 +9,7 @@ Introduction
 ------------------------------------------------------------------
 
 ![swradio-8 with SDRplay as device](/Screenshot-swradio-1.png?raw=true)
+Example of use of the cw decoder.
 
 **swradio-8** is the result of rewriting and simplifying the set of sdr-j-sw programs. A number of decoders is omitted and - for the time being - the only
 device that is supported is the SDRplay.
@@ -19,12 +20,15 @@ Supported decoders are
 * psk, with selection of a variety of modes and settings;
 * rtty, with selection of a variety of modes and settings;
 * cw, with selection of a variety of speeds and settings;
-* drm, limited to 10 k bandwidth.
+* drm, limited to 10 k bandwidth;
+* amtor, with selection of options;
+* weatherfax decoder, with selection of a variety of settings.
 
 ------------------------------------------------------------------
 Linux
 ------------------------------------------------------------------
 ![swradio-8](Screenshot-swradio-2.png?raw=true)
+Example of use of the drm decoder.
 
 The current version is developed under Linux (Fedora).
 To build a version, adapt the swradio-8.pro file: select the decoders
@@ -37,15 +41,16 @@ The "DEST" parameter in the setting tells where the result is to be put.
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
 ![swradio-8](/Screenshot-swradio-3.png?raw=true)
-
+Example of use of the psk decoder.
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
 ![swradio-8](/Screenshot-swradio-4.png?raw=true)
+Example of use of the ssb decoder (lsb selected with an lsb bandfilter).
 
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
 ![swradio-8](/Screenshot-swradio-5.png?raw=true)
-
+Example of listening to the dutch coastguard with amtor.
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
 
