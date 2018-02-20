@@ -1,9 +1,11 @@
 
 swradio is  Software for Linux for listening to short wave radio.
-It is a  rewrite and simplification of sdr-j-sw.
+It is a rewrite and simplification of sdr-j-sw.
 
 
-THIS IS WORK IN PROGRESS
+             THIS IS WORK IN PROGRESS
+
+
 ![swradio-8 with SDRplay as device](/Screenshot-swradio-1.png?raw=true)
 Example of use of the cw decoder.
 
@@ -27,13 +29,33 @@ Supported decoders are:
 * amtor, with selection of options;
 * weatherfax decoder, with selection of a variety of settings.
 
+As can be seen from the pictures, the main widget has two displays, one with a
+width of 96k (can be changed in the settings) showing the spectrum of the incoming data,
+the other one width a width of 12k - with various options for filtering - showing the
+spectrum of the data sent to the decoder.
+
+One may select among a number of different filterings
+* wide, used for e.g. DRM decoding, uses the full 12 k bandwidth;
+* am, used - as the name suggests - for am decoding, uses 9 k;
+* usb, used for smallband decoding in the upper side band, has a width of 2500 Hz;
+* lsb, used for ssb decoding is the lower sideband, has a width of 2500 Hz
+
+A list of preferred programs can be maintained, the list is kept between program invocations.
+
+The input can be written to a file, that file can be processed later on.
+
+The function of each button and slider in the widget(s) is described in the
+tooltip for that button (slider)
+
 ------------------------------------------------------------------
 Linux
 ------------------------------------------------------------------
 ![swradio-8](Screenshot-swradio-2.png?raw=true)
 Example of use of the drm decoder.
 
-The current version is developed under Linux (Fedora).
+The current version is developed under Linux (Fedora). In this version
+there is no support (yet) for use under Windows.
+
 To build a version, adapt the swradio-8.pro file.
 Note that for drm a special version of the faad library,
 obviosuly incompatible with the regular one has to be created.
@@ -49,13 +71,14 @@ Select - or deselect - decoders:
 * CONFIG          += fax-decoder
 * CONFIG          += drm-decoder
 
-The "DEST" parameter in the setting tells where the result is to be put.
+The "DEST" parameter in the unix section in the ".pro" file tells where the result is to be put.
 
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
 
 ![swradio-8](/Screenshot-swradio-3.png?raw=true)
 Example of use of the psk decoder.
+
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
 
