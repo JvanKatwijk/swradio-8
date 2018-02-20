@@ -18,6 +18,9 @@ Introduction
 * as input devices the SDRplay and file input is supported;
 * a limited number of decoders is included.
 
+Frequency selection is with a keypad that will appear when touching the
+Frequency select key. Specification is in kHz or mHz. Fine frequency selection is with the
+mousewheel (when the main widget is activated). The stepsize can be set from the main widget, default is 5Hz.
 
 Supported decoders are:
 * am
