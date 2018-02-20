@@ -4,17 +4,20 @@ It is a  rewrite and simplification of sdr-j-sw.
 
 
 THIS IS WORK IN PROGRESS
+![swradio-8 with SDRplay as device](/Screenshot-swradio-1.png?raw=true)
+Example of use of the cw decoder.
+
 ------------------------------------------------------------------
 Introduction
 ------------------------------------------------------------------
 
-![swradio-8 with SDRplay as device](/Screenshot-swradio-1.png?raw=true)
-Example of use of the cw decoder.
+**swradio-8** is the result of rewriting and simplifying the set of sdr-j-sw programs. The software is limited in two ways:
 
-**swradio-8** is the result of rewriting and simplifying the set of sdr-j-sw programs. A number of decoders is omitted and - for the time being - the only
-device that is supported is the SDRplay.
+* as input devices the SDRplay and file input is supported;
+* a limited number of decoders is included.
 
-Supported decoders are
+
+Supported decoders are:
 * am
 * ssb, with selection for usb or lsb;
 * psk, with selection of a variety of modes and settings;
@@ -31,26 +34,40 @@ Linux
 Example of use of the drm decoder.
 
 The current version is developed under Linux (Fedora).
-To build a version, adapt the swradio-8.pro file: select the decoders
-you want in and deselect the others (Note that for drm a special
-version of the faad library, obviosuly incompatible with the regular one
-has to be created).
+To build a version, adapt the swradio-8.pro file.
+Note that for drm a special version of the faad library,
+obviosuly incompatible with the regular one has to be created.
+
+Select - or deselect - decoders:
+
+* CONFIG          += am-decoder
+* CONFIG          += ssb-decoder
+* CONFIG          += cw-decoder
+* CONFIG          += amtor-decoder
+* CONFIG          += psk-decoder
+* CONFIG          += rtty-decoder
+* CONFIG          += fax-decoder
+* CONFIG          += drm-decoder
 
 The "DEST" parameter in the setting tells where the result is to be put.
 
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
+
 ![swradio-8](/Screenshot-swradio-3.png?raw=true)
 Example of use of the psk decoder.
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
+
 ![swradio-8](/Screenshot-swradio-4.png?raw=true)
 Example of use of the ssb decoder (lsb selected with an lsb bandfilter).
 
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
+
 ![swradio-8](/Screenshot-swradio-5.png?raw=true)
 Example of listening to the dutch coastguard with amtor.
+
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
 
