@@ -8,7 +8,7 @@ THIS IS WORK IN PROGRESS
 Introduction
 ------------------------------------------------------------------
 
-![swradio-8 with SDRplay as device](/screenshot-swradio-1.png?raw=true)
+![swradio-8 with SDRplay as device](/Screenshot-swradio-1.png?raw=true)
 
 **swradio-8** is the result of rewriting and simplifying the set of sdr-j-sw programs. A number of decoders is omitted and - for the time being - the only
 device that is supported is the SDRplay.
@@ -24,7 +24,7 @@ Supported decoders are
 ------------------------------------------------------------------
 Linux
 ------------------------------------------------------------------
-![swradio-8](/screenshot-swradio-2.png?raw=true)
+![swradio-8](Screenshot-swradio-2.png?raw=true)
 
 The current version is developed under Linux (Fedora).
 To build a version, adapt the swradio-8.pro file: select the decoders
@@ -36,7 +36,7 @@ The "DEST" parameter in the setting tells where the result is to be put.
 
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
-![swradio-8](/screenshot-swradio-1.png?raw=true)
+![swradio-8](/Screenshot-swradio-1.png?raw=true)
 # Copyright
 
 
