@@ -22,6 +22,15 @@ Frequency selection is with a keypad that will appear when touching the
 Frequency select key. Specification is in kHz or mHz. Fine frequency selection is with the
 mousewheel (when the main widget is activated). The stepsize can be set from the main widget, default is 5Hz.
 
+The selected frequency can be stored by pressing the save frequency button, if that is touched
+one is asked to specify a name to be used to label that frequency.
+
+As a "quick" help, a button "middle" is present that, when pressed - will set the oscillator such
+that the selected frequency is in the middle of the right half of the spectrum display.
+
+Note that clicking the right mouse button on any of the two displays, that display will switch from spectrum
+to waterfall display (or vice-versa).
+
 Supported decoders are:
 * am
 * ssb, with selection for usb or lsb;
