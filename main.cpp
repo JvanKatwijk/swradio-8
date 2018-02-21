@@ -83,11 +83,12 @@ QString stationList     = QDir::homePath ();
 #if QT_VERSION >= 0x050600
         QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
 #endif
+
+	int rate	= ISettings -> value ("workingRate", 96000). toInt ();
         MyRadioInterface = new RadioInterface (ISettings,
 	                                       stationList, 96000, 12000);
 	MyRadioInterface -> show ();
         a. exec ();
-
 /*
  *	done:
  */

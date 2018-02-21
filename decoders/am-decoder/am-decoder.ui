@@ -31,8 +31,8 @@
    <widget class="QPushButton" name="adaptiveFilterButton">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>20</y>
+      <x>10</x>
+      <y>10</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -61,7 +61,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>60</y>
+      <y>40</y>
       <width>64</width>
       <height>23</height>
      </rect>
@@ -79,8 +79,8 @@
    <widget class="QSlider" name="lowpassFilterslider">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>20</y>
+      <x>130</x>
+      <y>10</y>
       <width>160</width>
       <height>24</height>
      </rect>
@@ -98,7 +98,7 @@
    <widget class="QSlider" name="adaptiveFilterSlider">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>130</x>
       <y>50</y>
       <width>160</width>
       <height>24</height>

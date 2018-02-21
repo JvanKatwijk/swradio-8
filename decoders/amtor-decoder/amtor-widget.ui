@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>593</width>
-    <height>106</height>
+    <width>564</width>
+    <height>97</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>amtor-decoder</string>
   </property>
   <widget class="QFrame" name="frame">
    <property name="geometry">
@@ -19,7 +19,7 @@
      <x>0</x>
      <y>0</y>
      <width>661</width>
-     <height>101</height>
+     <height>91</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -33,7 +33,7 @@
      <rect>
       <x>10</x>
       <y>60</y>
-      <width>571</width>
+      <width>541</width>
       <height>21</height>
      </rect>
     </property>
@@ -82,7 +82,7 @@
    <widget class="QComboBox" name="amtorAfconButton">
     <property name="geometry">
      <rect>
-      <x>100</x>
+      <x>80</x>
       <y>10</y>
       <width>85</width>
       <height>21</height>
@@ -102,7 +102,7 @@
    <widget class="QComboBox" name="amtorReverseButton">
     <property name="geometry">
      <rect>
-      <x>190</x>
+      <x>170</x>
       <y>10</y>
       <width>85</width>
       <height>21</height>
@@ -122,7 +122,7 @@
    <widget class="QComboBox" name="amtorFecErrorButton">
     <property name="geometry">
      <rect>
-      <x>270</x>
+      <x>260</x>
       <y>10</y>
       <width>85</width>
       <height>21</height>
@@ -168,7 +168,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>470</x>
+      <x>450</x>
       <y>10</y>
       <width>67</width>
       <height>21</height>

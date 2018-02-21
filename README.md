@@ -13,17 +13,19 @@ Example of use of the cw decoder.
 Introduction
 ------------------------------------------------------------------
 
-**swradio-8** is the result of rewriting and simplifying the set of sdr-j-sw programs. The software is limited in two ways:
+**swradio-8** is software (currently only running under Linux) for
+listening to short waves. The software supports a number of decoders
+often used by radio amateurs, such as psk, cw and rtty.
+swradio-8 is the result of rewriting and simplifying the set
+of sdr-j-sw programs.
 
-* as input devices the SDRplay and file input is supported;
-* a limited number of decoders is included.
+**Frequency selection** is with a keypad, separated from the main widget,
+that will appear when touching the Frequency select key.
+Specification  of a frequency is in kHz or mHz.
+Fine frequency selection - up to an accuracy of 1 Hz - is with the
+mousewheel (when the main widget is activated).
+The stepsize can be set from the main widget, default is 5Hz.
 
-Frequency selection is with a keypad that will appear when touching the
-Frequency select key. Specification is in kHz or mHz. Fine frequency selection is with the
-mousewheel (when the main widget is activated). The stepsize can be set from the main widget, default is 5Hz.
-
-The selected frequency can be stored by pressing the save frequency button, if that is touched
-one is asked to specify a name to be used to label that frequency.
 
 As a "quick" help, a button "middle" is present that, when pressed - will set the oscillator such
 that the selected frequency is in the middle of the right half of the spectrum display.
@@ -42,9 +44,11 @@ Supported decoders are:
 * weatherfax decoder, with selection of a variety of settings.
 
 As can be seen from the pictures, the main widget has two displays, one with a
-width of 96k (can be changed in the settings) showing the spectrum of the incoming data,
-the other one width a width of 12k - with various options for filtering - showing the
-spectrum of the data sent to the decoder.
+width of 96k ( this width can be changed in the settings)
+showing the spectrum of the incoming data,
+the bottom one width a width of 12k -
+showing the spectrum of the data sent to the decoder, i.e. after being
+filtered and shifted.
 
 One may select among a number of different filterings
 * wide, used for e.g. DRM decoding, uses the full 12 k bandwidth;
@@ -52,7 +56,13 @@ One may select among a number of different filterings
 * usb, used for smallband decoding in the upper side band, has a width of 2500 Hz;
 * lsb, used for ssb decoding is the lower sideband, has a width of 2500 Hz
 
-A list of preferred programs can be maintained, the list is kept between program invocations.
+A list of preferred programs can be maintained,
+the list is kept between program invocations.
+The selected frequency can be stored by pressing the save frequency button.
+If touched one is asked to specify a name to be used to label that frequency.
+
+Selecting such a "preferred program" is just by clicking the mouse on 
+the programname or the associated field with the frequency.
 
 The input can be written to a file, that file can be processed later on.
 

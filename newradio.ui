@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>743</width>
-    <height>487</height>
+    <width>737</width>
+    <height>455</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>100</y>
+      <y>80</y>
       <width>671</width>
       <height>181</height>
      </rect>
@@ -30,8 +30,8 @@
    <widget class="QSlider" name="hfScopeSlider">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>100</y>
+      <x>20</x>
+      <y>80</y>
       <width>24</width>
       <height>161</height>
      </rect>
@@ -44,7 +44,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>290</y>
+      <y>260</y>
       <width>551</width>
       <height>171</height>
      </rect>
@@ -53,8 +53,8 @@
    <widget class="QSlider" name="lfScopeSlider">
     <property name="geometry">
      <rect>
-      <x>140</x>
-      <y>290</y>
+      <x>150</x>
+      <y>260</y>
       <width>24</width>
       <height>171</height>
      </rect>
@@ -68,7 +68,7 @@
      <rect>
       <x>420</x>
       <y>0</y>
-      <width>141</width>
+      <width>151</width>
       <height>21</height>
      </rect>
     </property>
@@ -84,7 +84,7 @@
    <widget class="QComboBox" name="deviceTable">
     <property name="geometry">
      <rect>
-      <x>560</x>
+      <x>570</x>
       <y>0</y>
       <width>151</width>
       <height>21</height>
@@ -122,10 +122,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>290</y>
+      <y>260</y>
       <width>121</width>
       <height>51</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Touching this button will cause a widget to appear with a keypad on which a frequency - in kHz or mHz - can be specified. Use the kHz or mHz button on this pad to acknowledge the choice.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>select freq</string>
@@ -134,9 +137,9 @@
    <widget class="QComboBox" name="bandSelector">
     <property name="geometry">
      <rect>
-      <x>330</x>
-      <y>0</y>
-      <width>91</width>
+      <x>10</x>
+      <y>370</y>
+      <width>121</width>
       <height>21</height>
      </rect>
     </property>
@@ -167,21 +170,27 @@
    <widget class="QComboBox" name="streamOutSelector">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>420</x>
       <y>20</y>
-      <width>231</width>
-      <height>21</height>
+      <width>151</width>
+      <height>41</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;select an audio output device. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QPushButton" name="freqSave">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>370</y>
+      <y>340</y>
       <width>121</width>
       <height>31</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The selected frequency can be saved. Touching this button will show a small widget where you&lt;/p&gt;&lt;p&gt;can give the frequency a name as label.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>frequency save</string>
@@ -191,10 +200,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>340</y>
+      <y>310</y>
       <width>121</width>
       <height>31</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Touching this button will change the oscillator such that the selected frequency will be in the middke&lt;/p&gt;&lt;p&gt;of the right half of the frequency display.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>middle</string>
@@ -203,7 +215,7 @@
    <widget class="QPushButton" name="quitButton">
     <property name="geometry">
      <rect>
-      <x>560</x>
+      <x>570</x>
       <y>20</y>
       <width>151</width>
       <height>41</height>
@@ -217,7 +229,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>40</y>
+      <y>30</y>
       <width>96</width>
       <height>21</height>
      </rect>
@@ -232,11 +244,14 @@
    <widget class="QComboBox" name="AGC_select">
     <property name="geometry">
      <rect>
-      <x>330</x>
-      <y>40</y>
-      <width>98</width>
-      <height>21</height>
+      <x>320</x>
+      <y>0</y>
+      <width>101</width>
+      <height>41</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Agc, automatic gain control, will be enabled when the agc is switched on and the signal strength exceeds&lt;/p&gt;&lt;p&gt;the value in the spinbox. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <item>
      <property name="text">
@@ -257,9 +272,9 @@
    <widget class="QSpinBox" name="agc_thresholdSlider">
     <property name="geometry">
      <rect>
-      <x>425</x>
+      <x>320</x>
       <y>40</y>
-      <width>141</width>
+      <width>101</width>
       <height>21</height>
      </rect>
     </property>
@@ -276,9 +291,9 @@
    <widget class="QLabel" name="timeDisplay">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>70</y>
-      <width>261</width>
+      <x>160</x>
+      <y>50</y>
+      <width>141</width>
       <height>16</height>
      </rect>
     </property>
@@ -301,7 +316,7 @@
      </font>
     </property>
     <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Qt-DAB copyright:&lt;/p&gt;&lt;p&gt;J van Katwijk, Lazy Chair Computing. J.vanKatwijk@gmail.com&lt;/p&gt;&lt;p&gt;Copyright of the Qt toolkit used: the Qt Company&lt;/p&gt;&lt;p&gt;Copyright of the libraries used for SDRplay, rtl-sdr based sticks, AIRspy, portaudio, libsndfile and libsamplerate to their developers&lt;/p&gt;&lt;p&gt;Copyright of the MP2 library used Martin J Fiedler&lt;/p&gt;&lt;p&gt;Copyright of the firecode checker: Gnu Radio&lt;/p&gt;&lt;p&gt;Copyright of the viterbi decoder kernel: the Spiral project&lt;/p&gt;&lt;p&gt;Copyright of the Reed Solomon Decoder software: Phil Karns&lt;/p&gt;&lt;p&gt;All copyrights gratefully acknowledged&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;sdr-j swradio (an SDR-J program) is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Qt-DAB copyright:&lt;/p&gt;&lt;p&gt;J van Katwijk, Lazy Chair Computing. J.vanKatwijk@gmail.com&lt;/p&gt;&lt;p&gt;Copyright of the Qt toolkit used: the Qt Company&lt;/p&gt;&lt;p&gt;Copyright of the libraries used for SDRplay, rtl-sdr based sticks, AIRspy, portaudio, libsndfile and libsamplerate to their developers&lt;/p&gt;&lt;p&gt;Copyright of the MP2 library used Martin J Fiedler&lt;/p&gt;&lt;p&gt;Copyright of the firecode checker: Gnu Radio&lt;/p&gt;&lt;p&gt;Copyright of the viterbi decoder kernel: the Spiral project&lt;/p&gt;&lt;p&gt;Copyright of the Reed Solomon Decoder software: Phil Karns&lt;/p&gt;&lt;p&gt;All copyrights gratefully acknowledged&lt;/p&gt;&lt;p&gt;&lt;br/&gt;CopyRight: 2018, Jan van Katwijk, Lazy Chair Computing.&lt;/p&gt;&lt;p&gt;sdr-j swradio (an SDR-J program) is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>©</string>
@@ -314,10 +329,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>400</y>
+      <y>390</y>
       <width>121</width>
       <height>41</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The incoming data stream can be written to a regular pcm (i.e. .wav) file. Touching this button will&lt;/p&gt;&lt;p&gt;show a menu for selecting a filename, after selecting the filename writing will start (the text on the&lt;/p&gt;&lt;p&gt;button will show &amp;quot;writing&amp;quot;). Touching the button again will close the file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>dump</string>

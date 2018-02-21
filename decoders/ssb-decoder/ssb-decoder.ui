@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>360</width>
-    <height>107</height>
+    <height>89</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>0</x>
      <y>0</y>
      <width>351</width>
-     <height>101</height>
+     <height>81</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -44,25 +44,6 @@
      <string>filter</string>
     </property>
    </widget>
-   <widget class="QLCDNumber" name="signalStrength">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>70</y>
-      <width>64</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Measured signal Strength.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::NoFrame</enum>
-    </property>
-    <property name="segmentStyle">
-     <enum>QLCDNumber::Flat</enum>
-    </property>
-   </widget>
    <widget class="QSlider" name="lowpassFilterslider">
     <property name="geometry">
      <rect>
@@ -71,6 +52,9 @@
       <width>160</width>
       <height>24</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lowpass filter, applied to the demodulated signal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="maximum">
      <number>100</number>
@@ -91,6 +75,9 @@
       <height>31</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose between upper- and lower side band demodulation. Note that an appropriate bandfilter is selected elsewhere.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
     <item>
      <property name="text">
       <string>mode usb</string>
@@ -110,6 +97,9 @@
       <width>160</width>
       <height>24</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;adaptive filter depth setting.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="orientation">
      <enum>Qt::Horizontal</enum>

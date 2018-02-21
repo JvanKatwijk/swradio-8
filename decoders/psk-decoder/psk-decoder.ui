@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>psk-decoder</string>
   </property>
   <widget class="QFrame" name="frame">
    <property name="geometry">
@@ -47,7 +47,7 @@
    <widget class="QLCDNumber" name="pskIFdisplay">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>160</x>
       <y>10</y>
       <width>64</width>
       <height>23</height>
@@ -63,7 +63,7 @@
    <widget class="QLCDNumber" name="pskQualitydisplay">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>160</x>
       <y>40</y>
       <width>64</width>
       <height>23</height>
@@ -79,7 +79,7 @@
    <widget class="QComboBox" name="pskAfconTrigger">
     <property name="geometry">
      <rect>
-      <x>260</x>
+      <x>240</x>
       <y>10</y>
       <width>81</width>
       <height>21</height>
@@ -102,8 +102,8 @@
    <widget class="QComboBox" name="pskReverseTrigger">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>30</y>
+      <x>320</x>
+      <y>10</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -125,8 +125,8 @@
    <widget class="QComboBox" name="pskModeTrigger">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>50</y>
+      <x>400</x>
+      <y>10</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -168,8 +168,8 @@
    <widget class="QSpinBox" name="pskSquelchLevelTrigger">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>70</y>
+      <x>240</x>
+      <y>40</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -184,8 +184,8 @@
    <widget class="QSpinBox" name="pskFilterDegreeTrigger">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>90</y>
+      <x>330</x>
+      <y>40</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -220,7 +220,7 @@
     <property name="geometry">
      <rect>
       <x>420</x>
-      <y>20</y>
+      <y>30</y>
       <width>161</width>
       <height>41</height>
      </rect>

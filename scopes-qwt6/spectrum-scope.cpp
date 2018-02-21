@@ -109,9 +109,14 @@ void	spectrumScope::display (double *X_axis,
 	                         double amp,
 	                         int32_t markerValue,
 	                         int32_t theBin) {
-uint16_t	i;
+int16_t	i;
+double binVal = 0;
 
-	double binVal	= Y1_value [theBin];
+	for (i = -10; i < 10; i ++)
+	   if (theBin + i >= 0)
+	      binVal += Y1_value [theBin + i];
+	binVal /= 20;
+
 	amp		= amp / 100 * (-get_db (0));
 	IndexforMarker	= markerValue;
 	plotgrid	-> setAxisScale (QwtPlot::xBottom,

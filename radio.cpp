@@ -495,7 +495,7 @@ int	i, j;
 	   hfScope	-> addElements (buffer, 512);
 	   if (dumpfilePointer != NULL) {
 	      for (i = 0; i < 512; i ++) {
-                 dumpBuffer [2 * i] = real (buffer [i]);
+                 dumpBuffer [2 * i]	= real (buffer [i]);
                  dumpBuffer [2 * i + 1] = imag (buffer [i]);
               }
               sf_writef_float (dumpfilePointer, dumpBuffer, 512);
@@ -646,7 +646,7 @@ SF_INFO	*sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 	   file.append (".wav");
 	sf_info		-> samplerate	= inputRate;
 	sf_info		-> channels	= 2;
-	sf_info		-> format	= SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+	sf_info		-> format	= SF_FORMAT_WAV | SF_FORMAT_FLOAT;
 
 	dumpfilePointer	= sf_open (file. toUtf8 (). data (),
 	                                   SFM_WRITE, sf_info);
