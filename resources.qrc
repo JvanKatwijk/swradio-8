@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>AUTHORS</file>
+        <file>COPYING</file>
+    </qresource>
+</RCC>

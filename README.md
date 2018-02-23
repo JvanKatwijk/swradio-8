@@ -93,7 +93,7 @@ Select - or deselect - decoders:
 * CONFIG          += fax-decoder
 * CONFIG          += drm-decoder
 
-The "DEST" parameter in the unix section in the ".pro" file tells where the result is to be put.
+The "DESTDIR" parameter in the unix section in the ".pro" file tells where the result is to be put.
 
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
@@ -111,7 +111,13 @@ Example of use of the ssb decoder (lsb selected with an lsb bandfilter).
 --------------------------------------------------------------------------
 
 ![swradio-8](/Screenshot-swradio-5.png?raw=true)
-Example of listening to the dutch coastguard with amtor.
+Example of "listening" to the dutch coastguard with amtor.
+
+--------------------------------------------------------------------------
+----------------------------------------------------------------------
+----
+![swradio-8](/Screenshot-swradio-6.png?raw=true)
+Example of "listening" to a transmission of a weatherfax on shortwave.
 
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------

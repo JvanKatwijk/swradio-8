@@ -61,11 +61,12 @@ int32_t		opt;
 /*
  *	The default values
  */
+
+	QApplication a (argc, argv);
 QSettings	*ISettings;		/* .ini file	*/
 RadioInterface	*MyRadioInterface;
 QString iniFile = QDir::homePath ();
 QString stationList     = QDir::homePath ();
-
         iniFile. append ("/");
         iniFile. append (DEFAULT_INI);
         iniFile = QDir::toNativeSeparators (iniFile);
@@ -79,7 +80,6 @@ QString stationList     = QDir::homePath ();
  *	Before we connect control to the gui, we have to
  *	instantiate
  */
-	QApplication a (argc, argv);
 #if QT_VERSION >= 0x050600
         QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
 #endif

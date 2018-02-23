@@ -90,6 +90,7 @@ int16_t	symbs;
 	                                              qam64Roulette);
 	my_frameProcessor	-> start	();
 	setDetectorMarker	(0);
+	currentPhase		= 0;
 
 }
 

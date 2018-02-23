@@ -63,7 +63,7 @@ int16_t	i;
 //
 //	defaults, will be overruled almost immediately
 	modeInf. Mode		= 1;
-	modeInf. Spectrum	= 5;
+	modeInf. Spectrum	= 3;
 	my_Equalizer		= NULL;
 
 //	inbank and outbank have dimensions satisfying the need of the
@@ -142,6 +142,11 @@ void	frameProcessor::createProcessors (smodeInfo *m) {
 uint8_t	Mode		= m -> Mode;
 uint8_t	Spectrum	= m -> Spectrum;
 
+	if (Spectrum > 3) {
+	   m -> Spectrum = 3;
+	   Spectrum	= 3;
+	}
+
 	my_mscConfig		= new mscConfig	(Mode, Spectrum);
 	my_facData		= new facData	(mr, my_mscConfig);
 //
@@ -149,7 +154,6 @@ uint8_t	Spectrum	= m -> Spectrum;
 	                                      Mode, Spectrum);
 	my_Equalizer 		= new equalizer_1 (Mode,
 	                                           Spectrum, windowDepth);
-
 	my_facProcessor		= new facProcessor (Mode,
 	                                            Spectrum,
 	                                            &viterbiDecoder);
@@ -209,7 +213,7 @@ int16_t		missers;
 //	elsewhere, We just raise an exception when the time has come ...)
 	try {
 restart:
-	
+
 	   if (!taskMayRun. load ())
 	      throw (0);
 	   setTimeSync		(false);
@@ -249,7 +253,6 @@ restart:
 	                                         time_offset_integer;
 
 //	and create a reader/processor
-//      and create a reader/processor
            my_wordCollector     = new wordCollector (&my_Reader,
 	                                             sampleRate,
                                                      modeInf. Mode,
@@ -771,6 +774,7 @@ struct facElement *facTable     = getFacTableforMode (m -> Mode);
 
 void	frameProcessor::getMode (Reader *my_Reader, smodeInfo *m) {
 timeSyncer  my_Syncer (my_Reader, sampleRate,  nSymbols);
+	fprintf (stderr, "just created a local timeSyncer\n");
 	my_Syncer. getMode (m);
 }
 

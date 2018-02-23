@@ -8,6 +8,8 @@ TARGET	= swreceiver-8.0
 QMAKE_CFLAGS	+= -ffast-math -g
 QMAKE_CXXFLAGS	+= -ffast-math -g
 QMAKE_LFLAGS	+= -g
+RC_ICONS        =  swradio.ico
+RESOURCES       += resources.qrc
 
 DEPENDPATH += .  \
 	      decimators \
@@ -90,7 +92,7 @@ SOURCES += ./main.cpp \
            ./decoders/virtual-decoder.cpp 
 
 unix {
-DESTDIR		= ../../linux-bin
+DESTDIR		= ./linux-bin
 CONFIG		+= sdrplay
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
@@ -105,6 +107,35 @@ LIBS		+= -L/lib64
 INCLUDEPATH	+= /usr/include/qt5/qwt
 LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
 }
+
+win32 {
+DESTDIR		= ../../../windows-bin
+CONFIG		+= sdrplay
+CONFIG		+= am-decoder
+CONFIG		+= ssb-decoder
+CONFIG		+= cw-decoder
+CONFIG		+= amtor-decoder
+CONFIG		+= psk-decoder
+CONFIG		+= rtty-decoder
+CONFIG		+= fax-decoder
+CONFIG		+= drm-decoder
+# includes in mingw differ from the includes in fedora linux
+INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include
+INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
+INCLUDEPATH += C:\msys32\mingw32\include\qwt
+LIBS    += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
+LIBS    += -lfftw3f
+LIBS    += -lportaudio
+LIBS    += -lqwt-qt5
+#LIBS    += -lqwt
+LIBS    += -lusb-1.0
+LIBS    += -lsndfile
+LIBS    += -lsamplerate
+LIBS    += -lole32
+#LIBS	+= -lfaad
+LIBS    += -lwinmm
+}
+
 
 #       the SDRplay
 #

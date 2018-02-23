@@ -88,7 +88,7 @@ int16_t	theMode;
 	      theMode = i;
 	   }
 	}
-//
+
 //	check if result is reliable */
 	bool	maxOK = true;			/* assume reliable */
 	if (gammaRelative < 0.5)
@@ -107,6 +107,7 @@ int16_t	theMode;
 	   result -> freqOffset_fract	= 0.0;
 	   return;
 	}
+//
 //
 //	OK, we seem to have a mode "theMode". The offset indicates the
 //	offset in the buffer, and from that we compute the timeoffset.
