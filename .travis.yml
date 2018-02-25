@@ -23,7 +23,6 @@ install:
 
   - cd swradio-8
   - cd faad2
-  - ./bootstrap
   - ./configure --with-drm
   - make
 
