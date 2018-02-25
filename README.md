@@ -1,4 +1,4 @@
-# swradio-8 [![Build Status](https://travis-ci.org/JvanKatwijk/swradio-8.svg?branch=master)](https://travis-ci.org/JvanKatwijk/sw-radio-8)
+# swradio-8 [![Build Status](https://travis-ci.org/JvanKatwijk/swradio-8.svg?branch=master)](https://travis-ci.org/JvanKatwijk/swradio-8)
 
 swradio is  Software for Linux for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
