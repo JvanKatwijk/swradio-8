@@ -24,7 +24,9 @@ that will appear when touching the Frequency select key.
 Specification  of a frequency is in kHz or mHz.
 Fine frequency selection - up to an accuracy of 1 Hz - is with the
 mousewheel (when the main widget is activated).
-The stepsize can be set from the main widget, default is 5Hz.
+The stepsize can be set from the main widget, default is 5 Hz
+
+Of course clicking the mouse on one of the two spectra will also apart the selected frequency.
 
 As a "quick" help, a button "middle" is present that, when pressed - will set the oscillator such
 that the selected frequency is in the middle of the right half of the spectrum display.
