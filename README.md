@@ -1,3 +1,4 @@
+# swradio-8 [![Build Status](https://travis-ci.org/JvanKatwijk/swradio-8.svg?branch=master)](https://travis-ci.org/JvanKatwijk/sw-radio-8)
 
 swradio is  Software for Linux for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
@@ -14,10 +15,24 @@ Introduction
 ------------------------------------------------------------------
 
 **swradio-8** is software (currently only running under Linux) for
-listening to short waves. The software supports a number of decoders
+listening to short waves. The software supports a number of decoders,
 often used by radio amateurs, such as psk, cw and rtty.
 swradio-8 is the result of rewriting and simplifying the set
 of sdr-j-sw programs.
+
+The program uses the SDRplay as input device, and is able to
+* dump the (decimated) input onto a file in PCM format;
+* use such a file as input.
+
+**Preferred frequencies** can be stored, together with a use defined label.
+A list of preferred programs (frequencies) can
+be maintained, the list is kept between program invocations.
+A selected frequency can be stored by pressing the save frequency button.
+If touched one is asked to specify a name to be used to label that frequency.
+The pair (name, frequency) then is added to the list.
+
+Selecting such a "preferred program" is just by clicking the mouse on 
+the programname or the associated field with the frequency.
 
 **Frequency selection** is with a keypad, separated from the main widget,
 that will appear when touching the Frequency select key.
@@ -54,14 +69,6 @@ One may select among a number of different filterings
 * am, used - as the name suggests - for am decoding, uses 9 k;
 * usb, used for smallband decoding in the upper side band, has a width of 2500 Hz;
 * lsb, used for ssb decoding is the lower sideband, has a width of 2500 Hz
-
-A list of preferred programs can be maintained,
-the list is kept between program invocations.
-The selected frequency can be stored by pressing the save frequency button.
-If touched one is asked to specify a name to be used to label that frequency.
-
-Selecting such a "preferred program" is just by clicking the mouse on 
-the programname or the associated field with the frequency.
 
 The input can be written to a file, that file can be processed later on.
 
