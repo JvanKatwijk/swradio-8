@@ -19,9 +19,9 @@ install:
 
    - sudo apt-get install autoconf
 
-   - git clone https://github.com/JvanKatwijk/swreceiver
+   - git clone https://github.com/JvanKatwijk/swradio-8
 
-   - cd swreceiver
+   - cd swradio-8
 
    - cd faad2
 
