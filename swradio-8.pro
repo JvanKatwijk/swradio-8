@@ -4,7 +4,7 @@
 TEMPLATE = app
 QT	+= widgets
 CONFIG	+= console
-TARGET	= swreceiver-8.0
+TARGET	= swradio-8.0
 QMAKE_CFLAGS	+= -ffast-math -g
 QMAKE_CXXFLAGS	+= -ffast-math -g
 QMAKE_LFLAGS	+= -g

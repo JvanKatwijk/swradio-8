@@ -30,23 +30,9 @@
 #include	<limits>
 #include	<stdlib.h>
 #include	<unistd.h>
-
-#define	QT_STATIC_CONST
-
-#ifndef __FREEBSD__
-#include	<malloc.h>
-#endif
-
-#ifdef __MINGW32__
-#include	"windows.h"
-#else
-#ifndef	__FREEBSD__
-#include	"alloca.h"
-#endif
 #include	"dlfcn.h"
+
 typedef	void	*HINSTANCE;
-#endif
-//
 //
 //
 typedef	std::complex<float>	DSPCOMPLEX;

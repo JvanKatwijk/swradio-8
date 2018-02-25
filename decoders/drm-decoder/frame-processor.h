@@ -25,6 +25,7 @@
 
 #include	<QThread>
 #include	<QString>
+#include	<atomic>
 #include	"radio-constants.h"
 #include	"ringbuffer.h"
 #include	"drm-decoder.h"

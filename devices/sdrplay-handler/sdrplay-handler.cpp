@@ -4,22 +4,22 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of Qt-DAB
+ *    This file is part of swradio-8
  *    Many of the ideas as implemented in Qt-DAB are derived from
  *    other work, made available through the GNU general Public License. 
  *    All copyrights of the original authors are recognized.
  *
- *    Qt-DAB is free software; you can redistribute it and/or modify
+ *    swradio-8 is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation version 2 of the License.
  *
- *    Qt-DAB is distributed in the hope that it will be useful,
+ *    swradio-8 is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with Qt-DAB if not, write to the Free Software
+ *    along with swradio-8 if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -93,6 +93,7 @@ ULONG APIkeyValue_length = 255;
 	if (Handle == NULL)
 	   Handle	= dlopen ("libmir_sdr.so", RTLD_NOW);
 
+	fprintf (stderr, "library loaded\n");
 	if (Handle == NULL) {
 	   fprintf (stderr, "error report %s\n", dlerror ());
 	   delete myFrame;
@@ -111,6 +112,7 @@ ULONG APIkeyValue_length = 255;
 	   delete myFrame;
 	   throw (23);
 	}
+
 	(void)my_mir_sdr_ApiVersion (&ver);
 	if (ver < 2.05) {
 	   fprintf (stderr, "sorry, library too old\n");

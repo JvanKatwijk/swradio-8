@@ -285,6 +285,14 @@ void	RadioInterface::setStart	(const QString &s) {
 	theDevice	-> restartReader ();
 }
 
+static inline
+int twoPower (int a) {
+int	res	= 1;
+	while (--a >= 0)
+	   res <<= 1;
+	return res;
+}
+
 virtualInput	*RadioInterface::selectDevice (const QString &s,
 	                                       RingBuffer<std::complex<float>> *hfBuffer) {
 
@@ -296,9 +304,11 @@ virtualInput *res;
 	   res  = new sdrplayHandler (this, inputRate, hfBuffer, settings);
 #endif
 	agc. set_bitDepth (res -> bitDepth ());
-	agc_thresholdSlider -> setMinimum (get_db (0, res -> bitDepth ()));
+	agc_thresholdSlider -> setMinimum (get_db (0,
+	                                     twoPower (res -> bitDepth ())));
         agc_thresholdSlider -> setMaximum (0);
-        agc_thresholdSlider -> setValue (get_db (0, res -> bitDepth ()));
+        agc_thresholdSlider -> setValue (get_db (0,
+	                                     twoPower (res -> bitDepth ())));
 	return res;
 }
 //
