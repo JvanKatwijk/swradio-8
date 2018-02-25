@@ -10,7 +10,7 @@ before_install:
 install: 
   -  sudo apt-get install qt4-qmake build-essential g++
   -  sudo apt-get install libsndfile1-dev qt4-default libfftw3-dev portaudio19-dev 
-  -  sudo apt-get install libfaad-dev zlib1g-dev libusb-1.0-0-dev mesa-common-dev
+  -  sudo apt-get install zlib1g-dev libusb-1.0-0-dev mesa-common-dev
   - sudo apt-get install libgl1-mesa-dev libqt4-opengl-dev libsamplerate-dev libqwt-dev
 
   - sudo apt-get install libtool
@@ -39,7 +39,7 @@ install:
   - cp swradio.png appdir/qt-dab.png
   - touch appdir/swradio.png # Dear upstream developers, please provide an application icon
   - ls -l appdir/usr/lib
-after_success:
+  - # after_success:
   - ls -l
   - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" 
   - chmod a+x linuxdeployqt*.AppImage
