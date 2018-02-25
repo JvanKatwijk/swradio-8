@@ -26,7 +26,6 @@ Fine frequency selection - up to an accuracy of 1 Hz - is with the
 mousewheel (when the main widget is activated).
 The stepsize can be set from the main widget, default is 5Hz.
 
-
 As a "quick" help, a button "middle" is present that, when pressed - will set the oscillator such
 that the selected frequency is in the middle of the right half of the spectrum display.
 
@@ -75,8 +74,9 @@ Linux
 ![swradio-8](Screenshot-swradio-2.png?raw=true)
 Example of use of the drm decoder.
 
-The current version is developed under Linux (Fedora). In this version
-there is no support (yet) for use under Windows.
+The current version is developed under Linux (Fedora). A cross compiled version
+for Windows (no garantees) is available in the releases section. This version will
+run in the same environment (i.e. folder, directory) as the qt-dab software.
 
 To build a version, adapt the swradio-8.pro file.
 Note that for drm a special version of the faad library,
@@ -129,8 +129,8 @@ Example of "listening" to a transmission of a weatherfax on shortwave.
 	Jan van Katwijk (J.vanKatwijk@gmail.com)
 	Lazy Chair Computing
 
-	The Qt-DAB software is made available under the GPL-2.0.
-	The SDR-J software, of which the Qt-DAB software is a part, 
+	The swradio software is made available under the GPL-2.0.
+	The SDR-J software, of which the sw-radio software is a part, 
 	is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
