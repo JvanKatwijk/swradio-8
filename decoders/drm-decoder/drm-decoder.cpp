@@ -91,7 +91,7 @@ int16_t	symbs;
 	my_frameProcessor	-> start	();
 	setDetectorMarker	(0);
 	currentPhase		= 0;
-
+	phaseOffset		= 0;
 }
 
 	drmDecoder::~drmDecoder		(void) {
