@@ -14,8 +14,9 @@ Example of use of the cw decoder.
 Introduction
 ------------------------------------------------------------------
 
-**swradio-8** is software (currently only running under Linux) for
-listening to short waves. The software supports a number of decoders,
+**swradio-8** is software (both Linux and Windows) for
+listening to short waves  and amateur radio.
+The software supports a number of decoders,
 often used by radio amateurs, such as psk, cw and rtty.
 swradio-8 is the result of rewriting and simplifying the set
 of sdr-j-sw programs.
@@ -46,10 +47,11 @@ Of course clicking the mouse on one of the two spectra will also apart the selec
 As a "quick" help, a button "middle" is present that, when pressed - will set the oscillator such
 that the selected frequency is in the middle of the right half of the spectrum display.
 
+**Waterfall displays **
 Note that clicking the right mouse button on any of the two displays, that display will switch from spectrum
 to waterfall display (or vice-versa).
 
-Supported decoders are:
+** Decoders ** are:
 * am
 * ssb, with selection for usb or lsb;
 * psk, with selection of a variety of modes and settings;
@@ -60,7 +62,7 @@ Supported decoders are:
 * weatherfax decoder, with selection of a variety of settings.
 
 As can be seen from the pictures, the main widget has two displays, one with a
-width of 96k ( this width can be changed in the settings)
+width of 96k (this width can be changed in the settings)
 showing the spectrum of the incoming data,
 the bottom one width a width of 12k -
 showing the spectrum of the data sent to the decoder, i.e. after being
@@ -73,6 +75,17 @@ One may select among a number of different filterings
 * lsb, used for ssb decoding is the lower sideband, has a width of 2500 Hz
 
 The input can be written to a file, that file can be processed later on.
+
+**SDRplay and frequencies **
+
+The frequency to which the SDRplay oscillator will be set will be
+the one in the middle of the "large" display. Any offset of a selected
+frequency to this oscillator frequency will be handled in software.
+
+The SDRplay supports samplerates of 2M and up. Therefore, for selecting
+a frequency below 1 Mhz, the SDRplay oscillator will run on (slightly above)
+1 Mhz, and the device handler will use a software oscillator/mixer to tune to
+the selected frequency.
 
 The function of each button and slider in the widget(s) is described in the
 tooltip for that button (slider)
