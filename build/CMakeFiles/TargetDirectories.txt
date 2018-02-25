@@ -1,0 +1,2 @@
+/home/jan/swradio-8/build/CMakeFiles/swradio-8.dir
+/home/jan/swradio-8/build/CMakeFiles/uninstall.dir

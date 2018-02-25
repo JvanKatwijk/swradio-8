@@ -235,7 +235,7 @@ drm-decoder {
                            ./decoders/drm-decoder/msc \
 	                   ./decoders/drm-decoder/sdc \
 	                   ./decoders/drm-decoder/fac \
-	                   ./decoders/drm-decoder/data
+	                   ./decoders/drm-decoder/data \
 	                   ./decoders/drm-decoder/input
 	INCLUDEPATH	+= ./decoders/drm-decoder/ \
 	                   ./decoders/drm-decoder/signal-handling \

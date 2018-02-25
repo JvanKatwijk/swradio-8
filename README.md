@@ -25,7 +25,8 @@ The program uses the SDRplay as input device, and is able to
 * dump the (decimated) input onto a file in PCM format;
 * use such a file as input.
 
-**Preferred frequencies** can be stored, together with a use defined label.
+**Preferred frequencies**
+can be stored, together with a use defined label.
 A list of preferred programs (frequencies) can
 be maintained, the list is kept between program invocations.
 A selected frequency can be stored by pressing the save frequency button.
@@ -35,7 +36,8 @@ The pair (name, frequency) then is added to the list.
 Selecting such a "preferred program" is just by clicking the mouse on 
 the programname or the associated field with the frequency.
 
-**Frequency selection** is with a keypad, separated from the main widget,
+**Frequency selection**
+is with a keypad, separated from the main widget,
 that will appear when touching the Frequency select key.
 Specification  of a frequency is in kHz or mHz.
 Fine frequency selection - up to an accuracy of 1 Hz - is with the

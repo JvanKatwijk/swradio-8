@@ -62,12 +62,14 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	set(CMAKE_INCLUDE_CURRENT_DIR ON)
 	find_package(Qt4 REQUIRED COMPONENTS QtCore QtNetwork)
 	include(${QT_USE_FILE})
-
 	find_package(QWT REQUIRED)
+
+	find_package(Qwt)
         if (NOT QWT_FOUND)
             message(FATAL_ERROR "please install qwt library")
         endif ()
-        include_directories ( ${QWT_INCLUDE_DIRS})
+	include_directories ( ${QWT_INCLUDE_DIRS})
+        list(APPEND extraLibs ${QWT_LIBRARIES})
 
         find_package(FFTW3f)
         if (NOT FFTW3F_FOUND)
