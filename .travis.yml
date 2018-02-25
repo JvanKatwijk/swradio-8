@@ -13,33 +13,29 @@ install:
   -  sudo apt-get install libfaad-dev zlib1g-dev libusb-1.0-0-dev mesa-common-dev
   - sudo apt-get install libgl1-mesa-dev libqt4-opengl-dev libsamplerate-dev libqwt-dev
 
-   - sudo apt-get install libtool
+  - sudo apt-get install libtool
 
-   - sudo apt-get install git
+  - sudo apt-get install git
 
-   - sudo apt-get install autoconf
+  - sudo apt-get install autoconf
 
-   - git clone https://github.com/JvanKatwijk/swradio-8
+  - git clone https://github.com/JvanKatwijk/swradio-8
 
-   - cd swradio-8
+  - cd swradio-8
+  - cd faad2
+  - ./bootstrap
+  - ./configure --with-drm
+  - make
 
-   - cd faad2
+  - sudo make install
 
-   - ./bootstrap
+  - sudo ldconfig
 
-   - ./configure --with-drm
+  - cd ..
 
-   - make
+  - cp CMakeLists.txt-qt4 CMakeLists.txt
 
-   - sudo make install
-
-   - sudo ldconfig
-
-   - cd ..
-
-   - cp CMakeLists.txt-qt4 CMakeLists.txt
-
-   - cmake . -DCMAKE_INSTALL_PREFIX=/usr
+  - cmake . -DCMAKE_INSTALL_PREFIX=/usr
 
    - make -j4
 
