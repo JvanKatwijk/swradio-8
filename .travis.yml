@@ -19,9 +19,6 @@ install:
 
   - sudo apt-get install autoconf
 
-  - git clone https://github.com/JvanKatwijk/swradio-8
-
-  - cd swradio-8
   - cd faad2
   - ./configure --with-drm
   - make
