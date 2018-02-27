@@ -30,9 +30,16 @@
 #include	<limits>
 #include	<stdlib.h>
 #include	<unistd.h>
-#include	"dlfcn.h"
+#ifdef __MINGW32__
+#define CURRENT_VERSION         "7.30:x32-Windows"
+#include        "windows.h"
+#else
+#include        "alloca.h"
+#define CURRENT_VERSION         "7.30:x32-Linux"
+#include        "dlfcn.h"
+typedef void    *HINSTANCE;
+#endif
 
-typedef	void	*HINSTANCE;
 //
 //
 typedef	std::complex<float>	DSPCOMPLEX;
