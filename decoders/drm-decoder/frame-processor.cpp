@@ -150,8 +150,6 @@ uint8_t	Spectrum	= m -> Spectrum;
 	my_mscConfig		= new mscConfig	(Mode, Spectrum);
 	my_facData		= new facData	(mr, my_mscConfig);
 //
-	fprintf (stderr, "we assume mode %d, spectrum %d\n",
-	                                      Mode, Spectrum);
 	my_Equalizer 		= new equalizer_1 (Mode,
 	                                           Spectrum, windowDepth);
 	my_facProcessor		= new facProcessor (Mode,
@@ -774,7 +772,6 @@ struct facElement *facTable     = getFacTableforMode (m -> Mode);
 
 void	frameProcessor::getMode (Reader *my_Reader, smodeInfo *m) {
 timeSyncer  my_Syncer (my_Reader, sampleRate,  nSymbols);
-	fprintf (stderr, "just created a local timeSyncer\n");
 	my_Syncer. getMode (m);
 }
 

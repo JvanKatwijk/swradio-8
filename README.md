@@ -26,9 +26,9 @@ The program uses the SDRplay as input device, and is able to
 * use such a file as input.
 
 **Preferred frequencies**
-can be stored, together with a use defined label.
-A list of preferred programs (frequencies) can
-be maintained, the list is kept between program invocations.
+can be stored, together with a user defined label (a program name).
+A list of preferred frequencies (programs) is
+maintained, the list is kept between program invocations.
 A selected frequency can be stored by pressing the save frequency button.
 If touched one is asked to specify a name to be used to label that frequency.
 The pair (name, frequency) then is added to the list.
@@ -44,7 +44,8 @@ Fine frequency selection - up to an accuracy of 1 Hz - is with the
 mousewheel (when the main widget is activated).
 The stepsize can be set from the main widget, default is 5 Hz
 
-Of course clicking the mouse on one of the two spectra will also apart the selected frequency.
+Of course clicking the mouse on one of the two spectra will also select the
+selected frequency pointed to.
 
 As a "quick" help, a button "middle" is present that, when pressed - will set the oscillator such
 that the selected frequency is in the middle of the right half of the spectrum display.
@@ -99,12 +100,13 @@ Linux
 Example of use of the drm decoder.
 
 The current version is developed under Linux (Fedora). A cross compiled version
-for Windows (no garantees) is available in the releases section. This version will
+for Windows (no garantees) is available in the releases section.
+This version will
 run in the same environment (i.e. folder, directory) as the qt-dab software.
 
 To build a version, adapt the swradio-8.pro file.
-Note that for drm a special version of the faad library,
-obviosuly incompatible with the regular one has to be created.
+Note that for DRM decoding a special version of the faad library,
+obviously incompatible with the regular one, has to be created.
 
 Select - or deselect - decoders:
 
@@ -120,7 +122,17 @@ Select - or deselect - decoders:
 The "DESTDIR" parameter in the unix section in the ".pro" file tells where the result is to be put.
 
 -------------------------------------------------------------------------
+
+Windows
+
 -------------------------------------------------------------------------
+
+The releases section contains a zip file with an executable of swradio-8 
+and the required dll's. Note that the library for SDRplay support is not
+included, one has to obtain that from SDRplay.com
+
+-------------------------------------------------------------------------
+--------------------------------------------------------------------------
 
 ![swradio-8](/Screenshot-swradio-3.png?raw=true)
 Example of use of the psk decoder.
