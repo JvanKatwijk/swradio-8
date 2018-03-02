@@ -54,3 +54,5 @@ install:
   - curl --upload-file ./swradio*.AppImage https://transfer.sh/swradio-8.$(git rev-parse --short HEAD)-x86_64.AppImage
   - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
   - bash ./upload.sh ./swradio*.AppImage
+  - ls -l /home/travis/.travis
+  - cat /home/travis/.travis/job_stages
