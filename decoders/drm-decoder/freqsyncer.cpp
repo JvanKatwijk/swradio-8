@@ -133,7 +133,7 @@ uint8_t	spectrum;
 	   occupancyIndicator [i] = get_spectrumOccupancy (i, binNumber);
 	        
 	float tmp1	= 0.0;
-	for (spectrum = 0; spectrum < 4; spectrum ++) {	
+	for (spectrum = 1; spectrum < 4; spectrum ++) {	
 	   if (occupancyIndicator [spectrum] >= tmp1) {
 	      tmp1 = occupancyIndicator [spectrum];
 	      m -> Spectrum = spectrum;

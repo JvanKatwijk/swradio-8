@@ -35,7 +35,7 @@
 #include	"viterbi-drm.h"
 
 //	The main driving class is the frameprocessor. It is
-//	implemented as a thread and will control:
+//	implemented as running in a thread and will control:
 //	a. initial synchronization and resynchronization after sync failures
 //	b. getting synchronized data for the frames
 //	b. assembling the FAC and SDC,
@@ -186,25 +186,7 @@ int16_t		symbol_no	= 0;
 bool		frameReady;
 int16_t		missers;
 //
-////	inbank and outbank have dimensions satisfying the need of the
-////	most "hungry" modes
-//	inbank		= new DSPCOMPLEX *[symbolsperFrame (Mode_C)];
-//	for (i = 0; i < symbolsperFrame (Mode_C); i ++) {
-//	   int16_t t	= Kmax (Mode_A, modeInf. Spectrum) -
-//	                        Kmin (Mode_A, modeInf. Spectrum) + 1;
-//	   inbank [i]	= new DSPCOMPLEX [t];
-//	   memset (inbank [i], 0, t * sizeof (DSPCOMPLEX));
-//	}
-//
-//	outbank		= new theSignal *[symbolsperFrame (Mode_C)];
-//	for (i = 0; i < symbolsperFrame (Mode_C); i ++) {
-//	   int16_t t	= Kmax (Mode_A, modeInf. Spectrum) -
-//	                        Kmin (Mode_A, modeInf. Spectrum) + 1;
-//	   outbank [i]	= new theSignal [t];
-//	   memset (outbank [i], 0, t * sizeof (theSignal));
-//	}
-//
-	taskMayRun. store (true);		// will be set from elsewhere to false
+	taskMayRun. store (true);	// will be set from elsewhere to false
 //
 //	It is cruel, but alas. Task termination is quite complex
 //	in Qt (a task has to commit suicide on a notification from
@@ -251,12 +233,12 @@ restart:
 	                                         time_offset_integer;
 
 //	and create a reader/processor
+	   frequencySync (mr, &my_Reader, &modeInf);
            my_wordCollector     = new wordCollector (&my_Reader,
 	                                             sampleRate,
                                                      modeInf. Mode,
                                                      modeInf. Spectrum, mr);
 
-	   frequencySync (mr, &my_Reader, &modeInf);
 	
 	   int32_t intOffset	= modeInf. freqOffset_integer;
 	   setTimeSync	(true);
