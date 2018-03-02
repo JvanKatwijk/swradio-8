@@ -10,17 +10,18 @@ before_install:
 install: 
   - sudo apt-get install qt4-qmake build-essential g++
   - sudo apt-get install libsndfile1-dev qt4-default libfftw3-dev portaudio19-dev 
-  - sudo apt-get install libfaad-dev zlib1g-dev libusb-1.0-0-dev mesa-common-dev
+  - sudo apt-get install zlib1g-dev libusb-1.0-0-dev mesa-common-dev
   - sudo apt-get install libgl1-mesa-dev libqt4-opengl-dev libsamplerate-dev libqwt-dev
 
-  -  #sudo apt-get install libtool
-  -  #sudo apt-get install autoconf
-  -  #cd faad2
-  -  #./configure --with-drm
-  -  # make
-  -  #sudo make install
-  -  #sudo ldconfig
-  -  #cd ..
+  -  sudo apt-get install libtool
+  -  sudo apt-get install autoconf
+  -  cd faad2
+  - ./bootstrap
+  - ./configure --with-drm
+  -  make
+  -  sudo make install
+  -  sudo ldconfig
+  -  cd ..
   - cp CMakeLists.txt-qt4 CMakeLists.txt
   - cmake . -DCMAKE_INSTALL_PREFIX=/usr
   - make -j4
