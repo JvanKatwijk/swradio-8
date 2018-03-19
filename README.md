@@ -57,11 +57,11 @@ selected frequency pointed to.
 As a "quick" help, a button "middle" is present that, when pressed - will set the oscillator such
 that the selected frequency is in the middle of the right half of the spectrum display.
 
-**Waterfall displays **
+**Waterfall displays**
 Note that clicking the right mouse button on any of the two displays, that display will switch from spectrum
 to waterfall display (or vice-versa).
 
-** Decoders ** are:
+**Decoders** are:
 * am
 * ssb, with selection for usb or lsb;
 * psk, with selection of a variety of modes and settings;
@@ -86,7 +86,7 @@ One may select among a number of different filterings:
 
 The input can be written to a file, that file can be processed later on.
 
-**SDRplay and frequencies **
+**SDRplay and frequencies**
 
 The frequency to which the SDRplay oscillator will be set will be
 the one in the middle of the "large" display. Any offset of a selected
@@ -158,7 +158,7 @@ Example of "listening" to the dutch coastguard with amtor (old picture)
 
 --------------------------------------------------------------------------
 ----------------------------------------------------------------------
-----
+
 ![swradio-8](/swradio-fax.png?raw=true)
 Example of "listening" to a transmission of a weatherfax on shortwave.
 
