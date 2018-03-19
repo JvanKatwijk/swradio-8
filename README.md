@@ -7,7 +7,7 @@ It is a rewrite and simplification of sdr-j-sw.
              THIS IS WORK IN PROGRESS
 
 
-![swradio-8 with SDRplay as device](/Screenshot-swradio-1.png?raw=true)
+![swradio-8 with SDRplay as device](/swradio-cw.png?raw=true)
 Example of use of the cw decoder.
 
 ------------------------------------------------------------------
@@ -15,7 +15,7 @@ Introduction
 ------------------------------------------------------------------
 
 **swradio-8** is software (both Linux and Windows) for
-listening to short waves  and amateur radio.
+listening to short waves and amateur radio.
 The software supports a number of decoders,
 often used by radio amateurs, such as psk, cw and rtty.
 swradio-8 is the result of rewriting and simplifying the set
@@ -24,6 +24,13 @@ of sdr-j-sw programs.
 The program uses the SDRplay as input device, and is able to
 * dump the (decimated) input onto a file in PCM format;
 * use such a file as input.
+
+If an SDRplay device is connected to the computer where the program runs,
+the device will be connected and opened. If no device is connected,
+it is assumed that file input is requested (Note: this currently
+only applies to the Gnu/Linux version, the Windows version still
+has a device selector).
+
 
 **Preferred frequencies**
 can be stored, together with a user defined label (a program name).
@@ -96,7 +103,7 @@ tooltip for that button (slider)
 ------------------------------------------------------------------
 Linux
 ------------------------------------------------------------------
-![swradio-8](Screenshot-swradio-2.png?raw=true)
+![swradio-8](swradio-drm.png?raw=true)
 Example of use of the drm decoder.
 
 The current version is developed under Linux (Fedora). A cross compiled version
@@ -134,7 +141,7 @@ included, one has to obtain that from SDRplay.com
 -------------------------------------------------------------------------
 --------------------------------------------------------------------------
 
-![swradio-8](/Screenshot-swradio-3.png?raw=true)
+![swradio-8](/swradio-psk.png?raw=true)
 Example of use of the psk decoder.
 
 --------------------------------------------------------------------------
@@ -152,7 +159,7 @@ Example of "listening" to the dutch coastguard with amtor.
 --------------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----
-![swradio-8](/Screenshot-swradio-6.png?raw=true)
+![swradio-8](/swradio-fax.png?raw=true)
 Example of "listening" to a transmission of a weatherfax on shortwave.
 
 --------------------------------------------------------------------------

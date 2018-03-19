@@ -30,7 +30,7 @@ install:
   - cp swradio-8 appdir/usr/bin/swradio-8 
   - mkdir -p appdir/usr/lib
   - mkdir -p appdir/usr/share/applications ; cp swradio.desktop appdir/usr/share/applications
-  - cp swradio.png appdir/qt-dab.png
+  - cp swradio.png appdir/swradio.png
   - touch appdir/swradio.png # Dear upstream developers, please provide an application icon
   - ls -l appdir/usr/lib
   - # after_success:
