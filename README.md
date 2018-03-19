@@ -78,7 +78,7 @@ the bottom one width a width of 12k -
 showing the spectrum of the data sent to the decoder, i.e. after being
 filtered and shifted.
 
-One may select among a number of different filterings
+One may select among a number of different filterings:
 * wide, used for e.g. DRM decoding, uses the full 12 k bandwidth;
 * am, used - as the name suggests - for am decoding, uses 9 k;
 * usb, used for smallband decoding in the upper side band, has a width of 2500 Hz;
@@ -148,13 +148,13 @@ Example of use of the psk decoder.
 --------------------------------------------------------------------------
 
 ![swradio-8](/Screenshot-swradio-4.png?raw=true)
-Example of use of the ssb decoder (lsb selected with an lsb bandfilter).
+Example of use of the ssb decoder (old picture) (lsb selected with an lsb bandfilter).
 
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
 
 ![swradio-8](/Screenshot-swradio-5.png?raw=true)
-Example of "listening" to the dutch coastguard with amtor.
+Example of "listening" to the dutch coastguard with amtor (old picture)
 
 --------------------------------------------------------------------------
 ----------------------------------------------------------------------
