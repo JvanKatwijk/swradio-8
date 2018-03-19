@@ -111,7 +111,7 @@ private:
         void            adjust          (int32_t);
 	
 private slots:
-        virtualInput	*selectDevice		(const QString &,
+        virtualInput	*setDevice		(const QString &,
 	                                     RingBuffer<std::complex<float>> *);
         void            adjustFrequency_hz	(int);
         void            adjustFrequency_khz	(int);
@@ -128,17 +128,18 @@ private slots:
 	void		set_inMiddle		(void);
 	void		set_freqSave		(void);
 	void		handle_quitButton	(void);
-	void		setStart		(const QString &);
 	void		set_agcThresholdSlider  (int);
 	void		set_AGCMode             (const QString &);
 	void		switch_hfViewMode	(int);
 	void		switch_lfViewMode	(int);
 	void		updateTime		(void);
 	void		set_dumpButton		(void);
+	void		closeEvent		(QCloseEvent *event);
 public slots:
 	void		sampleHandler		(int amount);
         void            processAudio		(int, int);
 	void		setDetectorMarker	(int);
+
 };
 
 #endif

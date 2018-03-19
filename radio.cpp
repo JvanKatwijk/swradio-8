@@ -41,9 +41,7 @@
 //      devices
 #include        "virtual-input.h"
 #include        "filereader.h"
-#ifdef  HAVE_SDRPLAY
 #include        "sdrplay-handler.h"
-#endif
 //
 //	decoders
 #include	"virtual-decoder.h"
@@ -72,6 +70,15 @@
 #include	"drm-decoder.h"
 #endif
 
+
+static inline
+int twoPower (int a) {
+int	res	= 1;
+	while (--a >= 0)
+	   res <<= 1;
+	return res;
+}
+
 	RadioInterface::RadioInterface (QSettings	*sI,
 	                                QString		stationList,
 	                                int		inputRate,
@@ -98,13 +105,6 @@
         audioData       = new RingBuffer<std::complex<float>> (audioRate);
 
 	agc. setMode (agcHandler::AGC_OFF);
-
-//	setup the devices
-	deviceTable	-> addItem ("filereader");
-#ifdef	HAVE_SDRPLAY
-	deviceTable	-> addItem ("sdrplay");
-#endif
-//
 //	and the decoders
 	theDecoder	= new virtualDecoder (decoderRate,
 	                                      audioData);
@@ -195,8 +195,6 @@
 	}
 	audioHandler -> selectDefaultDevice ();
 
-        connect (deviceTable, SIGNAL (activated (const QString &)),
-                 this, SLOT (setStart (const QString &)));
         connect (decoderTable, SIGNAL (activated (const QString &)),
                  this, SLOT (selectDecoder (const QString &)));
 
@@ -209,9 +207,6 @@
 
 	connect (bandSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (setBand (const QString &)));
-
-	connect (quitButton, SIGNAL (clicked (void)),
-                 this, SLOT (handle_quitButton (void)));
 
 	connect (mouse_Inc, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_mouseIncrement (int)));
@@ -244,6 +239,24 @@
 	connect (&secondsTimer, SIGNAL (timeout (void)),
                  this, SLOT (updateTime (void)));
         secondsTimer. start (1000);
+
+	theDevice	= setDevice (" ", inputData);
+	if (theDevice == NULL) {
+	   QMessageBox::warning (this, tr ("sdr"),
+	                               tr ("No Device\n"));
+	   exit (22);
+	}
+
+	agc. set_bitDepth (theDevice -> bitDepth ());
+	agc_thresholdSlider -> setMinimum (get_db (0,
+	                                   twoPower (theDevice -> bitDepth ())));
+        agc_thresholdSlider -> setMaximum (0);
+        agc_thresholdSlider -> setValue (get_db (0,
+	                                 twoPower (theDevice -> bitDepth ())));
+	connect (theDevice, SIGNAL (dataAvailable (int)),
+	         this, SLOT (sampleHandler (int)));
+//	and off we go
+	theDevice	-> restartReader ();
 }
 
 //      The end of all
@@ -265,50 +278,25 @@ void	RadioInterface::handle_quitButton	(void) {
 	myList          -> saveTable ();
 	myList		-> hide ();
 	delete	theDecoder;
-	close ();
 }
 
-//	Note that to simplify things, we select a device once
-//	at program start
-void	RadioInterface::setStart	(const QString &s) {
-	try {
-	   theDevice	= selectDevice (s, inputData);
-	} catch (int e) {
-	   return;
-	}
 
-	deviceTable	-> hide ();
-	connect (theDevice, SIGNAL (dataAvailable (int)),
-	         this, SLOT (sampleHandler (int)));
-//
-//	and off we go
-	theDevice	-> restartReader ();
-}
 
-static inline
-int twoPower (int a) {
-int	res	= 1;
-	while (--a >= 0)
-	   res <<= 1;
-	return res;
-}
-
-virtualInput	*RadioInterface::selectDevice (const QString &s,
+virtualInput	*RadioInterface::setDevice (const QString &s,
 	                                       RingBuffer<std::complex<float>> *hfBuffer) {
 
-virtualInput *res;
-	if (s == "filereader")
-	   res	= new fileReader (this, inputRate, hfBuffer, settings);
-#ifdef	HAVE_SDRPLAY
-	else
+virtualInput *res	= NULL;
+	(void)s;
+	try {
 	   res  = new sdrplayHandler (this, inputRate, hfBuffer, settings);
-#endif
-	agc. set_bitDepth (res -> bitDepth ());
-	agc_thresholdSlider -> setMinimum (get_db (0,
-	                                     twoPower (res -> bitDepth ())));
-        agc_thresholdSlider -> setMaximum (0);
-        agc_thresholdSlider -> setValue (get_db (0,
-	                                     twoPower (res -> bitDepth ())));
+	} catch (int e) {}
+
+	if (res == NULL) {
+	   try {
+	      res	= new fileReader (this, inputRate, hfBuffer, settings);
+	   } catch (int e) {}
+	}
+
 	return res;
 }
 //
@@ -667,3 +655,20 @@ SF_INFO	*sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 
 	dumpButton		-> setText ("WRITING");
 }
+
+#include <QCloseEvent>
+void RadioInterface::closeEvent (QCloseEvent *event) {
+
+        QMessageBox::StandardButton resultButton =
+                        QMessageBox::question (this, "dabRadio",
+                                               tr("Are you sure?\n"),
+                                               QMessageBox::No | QMessageBox::Yes,
+                                               QMessageBox::Yes);
+        if (resultButton != QMessageBox::Yes) {
+           event -> ignore();
+        } else {
+           handle_quitButton ();
+           event -> accept ();
+        }
+}
+

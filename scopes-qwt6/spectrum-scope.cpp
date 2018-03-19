@@ -26,7 +26,7 @@
 	spectrumScope::spectrumScope (QwtPlot *plot, int16_t displaySize):
 	                                      virtualScope (plot, displaySize) {
 
-	plotgrid	-> setCanvasBackground (Qt::blue);
+	plotgrid	-> setCanvasBackground (Qt::black);
 	grid		= new QwtPlotGrid;
 #if defined QWT_VERSION && ((QWT_VERSION >> 8) < 0x0601)
 	grid		-> setMajPen (QPen(Qt::white, 0, Qt::DotLine));
@@ -53,10 +53,10 @@
 	
 	Marker		= new QwtPlotMarker ();
 	Marker		-> setLineStyle (QwtPlotMarker::VLine);
-	Marker		-> setLinePen (QPen (Qt::red));
+	Marker		-> setLinePen (QPen (Qt::white));
 	Marker		-> attach (plotgrid);
 	QwtText MarkerLabel             = QwtText ("label");
-        MarkerLabel. setColor (Qt::red);
+        MarkerLabel. setColor (Qt::white);
         Marker          -> setLabel (MarkerLabel);
         Marker          -> attach (plotgrid);
 	oldmarkerValue	= -1;
@@ -142,11 +142,11 @@ double binVal = 0;
 	   QFont *font1	= new QFont ("Courier New");
 	   font1	-> setPixelSize (30);;
 	   MarkerLabel.    setFont (*font1);
-	   MarkerLabel.    setColor (Qt::black);
+	   MarkerLabel.    setColor (Qt::white);
 	   Marker       -> detach ();
 	   Marker       = new QwtPlotMarker ();
 	   Marker       -> setLineStyle (QwtPlotMarker::VLine);
-	   Marker       -> setLinePen (QPen (Qt::black, 3.0));
+	   Marker       -> setLinePen (QPen (Qt::white, 3.0));
 	   Marker       -> setLabel (MarkerLabel);
 	   Marker       -> attach (plotgrid);
 	   Marker       -> setXValue (markerValue);
