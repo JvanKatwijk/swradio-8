@@ -153,7 +153,7 @@ Example of use of the ssb decoder (old picture) (lsb selected with an lsb bandfi
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
 
-![swradio-8](/Screenshot-swradio-5.png?raw=true)
+![swradio-8](/screenshot-amtor.png?raw=true)
 Example of "listening" to the dutch coastguard with amtor (old picture)
 
 --------------------------------------------------------------------------

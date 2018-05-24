@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>713</width>
+    <width>689</width>
     <height>438</height>
    </rect>
   </property>
@@ -17,9 +17,9 @@
    <widget class="QwtPlot" name="hfSpectrum">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>40</x>
       <y>50</y>
-      <width>671</width>
+      <width>631</width>
       <height>181</height>
      </rect>
     </property>
@@ -30,7 +30,7 @@
    <widget class="QSlider" name="hfScopeSlider">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>50</y>
       <width>24</width>
       <height>161</height>
@@ -43,9 +43,9 @@
    <widget class="QwtPlot" name="lfSpectrum">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>150</x>
       <y>240</y>
-      <width>551</width>
+      <width>521</width>
       <height>171</height>
      </rect>
     </property>
@@ -66,9 +66,9 @@
    <widget class="QComboBox" name="decoderTable">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>0</y>
-      <width>151</width>
+      <x>10</x>
+      <y>270</y>
+      <width>111</width>
       <height>21</height>
      </rect>
     </property>
@@ -84,7 +84,7 @@
    <widget class="QLCDNumber" name="frequencyDisplay">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>30</x>
       <y>0</y>
       <width>211</width>
       <height>51</height>
@@ -103,10 +103,10 @@
    <widget class="QPushButton" name="freqButton">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>240</y>
-      <width>101</width>
-      <height>51</height>
+      <x>10</x>
+      <y>310</y>
+      <width>111</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -119,9 +119,9 @@
    <widget class="QComboBox" name="bandSelector">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>350</y>
-      <width>101</width>
+      <width>111</width>
       <height>21</height>
      </rect>
     </property>
@@ -152,7 +152,7 @@
    <widget class="QComboBox" name="streamOutSelector">
     <property name="geometry">
      <rect>
-      <x>540</x>
+      <x>510</x>
       <y>0</y>
       <width>151</width>
       <height>21</height>
@@ -165,10 +165,10 @@
    <widget class="QPushButton" name="freqSave">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>320</y>
-      <width>101</width>
-      <height>31</height>
+      <x>10</x>
+      <y>330</y>
+      <width>111</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -181,10 +181,10 @@
    <widget class="QPushButton" name="middleButton">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>290</y>
-      <width>101</width>
-      <height>31</height>
+      <width>111</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -197,9 +197,9 @@
    <widget class="QSpinBox" name="mouse_Inc">
     <property name="geometry">
      <rect>
-      <x>400</x>
-      <y>20</y>
-      <width>96</width>
+      <x>10</x>
+      <y>250</y>
+      <width>111</width>
       <height>21</height>
      </rect>
     </property>
@@ -213,9 +213,9 @@
    <widget class="QComboBox" name="AGC_select">
     <property name="geometry">
      <rect>
-      <x>290</x>
+      <x>260</x>
       <y>0</y>
-      <width>101</width>
+      <width>141</width>
       <height>21</height>
      </rect>
     </property>
@@ -241,8 +241,8 @@
    <widget class="QSpinBox" name="agc_thresholdSlider">
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>20</y>
+      <x>400</x>
+      <y>0</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -260,7 +260,7 @@
    <widget class="QLabel" name="timeDisplay">
     <property name="geometry">
      <rect>
-      <x>550</x>
+      <x>520</x>
       <y>20</y>
       <width>141</width>
       <height>16</height>
@@ -273,7 +273,7 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>10</y>
       <width>21</width>
       <height>21</height>
@@ -297,9 +297,9 @@
    <widget class="QPushButton" name="dumpButton">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>370</y>
-      <width>101</width>
+      <width>111</width>
       <height>41</height>
      </rect>
     </property>

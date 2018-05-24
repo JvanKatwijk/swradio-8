@@ -1,0 +1,6 @@
+*.o
+.*.swp
+build
+linux-bin
+
+

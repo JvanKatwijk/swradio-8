@@ -51,12 +51,12 @@ HEADERS += ./radio-constants.h \
            ./filters/fft-filters.h \
            ./filters/fir-filters.h \
            ./filters/iir-filters.h \
+	   ./filters/decimating_filter.h \
 	   ./scopes-qwt6/virtual-scope.h \
 	   ./scopes-qwt6/spectrogramdata.h \
 	   ./scopes-qwt6/waterfall-scope.h \
 	   ./scopes-qwt6/spectrum-scope.h \
            ./scopes-qwt6/fft-scope.h \
-	   ./decimators/decimator.h \
 	   ./devices/virtual-input.h \
            ./devices/filereader/filereader.h \
            ./devices/filereader/filehulp.h \
@@ -81,6 +81,7 @@ SOURCES += ./main.cpp \
            ./filters/fft-filters.cpp \
            ./filters/fir-filters.cpp \
            ./filters/iir-filters.cpp \
+	   ./filters/decimating_filter.cpp \
 	   ./scopes-qwt6/virtual-scope.cpp \
 	   ./scopes-qwt6/waterfall-scope.cpp \
 	   ./scopes-qwt6/spectrum-scope.cpp \
