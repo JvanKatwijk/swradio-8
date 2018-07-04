@@ -43,7 +43,7 @@
 #include	"s-meter.h"
 #include        "agchandler.h"
 
-class           virtualInput;
+class		deviceInput;
 class           virtualDecoder;
 class           downConverter;
 class           upConverter;
@@ -83,7 +83,7 @@ private:
         double          *displayBuffer;
         audioSink       *audioHandler;
         int16_t         *outTable;
-        virtualInput    *theDevice;
+        deviceInput	*theDevice;
         virtualDecoder	*theDecoder;
         RingBuffer<std::complex<float> > *inputData;
         RingBuffer<std::complex<float> > *audioData;
@@ -111,7 +111,7 @@ private:
         void            adjust          (int32_t);
 	
 private slots:
-        virtualInput	*setDevice		(const QString &,
+        deviceInput	*setDevice		(const QString &,
 	                                     RingBuffer<std::complex<float>> *);
         void            adjustFrequency_hz	(int);
         void            adjustFrequency_khz	(int);
@@ -119,7 +119,7 @@ private slots:
         void            set_hfscopeLevel	(int);
         void            set_lfscopeLevel	(int);
 	virtualDecoder	*selectDecoder		(const QString &);
-	void		setFrequency		(int);
+	void		setFrequency		(quint64);
         void            setStreamOutSelector	(int idx);
         void            handle_freqButton       (void);
         void            wheelEvent              (QWheelEvent *);

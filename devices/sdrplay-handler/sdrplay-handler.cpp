@@ -34,7 +34,7 @@
 	                                 int32_t	outputRate,
 	                                 RingBuffer<DSPCOMPLEX> *r,
 	                                 QSettings	*s):
-	                                              virtualInput (mr) {
+	                                              deviceInput (mr) {
 float	ver;
 mir_sdr_DeviceT devDesc [4];
 mir_sdr_GainValuesT gainDesc;
@@ -140,7 +140,7 @@ ULONG APIkeyValue_length = 255;
 	                                     inputRate,
 	                                     inputRate / outputRate);
 	api_version	-> display (ver);
-	vfoFrequency	= Khz (2200);
+	lastFrequency	= Khz (2200);
 	currentGred	= DEFAULT_GRED;
 //
 //	See if there are settings from previous incarnations
@@ -269,17 +269,20 @@ int16_t	bankFor_rsp_2 (int32_t freq) {
 	return -1;
 }
 
-void	sdrplayHandler::setVFOFrequency		(int32_t newFrequency) {
+void	sdrplayHandler::setVFOFrequency		(quint64 newFrequency) {
 int	gRdBSystem;
 int	samplesPerPacket;
 mir_sdr_ErrT	err;
 int	localGred	= currentGred;
 
-	if (bankFor_rsp_1 (newFrequency) == -1)
+	if (newFrequency > MHz (2000))
 	   return;
 
-	if (newFrequency < inputRate / 2) {
-	   localShift	= inputRate / 2 - newFrequency;
+	if (bankFor_rsp_1 ((uint32_t)newFrequency) == -1)
+	   return;
+
+	if ((uint32_t)newFrequency < inputRate / 2) {
+	   localShift	= inputRate / 2 -  (uint32_t)newFrequency;
 	   newFrequency = inputRate / 2;
 	}
 	else
@@ -287,19 +290,20 @@ int	localGred	= currentGred;
 
 	fprintf (stderr, "localShift = %d\n", localShift);
 	if (!running) {
-	   vfoFrequency = newFrequency;
+	   lastFrequency = newFrequency;
 	   return;
 	}
 
-	if (bankFor_rsp_1 (newFrequency) == bankFor_rsp_1 (vfoFrequency)) {
-	   my_mir_sdr_SetRf (double (newFrequency), 1, 0);
-	   vfoFrequency	= newFrequency;
+	if (bankFor_rsp_1 ((uint32_t)newFrequency) ==
+	                        bankFor_rsp_1 ((uint32_t)lastFrequency)) {
+	   my_mir_sdr_SetRf (double ((uint32_t)newFrequency), 1, 0);
+	   lastFrequency	= newFrequency;
 	   return;
 	}
 
 	err	= my_mir_sdr_Reinit (&localGred,
 	                             double (inputRate) / Mhz (1),
-	                             double (newFrequency) / Mhz (1),
+	                             double ((uint32_t)newFrequency) / Mhz (1),
 	                             mir_sdr_BW_1_536,
 	                             mir_sdr_IF_Zero,
 	                             mir_sdr_LO_Undefined,	// LOMode
@@ -310,11 +314,11 @@ int	localGred	= currentGred;
 	                             mir_sdr_CHANGE_RF_FREQ);
 	if (err != mir_sdr_Success) 
 	   fprintf (stderr, "Error %d\n", err);
-	vfoFrequency = newFrequency;
+	lastFrequency = newFrequency;
 }
 
-int32_t	sdrplayHandler::getVFOFrequency	(void) {
-	return vfoFrequency - localShift;
+quint64	sdrplayHandler::getVFOFrequency	(void) {
+	return lastFrequency - localShift;
 }
 
 void	sdrplayHandler::setExternalGain	(int newGain) {
@@ -391,7 +395,7 @@ int	localGred	= currentGred;
 
 	err	= my_mir_sdr_StreamInit (&localGred,
 	                                 double (inputRate) / MHz (1),
-	                                 double (vfoFrequency) / Mhz (1),
+	                                 double (lastFrequency) / Mhz (1),
 	                                 mir_sdr_BW_1_536,
 	                                 mir_sdr_IF_Zero,
 	                                 0,	// lnaEnable do not know yet
@@ -612,7 +616,7 @@ void	sdrplayHandler::agcControl_toggled (int agcMode) {
 void	sdrplayHandler::set_ppmControl (int ppm) {
 	if (running) {
 	   my_mir_sdr_SetPpm	((float)ppm);
-	   my_mir_sdr_SetRf	((float)vfoFrequency, 1, 0);
+	   my_mir_sdr_SetRf	((float)lastFrequency, 1, 0);
 	}
 }
 

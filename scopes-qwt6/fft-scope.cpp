@@ -169,7 +169,7 @@ int32_t	i, j;
 	                  needleBin);
 }
 
-void	fftScope::setScope (int32_t centerFreq, int32_t offset) {
+void	fftScope::setScope (quint64 centerFreq, int32_t offset) {
 	vfo	= centerFreq;
 	needle	= offset;
 	needleBin	= (needle * displaySize) / sampleRate + displaySize / 2;

@@ -30,7 +30,7 @@
 #include	<QWidget>
 #include	<QFrame>
 #include	<QString>
-#include	"virtual-input.h"
+#include	"device-input.h"
 #include	"ui_filereader-widget.h"
 #include	"ringbuffer.h"
 
@@ -40,7 +40,7 @@ class	fileHulp;
 class	RadioInterface;
 /*
  */
-class	fileReader: public virtualInput, public Ui_filereader {
+class	fileReader: public deviceInput, public Ui_filereader {
 Q_OBJECT
 public:
 		fileReader		(RadioInterface *,
@@ -49,10 +49,6 @@ public:
 	                                 QSettings *);
 		~fileReader		(void);
 	int32_t	getRate			(void);
-	void	setVFOFrequency		(int32_t);
-	int32_t	getVFOFrequency		(void);
-	bool	legalFrequency		(int32_t);
-	int32_t	defaultFrequency	(void);
 
 	bool	restartReader		(void);
 	void	stopReader		(void);

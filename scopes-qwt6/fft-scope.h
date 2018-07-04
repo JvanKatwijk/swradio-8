@@ -50,7 +50,7 @@ public:
 	void		setLevel	(int16_t);
 	void		setZero		(int64_t);
 	void		setNeedle	(int32_t);
-	void		setScope	(int32_t, int32_t);
+	void		setScope	(quint64, int32_t);
 	void		set_bitDepth	(int16_t);
 	void		switch_viewMode	(void);
 private:

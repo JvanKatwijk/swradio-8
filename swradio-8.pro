@@ -57,7 +57,7 @@ HEADERS += ./radio-constants.h \
 	   ./scopes-qwt6/waterfall-scope.h \
 	   ./scopes-qwt6/spectrum-scope.h \
            ./scopes-qwt6/fft-scope.h \
-	   ./devices/virtual-input.h \
+	   ./devices/device-input.h \
            ./devices/filereader/filereader.h \
            ./devices/filereader/filehulp.h \
            ./decoders/virtual-decoder.h 
@@ -87,7 +87,7 @@ SOURCES += ./main.cpp \
 	   ./scopes-qwt6/spectrum-scope.cpp \
            ./scopes-qwt6/fft-scope.cpp \
 	   ./decimators/decimator.cpp \
-	   ./devices/virtual-input.cpp \
+	   ./devices/device-input.cpp \
            ./devices/filereader/filereader.cpp \
            ./devices/filereader/filehulp.cpp \
            ./decoders/virtual-decoder.cpp 
@@ -95,6 +95,7 @@ SOURCES += ./main.cpp \
 unix {
 DESTDIR		= ./linux-bin
 CONFIG		+= sdrplay
+CONFIG		+= hackrf
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
@@ -143,6 +144,7 @@ LIBS    += -lwinmm
 sdrplay {
         DEFINES         += HAVE_SDRPLAY
         FORMS           += ./devices/sdrplay-handler/sdrplay-widget.ui
+        DEPENDPATH     += ./devices/sdrplay-handler
         INCLUDEPATH     += ./devices/sdrplay-handler
         HEADERS         += ./devices/sdrplay-handler/sdrplay-handler.h \
                            ./devices/sdrplay-handler/sdrplayselect.h
@@ -150,6 +152,15 @@ sdrplay {
                            ./devices/sdrplay-handler/sdrplayselect.cpp
 }
 
+hackrf	{
+	DEFINES		+= HAVE_HACKRF
+        FORMS           += ./devices/hackrf-handler/hackrf-widget.ui
+        DEPENDPATH	+= ./devices/hackrf-handler
+        INCLUDEPATH	+= ./devices/hackrf-handler
+        HEADERS         += ./devices/hackrf-handler/hackrf-handler.h 
+        SOURCES         += ./devices/hackrf-handler/hackrf-handler.cpp 
+}
+	
 am-decoder {
         DEFINES         += HAVE_AM_DECODER
         INCLUDEPATH     += ./decoders/am-decoder

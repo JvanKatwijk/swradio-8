@@ -42,8 +42,8 @@
 	         this, SLOT (tableSelect (int, int)));
 	connect (tableWidget, SIGNAL (cellDoubleClicked (int, int)),
 	         this, SLOT (removeRow (int, int)));
-	connect (this, SIGNAL (newFrequency (int)),
-	         mr, SLOT (setFrequency (int)));
+	connect (this, SIGNAL (newFrequency (quint64)),
+	         mr, SLOT (setFrequency (quint64)));
 	loadTable ();
 }
 

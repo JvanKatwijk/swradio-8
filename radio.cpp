@@ -39,9 +39,10 @@
 #include        "program-list.h"
 //
 //      devices
-#include        "virtual-input.h"
+#include        "device-input.h"
 #include        "filereader.h"
 #include        "sdrplay-handler.h"
+#include	"hackrf-handler.h"
 //
 //	decoders
 #include	"virtual-decoder.h"
@@ -77,6 +78,13 @@ int	res	= 1;
 	while (--a >= 0)
 	   res <<= 1;
 	return res;
+}
+
+QString	FrequencytoString (quint64 freq) {
+	if (freq < 10)
+	   return QString ('0' + (uint8_t)(freq % 10));
+	return 
+	   FrequencytoString (freq / 10). append (QString ('0' + (uint8_t)(freq % 10)));
 }
 
 	RadioInterface::RadioInterface (QSettings	*sI,
@@ -282,13 +290,17 @@ void	RadioInterface::handle_quitButton	(void) {
 
 
 
-virtualInput	*RadioInterface::setDevice (const QString &s,
+deviceInput	*RadioInterface::setDevice (const QString &s,
 	                                       RingBuffer<std::complex<float>> *hfBuffer) {
 
-virtualInput *res	= NULL;
+deviceInput *res	= NULL;
 	(void)s;
 	try {
 	   res  = new sdrplayHandler (this, inputRate, hfBuffer, settings);
+	} catch (int e) {}
+
+	try {
+	   res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
 	} catch (int e) {}
 
 	if (res == NULL) {
@@ -381,15 +393,16 @@ void    RadioInterface::handle_freqButton (void) {
 
 //	setFrequency is called from the frequency panel
 //	as well as from inside to change VFO and offset
-void	RadioInterface::setFrequency (int frequency) {
-int	VFOFrequency	= frequency - scopeWidth / 4;
+void	RadioInterface::setFrequency (quint64 frequency) {
+quint64	VFOFrequency	= frequency - scopeWidth / 4;
 	theDevice	-> setVFOFrequency (VFOFrequency);
 	theBand. currentOffset	= scopeWidth / 4;
 	hfScope		-> setScope  (VFOFrequency, theBand. currentOffset);
 	hfFilter. setBand (theBand. currentOffset + theBand. lowF,
 	                   theBand. currentOffset + theBand. highF,
 	                                          inputRate);
-	frequencyDisplay	-> display (frequency);
+	QString ff	= FrequencytoString (frequency);
+	frequencyDisplay	-> display (ff);
 }
 //
 //	adjustFrequency is called whenever clicking the mouse
@@ -404,9 +417,9 @@ int	currOff	= theBand. currentOffset;
 
 	if ((currOff + highF + n >= scopeWidth / 2 - scopeWidth / 20) ||
 	    (currOff + lowF + n <= - scopeWidth / 2 + scopeWidth / 20) ) {
-	   int32_t newFreq = theDevice -> getVFOFrequency () +
+	   quint64 newFreq = theDevice -> getVFOFrequency () +
 	                                   theBand. currentOffset + n;
-	   setFrequency (newFreq);
+	   setFrequency ((quint64)newFreq);
 	   return;
 	}
 	else {
@@ -418,13 +431,15 @@ int	currOff	= theBand. currentOffset;
 	                            inputRate);
 	}
 
-	frequencyDisplay	-> display (theDevice -> getVFOFrequency () +
-	                                    theBand. currentOffset);
+	QString ff = FrequencytoString ((quint64)
+	                                    (theDevice -> getVFOFrequency () +
+	                                    theBand. currentOffset));
+	frequencyDisplay	-> display (ff);
 }
 //
 //	just a convenience button
 void	RadioInterface::set_inMiddle (void) {
-	int32_t newFreq = theDevice -> getVFOFrequency () +
+	quint64 newFreq = theDevice -> getVFOFrequency () +
 	                                    theBand. currentOffset;
 	setFrequency (newFreq);
 }
@@ -672,3 +687,5 @@ void RadioInterface::closeEvent (QCloseEvent *event) {
         }
 }
 
+
+	

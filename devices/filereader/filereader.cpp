@@ -32,7 +32,7 @@
 	                         int32_t rate,
 	                         RingBuffer<std::complex<float>> *b,
 	                         QSettings *s):
-	                              virtualInput (mr) {
+	                              deviceInput (mr) {
 	theRate		= rate;
 	this	-> myFrame	= new QFrame;
 	(void)s;
@@ -72,22 +72,6 @@ void	fileReader::handle_progressBar		(int f) {
 
 void	fileReader::set_progressBar	(int f) {
 	progressBar	-> setValue (f);
-}
-
-void	fileReader::setVFOFrequency		(int32_t f) {
-	lastFrequency	= f;
-}
-
-int32_t	fileReader::getVFOFrequency		(void) {
-	return lastFrequency;
-}
-
-bool	fileReader::legalFrequency		(int32_t f) {
-	return f > 0;
-}
-
-int32_t	fileReader::defaultFrequency		(void) {
-	return 14070000;
 }
 
 bool	fileReader::restartReader		(void) {

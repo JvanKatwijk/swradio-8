@@ -49,7 +49,7 @@ private slots:
 	void	tableSelect	(int, int);
 	void	removeRow	(int, int);
 signals:
-	void	newFrequency	(int);
+	void	newFrequency	(quint64);
 private:
 	QScrollArea		*myWidget;
 	QTableWidget	*tableWidget;

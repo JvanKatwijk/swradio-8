@@ -24,7 +24,15 @@
  */
 #include	"popup-keypad.h"
 #include	"radio.h"
-//
+
+static
+QString FrequencytoString (quint64 freq) {
+        if (freq < 10)
+           return QString ('0' + (uint8_t)(freq % 10));
+        return
+           FrequencytoString (freq / 10). append (QString ('0' + (uint8_t)(freq % 10)));
+}
+
 //	A simple keypad for the FM receiver. 13 buttons and
 //	an LCD display
 	keyPad::keyPad (RadioInterface *mr) {
@@ -83,8 +91,8 @@
 	theDisplay	-> display (0);
 	connect (thePad, SIGNAL (buttonClicked (int)),
 	         this, SLOT (collectData (int)));
-	connect (this, SIGNAL (newFrequency (int)),
-	         mr, SLOT (setFrequency (int)));
+	connect (this, SIGNAL (newFrequency (quint64)),
+	         mr, SLOT (setFrequency (quint64)));
 //
 //	initially the keypad is not visible,
 	panel		= 0;
@@ -129,7 +137,9 @@ bool	keyPad::isVisible	(void) {
 void	keyPad::collectData	(int id) {
 	if (0 <= id && id < 10) {
 	   panel = 10 * panel + id;
-	   theDisplay	-> display (panel);
+	   QString xx = FrequencytoString (panel);
+	   theDisplay	-> display (xx);
+	
 	}
 	else
 	if (id == 101) {		// Khz button
@@ -146,12 +156,13 @@ void	keyPad::collectData	(int id) {
 	else
 	if (id == 103) {		// clear Button
 	   panel = 0;
-	   theDisplay	-> display (panel);
+	   theDisplay	-> display (0);
 	}
 	else
 	if (id == 104) {		// correct Button
 	   panel = panel / 10;
-	   theDisplay	-> display (panel);
+	   QString xx = FrequencytoString (panel);
+	   theDisplay	-> display (xx);
 	}
 }
 

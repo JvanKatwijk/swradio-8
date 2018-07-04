@@ -62,10 +62,10 @@ private:
 	QPushButton		*clearButton;
 	QPushButton		*correctButton;
 	QLCDNumber		*theDisplay;
-	int		panel;
+	quint64		panel;
 	bool		shown;
 signals:
-	void		newFrequency	(int);
+	void		newFrequency	(quint64);
 };
 
 #endif

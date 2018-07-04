@@ -28,7 +28,7 @@
 #include	"radio-constants.h"
 #include	"ringbuffer.h"
 #include	"fir-filters.h"
-#include	"virtual-input.h"
+#include	"device-input.h"
 #include	"ui_sdrplay-widget.h"
 #include	"mirsdrapi-rsp.h"
 
@@ -87,7 +87,7 @@ typedef mir_sdr_ErrT (*pfn_mir_sdr_ReleaseDeviceIdx) (unsigned int);
 
 class	RadioInterface;
 ///////////////////////////////////////////////////////////////////////////
-class	sdrplayHandler: public virtualInput, public Ui_sdrplayWidget {
+class	sdrplayHandler: public deviceInput, public Ui_sdrplayWidget {
 Q_OBJECT
 public:
 		sdrplayHandler		(RadioInterface *,
@@ -96,8 +96,8 @@ public:
 	                                 QSettings	*);
 		~sdrplayHandler		(void);
 	int32_t	getRate			(void);
-	void	setVFOFrequency		(int32_t);
-	int32_t	getVFOFrequency		(void);
+	void	setVFOFrequency		(quint64);
+	quint64	getVFOFrequency		(void);
 
 	bool	restartReader		(void);
 	void	stopReader		(void);
@@ -150,7 +150,6 @@ private:
 	uint16_t	deviceIndex;
 	bool		loadFunctions	(void);
 	QFrame		*myFrame;
-	int32_t		vfoFrequency;
 	int		currentGred;
 	bool		libraryLoaded;
 	bool		running;
