@@ -338,7 +338,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
            ./scopes-qwt6/waterfall-scope.h 
            ./scopes-qwt6/spectrum-scope.h 
            ./scopes-qwt6/fft-scope.h 
-	   ./devices/virtual-input.h
+	   ./devices/device-input.h
 	   ./devices/sdrplay-handler/sdrplay-handler.h 
 	   ./devices/sdrplay-handler/sdrplayselect.h 
            ./decoders/virtual-decoder.h 
