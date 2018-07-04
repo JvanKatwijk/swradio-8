@@ -4,9 +4,6 @@ swradio is  Software for Linux for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
 
 
-             THIS IS WORK IN PROGRESS
-
-
 ![swradio-8 with SDRplay as device](/swradio-cw.png?raw=true)
 Example of use of the cw decoder.
 
@@ -31,6 +28,8 @@ it is assumed that file input is requested (Note: this currently
 only applies to the Gnu/Linux version, the Windows version still
 has a device selector).
 
+As an experiment, a driver for the hackrf device is included. Note that
+you have to provide the hackrf lib and put it into "/usr/local/lib"
 
 **Preferred frequencies**
 can be stored, together with a user defined label (a program name).
