@@ -164,8 +164,6 @@ int	res;
 	hackrfHandler::~hackrfHandler	(void) {
 	stopReader ();
 	delete myFrame;
-	if (_I_Buffer != NULL)
-	   delete _I_Buffer;
 	hackrfSettings	-> beginGroup ("hackrfSettings");
 	hackrfSettings	-> setValue ("hack_lnaGain",
 	                                 lnagainSlider -> value ());
