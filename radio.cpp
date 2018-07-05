@@ -299,9 +299,11 @@ deviceInput *res	= NULL;
 	   res  = new sdrplayHandler (this, inputRate, hfBuffer, settings);
 	} catch (int e) {}
 
-	try {
-	   res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
-	} catch (int e) {}
+	if (res == NULL) {
+	   try {
+	      res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
+	   } catch (int e) {}
+	}
 
 	if (res == NULL) {
 	   try {

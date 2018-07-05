@@ -3,7 +3,6 @@
 swradio is  Software for Linux for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
 
-
 ![swradio-8 with SDRplay as device](/swradio-cw.png?raw=true)
 Example of use of the cw decoder.
 
@@ -65,7 +64,7 @@ to waterfall display (or vice-versa).
 * ssb, with selection for usb or lsb;
 * psk, with selection of a variety of modes and settings;
 * rtty, with selection of a variety of modes and settings;
-* cw, with selection of a variety of speeds and settings;
+* cw, with (almost) automatic selection of speed;
 * drm, limited to 10 k bandwidth;
 * amtor, with selection of options;
 * weatherfax decoder, with selection of a variety of settings.
@@ -102,7 +101,7 @@ tooltip for that button (slider)
 ------------------------------------------------------------------
 Linux
 ------------------------------------------------------------------
-![swradio-8](swradio-drm.png?raw=true)
+![swradio-8](/swradio-drm.png?raw=true)
 Example of use of the drm decoder.
 
 The current version is developed under Linux (Fedora). A cross compiled version
