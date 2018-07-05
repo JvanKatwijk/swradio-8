@@ -98,7 +98,6 @@ void	fftScope::setZero (int64_t vfo) {
 void	fftScope::setNeedle (int32_t needle) {
 	this -> needle = needle;
 	needleBin       = (needle * displaySize) / sampleRate + displaySize / 2;
-
 }
 
 void	fftScope::addElements (DSPCOMPLEX *v, int32_t n) {
@@ -165,7 +164,7 @@ int32_t	i, j;
 	scope -> display (X_axis,
 	                  displayBuffer,
 	                  amplification,
-	                  ((int32_t)vfo + needle) / (int32_t)scale,
+	                  ((quint64)vfo + needle) / (quint64)scale,
 	                  needleBin);
 }
 
