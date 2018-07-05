@@ -163,13 +163,13 @@ int	res;
 
 	hackrfHandler::~hackrfHandler	(void) {
 	stopReader ();
-	delete myFrame;
 	hackrfSettings	-> beginGroup ("hackrfSettings");
 	hackrfSettings	-> setValue ("hack_lnaGain",
 	                                 lnagainSlider -> value ());
 	hackrfSettings -> setValue ("hack_vgaGain",
 	                                 vgagainSlider	-> value ());
 	hackrfSettings	-> endGroup ();
+	delete myFrame;
 	this	-> hackrf_close (theDevice);
 	this	-> hackrf_exit ();
 }
