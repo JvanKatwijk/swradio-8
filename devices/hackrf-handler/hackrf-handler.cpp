@@ -134,7 +134,7 @@ int	res;
 	                           sin ((float) i * 2 * M_PI / inputRate));
 	localShift      = 0;
 	oscillatorPhase = 0;
-	filter          = new decimatingFIR (inputRate / outputRate * 8 + 1,
+	filter          = new decimatingFIR (inputRate / outputRate * 32 + 1,
 	                                     + outputRate / 2,
 	                                     inputRate,
 	                                     inputRate / outputRate);

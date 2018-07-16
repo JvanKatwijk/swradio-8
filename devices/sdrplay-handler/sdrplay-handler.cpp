@@ -111,8 +111,8 @@ ULONG APIkeyValue_length = 255;
 	}
 
 	(void)my_mir_sdr_ApiVersion (&ver);
-	if (ver < 2.05) {
-	   fprintf (stderr, "sorry, library too old\n");
+	if (ver < 2.13) {
+	   fprintf (stderr, "Library incompatible, upgrade to mirsdr-2.13\n");
 #ifdef __MINGW32__
            FreeLibrary (Handle);
 #else
@@ -340,12 +340,17 @@ void myStreamCallback (int16_t		*xi,
 	               int32_t		fsChanged,
 	               uint32_t		numSamples,
 	               uint32_t		reset,
+	               uint32_t		hwRemoved,
 	               void		*cbContext) {
 int16_t	i;
 sdrplayHandler	*p	= static_cast<sdrplayHandler *> (cbContext);
 std::complex<float> *localBuf =
 	         (DSPCOMPLEX *)alloca (numSamples * sizeof (DSPCOMPLEX));
 int	cnt	= 0;
+
+	if (reset || hwRemoved)
+	   return;
+
 	for (i = 0; i < (int)numSamples; i ++) {
 	   std::complex<float> temp = 
 	                    std::complex<float> (float (xi [i]) / 2048.0,
