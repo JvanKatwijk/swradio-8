@@ -113,6 +113,7 @@ LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -l
 win32 {
 DESTDIR		= ../../windows-bin
 CONFIG		+= sdrplay
+CONFIG		+= hackrf
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
