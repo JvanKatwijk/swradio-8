@@ -84,9 +84,9 @@ int16_t	i;
 	   memset (outbank [i], 0, t * sizeof (theSignal));
 	}
 
-	fprintf (stderr, "apparently, mode = %d, spectrum = %d\n",
+	fprintf (stderr, "it seems that mode = %d, spectrum = %d\n",
 	                  modeInf. Mode, modeInf. Spectrum);
-	fprintf (stderr, "xxxxx\n");
+
 	createProcessors	(&modeInf);
 	connect (this, SIGNAL (setTimeSync (bool)),
 	         mr, SLOT (executeTimeSync (bool)));
