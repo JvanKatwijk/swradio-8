@@ -84,6 +84,8 @@ int16_t	i;
 	   memset (outbank [i], 0, t * sizeof (theSignal));
 	}
 
+	fprintf (stderr, "apparently, mode = %d, spectrum = %d\n",
+	                  modeInf. Mode, modeInf. Spectrum);
 	createProcessors	(&modeInf);
 	connect (this, SIGNAL (setTimeSync (bool)),
 	         mr, SLOT (executeTimeSync (bool)));
@@ -142,10 +144,11 @@ void	frameProcessor::createProcessors (smodeInfo *m) {
 uint8_t	Mode		= m -> Mode;
 uint8_t	Spectrum	= m -> Spectrum;
 
-	if (Spectrum > 3) {
+	if ((Spectrum > 3) ||(Spectrum <= 1)) {
 	   m -> Spectrum = 3;
 	   Spectrum	= 3;
 	}
+	
 
 	my_mscConfig		= new mscConfig	(Mode, Spectrum);
 	my_facData		= new facData	(mr, my_mscConfig);
