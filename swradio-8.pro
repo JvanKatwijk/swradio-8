@@ -95,7 +95,7 @@ SOURCES += ./main.cpp \
 unix {
 DESTDIR		= ./linux-bin
 CONFIG		+= sdrplay
-CONFIG		+= hackrf
+#CONFIG		+= hackrf
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
@@ -103,7 +103,7 @@ CONFIG		+= amtor-decoder
 CONFIG		+= psk-decoder
 CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
-#CONFIG		+= drm-decoder
+CONFIG		+= drm-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
 INCLUDEPATH	+= /usr/include/qt5/qwt

@@ -69,8 +69,9 @@ private slots:
 private:
 	int32_t		theRate;
 	QFrame		*myFrame;
-	downConverter	inputConverter;
 	RingBuffer<std::complex<float>> inputBuffer;
+	downConverter	inputConverter;
+	shifter		localShifter;
 	void		processSample		(std::complex<float>);
 	void		setup_cwDecoder		(int32_t);
 	void		cw_clrText		(void);
@@ -90,7 +91,6 @@ private:
 	int32_t		getMeanofDotDash	(int32_t, int32_t);
 	void		lookupToken		(char *, char *);
 
-	shifter		localShifter;
 	int32_t		cwPhaseAcc;
 
 	int32_t		CycleCount;

@@ -29,12 +29,24 @@
 #include	"radio.h"
 
 #define	DEFAULT_GRED	40
+static
+int     RSP1_Table [] = {0, 24, 19, 43};
+
+static
+int     RSP1A_Table [] = {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
+
+static
+int     RSP2_Table [] = {0, 10, 15, 21, 24, 34, 39, 45, 64};
+
+static
+int     RSPduo_Table [] = {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
 
 	sdrplayHandler::sdrplayHandler  (RadioInterface *mr,
 	                                 int32_t	outputRate,
 	                                 RingBuffer<DSPCOMPLEX> *r,
 	                                 QSettings	*s):
 	                                              deviceInput (mr) {
+mir_sdr_ErrT err;
 float	ver;
 mir_sdr_DeviceT devDesc [4];
 mir_sdr_GainValuesT gainDesc;
@@ -46,6 +58,7 @@ sdrplaySelect	*sdrplaySelector;
 	setupUi (this -> myFrame);
 	this	-> myFrame	-> show ();
 	antennaSelector		-> hide ();
+	tunerSelector		-> hide ();
 	this	-> inputRate	= kHz (2112);
 	_I_Buffer		= r;
 	libraryLoaded		= false;
@@ -110,7 +123,19 @@ ULONG APIkeyValue_length = 255;
 	   throw (23);
 	}
 
-	(void)my_mir_sdr_ApiVersion (&ver);
+	err	= my_mir_sdr_ApiVersion (&ver);
+	if (err != mir_sdr_Success) {
+           fprintf (stderr, "error at ApiVersion %s\n",
+                         errorCodes (err). toLatin1 (). data ());
+#ifdef __MINGW32__
+           FreeLibrary (Handle);
+#else
+           dlclose (Handle);
+#endif
+           delete myFrame;
+           throw (24);
+        }
+
 	if (ver < 2.13) {
 	   fprintf (stderr, "Library incompatible, upgrade to mirsdr-2.13\n");
 #ifdef __MINGW32__
@@ -121,9 +146,10 @@ ULONG APIkeyValue_length = 255;
 	   delete myFrame;
 	   throw (24);
 	}
+
 	sdrplaySettings -> beginGroup ("sdrplaySettings");
-	gainSlider      -> setValue (
-                    sdrplaySettings -> value ("externalGain", 40). toInt ());
+	ifgainSlider      -> setValue (
+                    sdrplaySettings -> value ("GRdB", 40). toInt ());
         ppmControl      -> setValue (
                     sdrplaySettings -> value ("ppmOffset", 0). toInt ());
         sdrplaySettings -> endGroup ();
@@ -141,22 +167,21 @@ ULONG APIkeyValue_length = 255;
 	                                     inputRate / outputRate);
 	api_version	-> display (ver);
 	lastFrequency	= Khz (2200);
-	currentGred	= DEFAULT_GRED;
 //
-//	See if there are settings from previous incarnations
+	err = my_mir_sdr_GetDevices (devDesc, &numofDevs, uint32_t (4));
+	if (err != mir_sdr_Success) {
+           fprintf (stderr, "error at GetDevices %s \n",
+                           errorCodes (err). toLatin1 (). data ());
 
-	setExternalGain	(gainSlider	-> value ());
-	set_ppmControl  (ppmControl	-> value ());
-//
-//	and be prepared for changes in the settings
-	connect (gainSlider, SIGNAL (valueChanged (int)),
-	         this, SLOT (setExternalGain (int)));
-	connect (agcControl, SIGNAL (stateChanged (int)),
-	         this, SLOT (agcControl_toggled (int)));
-	connect (ppmControl, SIGNAL (valueChanged (int)),
-	         this, SLOT (set_ppmControl (int)));
+#ifdef __MINGW32__
+           FreeLibrary (Handle);
+#else
+           dlclose (Handle);
+#endif
+           delete myFrame;
+           throw (25);
+        }
 
-	my_mir_sdr_GetDevices (devDesc, &numofDevs, uint32_t (4));
 	if (numofDevs == 0) {
 	   fprintf (stderr, "Sorry, no device found\n");
 #ifdef __MINGW32__
@@ -188,19 +213,78 @@ ULONG APIkeyValue_length = 255;
 	serialNumber -> setText (devDesc [deviceIndex]. SerNo);
 	hwVersion = devDesc [deviceIndex]. hwVer;
         fprintf (stderr, "hwVer = %d\n", hwVersion);
-	my_mir_sdr_SetDeviceIdx (deviceIndex);
+	err	= my_mir_sdr_SetDeviceIdx (deviceIndex);
+	if (err != mir_sdr_Success) {
+           fprintf (stderr, "error at SetDeviceIdx %s \n",
+                           errorCodes (err). toLatin1 (). data ());
 
-	if (hwVersion == 2) {
-	   antennaSelector -> show ();
-	   connect (antennaSelector, SIGNAL (activated (const QString &)),
-	            this, SLOT (set_antennaControl (const QString &)));
-	}
-	   
-	unsigned char text;
-	(void)my_mir_sdr_GetHwVersion (&text);
-	fprintf (stderr, "hardware version = %o\n", text);
-//	my_mir_sdr_ResetUpdateFlags (1, 0, 0);
-	running		= false;
+#ifdef __MINGW32__
+           FreeLibrary (Handle);
+#else
+           dlclose (Handle);
+#endif
+           delete myFrame;
+           throw (25);
+        }
+
+        switch (hwVersion) {
+           case 1:              // old RSP
+              lnaGainSetting    -> setRange (0, 3);
+              deviceLabel       -> setText ("RSP-I");
+              break;
+           case 2:
+              lnaGainSetting    -> setRange (0, 8);
+              deviceLabel       -> setText ("RSP-II");
+              break;
+           case 3:
+              lnaGainSetting    -> setRange (0, 8);
+              deviceLabel       -> setText ("RSP-DUO");
+              break;
+           default:
+              lnaGainSetting    -> setRange (0, 9);
+              deviceLabel       -> setText ("RSP-1A");
+              break;
+        }
+
+	if ((hwVersion == 255) || (hwVersion == 3)) {
+           nrBits       = 14;
+           denominator  = 8192;
+        }
+        else {
+           nrBits       = 12;
+           denominator  = 2048;
+        }
+
+        if (hwVersion == 2) {
+           mir_sdr_ErrT err;
+           antennaSelector -> show ();
+           err = my_mir_sdr_RSPII_AntennaControl (mir_sdr_RSPII_ANTENNA_A);
+           if (err != mir_sdr_Success)
+              fprintf (stderr, "error %d in setting antenna\n", err);
+           connect (antennaSelector, SIGNAL (activated (const QString &)),
+                    this, SLOT (set_antennaSelect (const QString &)));
+        }
+
+       if (hwVersion == 3) {   // duo
+           tunerSelector        -> show ();
+           err  = my_mir_sdr_rspDuo_TunerSel (mir_sdr_rspDuo_Tuner_1);
+           if (err != mir_sdr_Success)
+              fprintf (stderr, "error %d in setting of rspDuo\n", err);
+           connect (tunerSelector, SIGNAL (activated (const QString &)),
+                    this, SLOT (set_tunerControl (const QString &)));
+        }
+
+//      and be prepared for future changes in the settings
+	connect (ifgainSlider, SIGNAL (valueChanged (int)),
+	         this, SLOT (setExternalGain (int)));
+	connect (lnaGainSetting, SIGNAL (valueChanged (int)),
+	         this, SLOT (setExternalGain (int)));
+	connect (agcControl, SIGNAL (stateChanged (int)),
+	         this, SLOT (agcControl_toggled (int)));
+	connect (ppmControl, SIGNAL (valueChanged (int)),
+	         this, SLOT (set_ppmControl (int)));
+
+	running. store (false);	
 	agcMode		= false;
 	sampleCnt	= 0;
 }
@@ -208,8 +292,8 @@ ULONG APIkeyValue_length = 255;
 	sdrplayHandler::~sdrplayHandler	(void) {
 	stopReader ();
 	sdrplaySettings -> beginGroup ("sdrplaySettings");
-	sdrplaySettings -> setValue   ("externalGain",
-	                                gainSlider -> value ());
+	sdrplaySettings -> setValue   ("GRdBGain",
+	                                ifgainSlider -> value ());
 	sdrplaySettings -> setValue   ("ppmOffset",
 	                                ppmControl -> value ());
 	sdrplaySettings -> endGroup ();
@@ -220,6 +304,7 @@ ULONG APIkeyValue_length = 255;
 
 	if (numofDevs > 0)
 	   my_mir_sdr_ReleaseDeviceIdx (deviceIndex);
+
 #ifdef __MINGW32__
         FreeLibrary (Handle);
 #else
@@ -232,55 +317,58 @@ int32_t	sdrplayHandler::getRate	(void) {
 }
 
 static inline
-int16_t	bankFor_rsp_1 (int32_t freq) {
-	if (freq < 12 * MHz (1))
-	   return 1;
+int16_t	bankFor_rsp (int32_t freq) {
 	if (freq < 60 * MHz (1))
-	   return 2;
+	   return 1;
 	if (freq < 120 * MHz (1))
-	   return 3;
+	   return 2;
 	if (freq < 250 * MHz (1))
-	   return 4;
+	   return 3;
 	if (freq < 420 * MHz (1))
-	   return 5;
+	   return 4;
 	if (freq < 1000 * MHz (1))
-	   return 6;
+	   return 5;
 	if (freq < 2000 * MHz (1))
-	   return 7;
+	   return 6;
 	return -1;
 }
 
-static inline
-int16_t	bankFor_rsp_2 (int32_t freq) {
-	if (freq < 12 * MHz (1))
-	   return 1;
-	if (freq < 60 * MHz (1))
-	   return 2;
-	if (freq < 120 * MHz (1))
-	   return 3;
-	if (freq < 250 * MHz (1))
-	   return 4;
-	if (freq < 420 * MHz (1))
-	   return 5;
-	if (freq < 1000 * MHz (1))
-	   return 6;
-	if (freq < 2000 * MHz (1))
-	   return 7;
-	return -1;
+static
+int	rsp1Tables []	= {4, 4, 4, 4, 4, 4};
+
+static
+int	rsp1ATables []	= {7, 10, 10, 10, 10, 9};
+
+static
+int	rsp2Tables []	= {9, 9, 9, 9, 6, 6};
+
+static
+int	rspduoTables []	= {7, 10, 10, 10, 9};
+
+static
+int	lnaStates (int hwVersion, int band) {
+	switch (hwVersion) {
+	   case 1:
+	      return rsp1Tables [band - 1];
+	   case 2:
+	      return rsp2Tables [band - 1];
+	   case 3:
+	      return rspduoTables [band - 1];
+	   default:
+	      return rsp1ATables [band - 1];
+	}
 }
 
 void	sdrplayHandler::setVFOFrequency		(quint64 newFrequency) {
 int	gRdBSystem;
 int	samplesPerPacket;
 mir_sdr_ErrT	err;
-int	localGred	= currentGred;
+int     GRdB            = ifgainSlider          -> value ();
+int     lnaState        = lnaGainSetting        -> value ();
 
-	if (newFrequency > MHz (2000))
+	if (bankFor_rsp ((uint32_t)newFrequency) == -1)
 	   return;
-
-	if (bankFor_rsp_1 ((uint32_t)newFrequency) == -1)
-	   return;
-
+	
 	if ((uint32_t)newFrequency < inputRate / 2) {
 	   localShift	= inputRate / 2 -  (uint32_t)newFrequency;
 	   newFrequency = inputRate / 2;
@@ -288,33 +376,45 @@ int	localGred	= currentGred;
 	else
 	   localShift = 0;
 
-	fprintf (stderr, "localShift = %d\n", localShift);
-	if (!running) {
+//	fprintf (stderr, "localShift = %d\n", localShift);
+	if (!running. load ()) {
 	   lastFrequency = newFrequency;
 	   return;
 	}
 
-	if (bankFor_rsp_1 ((uint32_t)newFrequency) ==
-	                        bankFor_rsp_1 ((uint32_t)lastFrequency)) {
-	   my_mir_sdr_SetRf (double ((uint32_t)newFrequency), 1, 0);
-	   lastFrequency	= newFrequency;
+	if (bankFor_rsp ((uint32_t)newFrequency) ==
+	                        bankFor_rsp ((uint32_t)lastFrequency)) {
+	   err = my_mir_sdr_SetRf (double ((uint32_t)newFrequency), 1, 0);
+	   if (err != mir_sdr_Success) 
+	      fprintf (stderr, "Error in freq select %s\n", 
+	                           errorCodes (err). toLatin1 (). data ());
+	   else
+	      lastFrequency	= newFrequency;
 	   return;
 	}
 
-	err	= my_mir_sdr_Reinit (&localGred,
+	lnaGainSetting	-> setRange (0, lnaStates (hwVersion,
+	                              bankFor_rsp ((uint32_t)lastFrequency)));
+	if (lnaState >= lnaStates (hwVersion,
+	                              bankFor_rsp ((uint32_t)lastFrequency)))
+	   lnaState = 0;
+
+	err	= my_mir_sdr_Reinit (&GRdB,
 	                             double (inputRate) / Mhz (1),
 	                             double ((uint32_t)newFrequency) / Mhz (1),
 	                             mir_sdr_BW_1_536,
 	                             mir_sdr_IF_Zero,
 	                             mir_sdr_LO_Undefined,	// LOMode
-	                             1,	// LNA enable
+	                             lnaState,
 	                             &gRdBSystem,
 	                             agcMode,	
 	                             &samplesPerPacket,
 	                             mir_sdr_CHANGE_RF_FREQ);
 	if (err != mir_sdr_Success) 
-	   fprintf (stderr, "Error %d\n", err);
-	lastFrequency = newFrequency;
+	   fprintf (stderr, "Error with Reinit %s\n", 
+	                               errorCodes (err). toLatin1 (). data ());
+	else
+	   lastFrequency = newFrequency;
 }
 
 quint64	sdrplayHandler::getVFOFrequency	(void) {
@@ -322,12 +422,32 @@ quint64	sdrplayHandler::getVFOFrequency	(void) {
 }
 
 void	sdrplayHandler::setExternalGain	(int newGain) {
-	if (newGain < 0 || newGain >= 102)
-	   return;
+	(void)newGain;
+int	GRdB		= ifgainSlider	-> value ();
+int	lnaState	= lnaGainSetting -> value ();
+int	lnaGRdB;
+mir_sdr_ErrT err;
 
-	currentGred = 101 - newGain;
-	(void) my_mir_sdr_SetGr (currentGred, 1, 0);
-	gainDisplay	-> display (newGain);
+	switch (hwVersion) {
+	   case 1:
+	      lnaGRdB = RSP1_Table [lnaState];
+	      break;
+	   case 2:
+	      lnaGRdB = RSP2_Table [lnaState];
+	      break;
+	   default:
+	      lnaGRdB = RSP1A_Table [lnaState];
+	      break;
+	}
+
+	err = my_mir_sdr_RSP_SetGr (GRdB, lnaState, 1, 0);
+	if (err != mir_sdr_Success)
+	   fprintf (stderr, "Error is gain setting %s\n",
+	                           errorCodes (err). toLatin1 (). data ());
+	else {
+	   GRdBDisplay	-> display (GRdB);
+	   lnaGRdBDisplay	-> display (lnaGRdB);
+	}
 }
 
 //
@@ -344,8 +464,8 @@ void myStreamCallback (int16_t		*xi,
 	               void		*cbContext) {
 int16_t	i;
 sdrplayHandler	*p	= static_cast<sdrplayHandler *> (cbContext);
-std::complex<float> *localBuf =
-	         (DSPCOMPLEX *)alloca (numSamples * sizeof (DSPCOMPLEX));
+std::complex<float> localBuf [numSamples];
+float	denominator	= (float)(p -> denominator);
 int	cnt	= 0;
 
 	if (reset || hwRemoved)
@@ -353,8 +473,8 @@ int	cnt	= 0;
 
 	for (i = 0; i < (int)numSamples; i ++) {
 	   std::complex<float> temp = 
-	                    std::complex<float> (float (xi [i]) / 2048.0,
-	                                          float (xq [i]) / 2048.0);
+	                    std::complex<float> (float (xi [i]) / denominator,
+	                                          float (xq [i]) / denominator);
 	   temp	= temp * p -> oscillatorTable [p -> oscillatorPhase];
 	   p -> oscillatorPhase += p -> localShift;
 	   if (p -> oscillatorPhase < 0)
@@ -393,9 +513,10 @@ bool	sdrplayHandler::restartReader	(void) {
 int	gRdBSystem;
 int	samplesPerPacket;
 mir_sdr_ErrT	err;
-int	localGred	= currentGred;
+int	localGred	= ifgainSlider		-> value ();
+int	lnaState	= lnaGainSetting	-> value ();
 
-	if (running)
+	if (running. load ())
 	   return true;
 
 	err	= my_mir_sdr_StreamInit (&localGred,
@@ -403,15 +524,16 @@ int	localGred	= currentGred;
 	                                 double (lastFrequency) / Mhz (1),
 	                                 mir_sdr_BW_1_536,
 	                                 mir_sdr_IF_Zero,
-	                                 0,	// lnaEnable do not know yet
+	                                 lnaState,
 	                                 &gRdBSystem,
-	                                 agcMode, // useGrAltMode,do not know yet
+	                                 mir_sdr_USE_RSP_SET_GR,
 	                                 &samplesPerPacket,
 	                                 (mir_sdr_StreamCallback_t)myStreamCallback,
 	                                 (mir_sdr_GainChangeCallback_t)myGainChangeCallback,
 	                                 this);
 	if (err != mir_sdr_Success) {
-	   fprintf (stderr, "error code = %d\n", err);
+	   fprintf (stderr, "error at StreamInit = %s\n",
+	                             errorCodes (err). toLatin1 (). data ());
 	   return false;
 	}
 	my_mir_sdr_SetPpm (double (ppmControl -> value ()));
@@ -420,18 +542,17 @@ int	localGred	= currentGred;
 //
 	my_mir_sdr_SetSyncUpdatePeriod ((int)(inputRate / 3));
 	my_mir_sdr_SetSyncUpdateSampleNum (samplesPerPacket);
-//	my_mir_sdr_AgcControl (1, -30, 0, 0, 0, 0, 0);
 	my_mir_sdr_DCoffsetIQimbalanceControl (0, 1);
-	running 	= true;
+	running. store (true);
 	return true;
 }
 
 void	sdrplayHandler::stopReader	(void) {
-	if (!running)
+	if (!running. load ())
 	   return;
 
 	my_mir_sdr_StreamUninit	();
-	running		= false;
+	running. store (false);
 }
 
 void	sdrplayHandler::resetBuffer	(void) {
@@ -477,6 +598,13 @@ bool	sdrplayHandler::loadFunctions	(void) {
 	                    GETPROCADDRESS (Handle, "mir_sdr_SetGr");
 	if (my_mir_sdr_SetGr == NULL) {
 	   fprintf (stderr, "Could not find mir_sdr_SetGr\n");
+	   return false;
+	}
+
+	my_mir_sdr_RSP_SetGr	= (pfn_mir_sdr_RSP_SetGr)
+	                    GETPROCADDRESS (Handle, "mir_sdr_RSP_SetGr");
+	if (my_mir_sdr_RSP_SetGr == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_RSP_SetGr\n");
 	   return false;
 	}
 
@@ -528,6 +656,13 @@ bool	sdrplayHandler::loadFunctions	(void) {
 	   fprintf (stderr, "Could not find mir_sdr_AgcControl\n");
 	   return false;
 	}
+
+        my_mir_sdr_rspDuo_TunerSel = (pfn_mir_sdr_rspDuo_TunerSel)
+                       GETPROCADDRESS (Handle, "mir_sdr_rspDuo_TunerSel");
+        if (my_mir_sdr_rspDuo_TunerSel == NULL) {
+           fprintf (stderr, "Could not find mir_sdr_rspDuo_TunerSel\n");
+           return false;
+        }
 
 	my_mir_sdr_Reinit	= (pfn_mir_sdr_Reinit)
 	                GETPROCADDRESS (Handle, "mir_sdr_Reinit");
@@ -613,19 +748,24 @@ bool	sdrplayHandler::loadFunctions	(void) {
 
 void	sdrplayHandler::agcControl_toggled (int agcMode) {
 	this	-> agcMode	= agcControl -> isChecked ();
-	my_mir_sdr_AgcControl (this -> agcMode, -currentGred, 0, 0, 0, 0, 1);
+	my_mir_sdr_AgcControl (this -> agcMode,
+	                -ifgainSlider -> value (), 0, 0, 0, 0, 1);
 	if (agcMode == 0)
-	   setExternalGain (gainSlider -> value ());
+	   setExternalGain (ifgainSlider -> value ());
 }
 
 void	sdrplayHandler::set_ppmControl (int ppm) {
-	if (running) {
+	if (running. load ()) {
 	   my_mir_sdr_SetPpm	((float)ppm);
 	   my_mir_sdr_SetRf	((float)lastFrequency, 1, 0);
 	}
 }
 
-void	sdrplayHandler::set_antennaControl (const QString &s) {
+void	sdrplayHandler::report_dataAvailable (void) {
+	emit dataAvailable (10);
+}
+
+void	sdrplayHandler::set_antennaSelect (const QString &s) {
 mir_sdr_ErrT err;
 
 	if (hwVersion < 2)	// should not happen
@@ -638,7 +778,54 @@ mir_sdr_ErrT err;
 	(void)err;
 }
 
-void	sdrplayHandler::report_dataAvailable (void) {
-	emit dataAvailable (10);
+void	sdrplayHandler::set_tunerSelect (const QString &s) {
+mir_sdr_ErrT err;
+
+	if (hwVersion != 3)	// should not happen
+	   return;
+	if (s == "Tuner 1") 
+	   err	= my_mir_sdr_rspDuo_TunerSel (mir_sdr_rspDuo_Tuner_1);
+	else
+	   err	= my_mir_sdr_rspDuo_TunerSel (mir_sdr_rspDuo_Tuner_2);
+
+	if (err != mir_sdr_Success) 
+	   fprintf (stderr, "error %d in selecting  rspDuo\n", err);
+}
+
+QString	sdrplayHandler::errorCodes (mir_sdr_ErrT err) {
+	switch (err) {
+	   case mir_sdr_Success:
+	      return "success";
+	   case mir_sdr_Fail:
+	      return "Fail";
+	   case mir_sdr_InvalidParam:
+	      return "invalidParam";
+	   case mir_sdr_OutOfRange:
+	      return "OutOfRange";
+	   case mir_sdr_GainUpdateError:
+	      return "GainUpdateError";
+	   case mir_sdr_RfUpdateError:
+	      return "RfUpdateError";
+	   case mir_sdr_FsUpdateError:
+	      return "FsUpdateError";
+	   case mir_sdr_HwError:
+	      return "HwError";
+	   case mir_sdr_AliasingError:
+	      return "AliasingError";
+	   case mir_sdr_AlreadyInitialised:
+	      return "AlreadyInitialised";
+	   case mir_sdr_NotInitialised:
+	      return "NotInitialised";
+	   case mir_sdr_NotEnabled:
+	      return "NotEnabled";
+	   case mir_sdr_HwVerError:
+	      return "HwVerError";
+	   case mir_sdr_OutOfMemError:
+	      return "OutOfMemError";
+	   case mir_sdr_HwRemoved:
+	      return "HwRemoved";
+	   default:
+	      return "???";
+	}
 }
 
