@@ -86,6 +86,7 @@ int16_t	i;
 
 	fprintf (stderr, "apparently, mode = %d, spectrum = %d\n",
 	                  modeInf. Mode, modeInf. Spectrum);
+	fprintf (stderr, "xxxxx\n");
 	createProcessors	(&modeInf);
 	connect (this, SIGNAL (setTimeSync (bool)),
 	         mr, SLOT (executeTimeSync (bool)));
