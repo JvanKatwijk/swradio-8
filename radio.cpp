@@ -42,7 +42,7 @@
 #include        "device-input.h"
 #include        "filereader.h"
 #include        "sdrplay-handler.h"
-#include	"hackrf-handler.h"
+//#include	"hackrf-handler.h"
 //
 //	decoders
 #include	"virtual-decoder.h"
@@ -299,11 +299,11 @@ deviceInput *res	= NULL;
 	   res  = new sdrplayHandler (this, inputRate, hfBuffer, settings);
 	} catch (int e) {}
 
-	if (res == NULL) {
-	   try {
-	      res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
-	   } catch (int e) {}
-	}
+//	if (res == NULL) {
+//	   try {
+//	      res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
+//	   } catch (int e) {}
+//	}
 
 	if (res == NULL) {
 	   try {

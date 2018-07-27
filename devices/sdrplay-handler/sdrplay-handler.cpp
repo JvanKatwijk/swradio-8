@@ -28,7 +28,6 @@
 #include	"sdrplayselect.h"
 #include	"radio.h"
 
-#define	DEFAULT_GRED	40
 static
 int     RSP1_Table [] = {0, 24, 19, 43};
 
@@ -40,6 +39,20 @@ int     RSP2_Table [] = {0, 10, 15, 21, 24, 34, 39, 45, 64};
 
 static
 int     RSPduo_Table [] = {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
+
+static
+int     get_lnaGRdB (int hwVersion, int lnaState) {
+        switch (hwVersion) {
+           case 1:
+              return RSP1_Table [lnaState];
+
+           case 2:
+              return RSP2_Table [lnaState];
+
+           default:
+              return RSP1A_Table [lnaState];
+        }
+}
 
 	sdrplayHandler::sdrplayHandler  (RadioInterface *mr,
 	                                 int32_t	outputRate,
@@ -150,8 +163,21 @@ ULONG APIkeyValue_length = 255;
 	sdrplaySettings -> beginGroup ("sdrplaySettings");
 	ifgainSlider      -> setValue (
                     sdrplaySettings -> value ("GRdB", 40). toInt ());
+	lnaGainSetting          -> setValue (
+                   sdrplaySettings -> value ("sdrplay-lnastate", 0). toInt ());
+//      show the value
+	GRdBDisplay             -> display (ifgainSlider -> value ());
+
         ppmControl      -> setValue (
                     sdrplaySettings -> value ("ppmOffset", 0). toInt ());
+       agcMode         =
+                    sdrplaySettings -> value ("sdrplay-agcMode", 0). toInt ();
+        if (agcMode) {
+           agcControl -> setChecked (true);
+           ifgainSlider         -> hide ();
+           gainsliderLabel      -> hide ();
+        }
+
         sdrplaySettings -> endGroup ();
 
 	oscillatorTable	= new std::complex<float> [inputRate];
@@ -231,28 +257,27 @@ ULONG APIkeyValue_length = 255;
            case 1:              // old RSP
               lnaGainSetting    -> setRange (0, 3);
               deviceLabel       -> setText ("RSP-I");
+	      nrBits		= 12;
+	      denominator	= 2048;
               break;
            case 2:
               lnaGainSetting    -> setRange (0, 8);
               deviceLabel       -> setText ("RSP-II");
+	      nrBits		= 12;
+	      denominator	= 2048;
               break;
            case 3:
               lnaGainSetting    -> setRange (0, 8);
               deviceLabel       -> setText ("RSP-DUO");
+	      nrBits		= 14;
+	      denominator	= 8192;
               break;
            default:
               lnaGainSetting    -> setRange (0, 9);
               deviceLabel       -> setText ("RSP-1A");
+	      nrBits		= 14;
+	      denominator	= 8192;
               break;
-        }
-
-	if ((hwVersion == 255) || (hwVersion == 3)) {
-           nrBits       = 14;
-           denominator  = 8192;
-        }
-        else {
-           nrBits       = 12;
-           denominator  = 2048;
         }
 
         if (hwVersion == 2) {
@@ -276,16 +301,18 @@ ULONG APIkeyValue_length = 255;
 
 //      and be prepared for future changes in the settings
 	connect (ifgainSlider, SIGNAL (valueChanged (int)),
-	         this, SLOT (setExternalGain (int)));
+	         this, SLOT (set_ifgainReduction (int)));
 	connect (lnaGainSetting, SIGNAL (valueChanged (int)),
-	         this, SLOT (setExternalGain (int)));
+	         this, SLOT (set_lnagainReduction (int)));
 	connect (agcControl, SIGNAL (stateChanged (int)),
 	         this, SLOT (agcControl_toggled (int)));
 	connect (ppmControl, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_ppmControl (int)));
 
+        lnaGRdBDisplay          -> display (get_lnaGRdB (hwVersion,
+                                                 lnaGainSetting -> value ()));
+
 	running. store (false);	
-	agcMode		= false;
 	sampleCnt	= 0;
 }
 
@@ -296,6 +323,13 @@ ULONG APIkeyValue_length = 255;
 	                                ifgainSlider -> value ());
 	sdrplaySettings -> setValue   ("ppmOffset",
 	                                ppmControl -> value ());
+	sdrplaySettings -> setValue ("sdrplay-ifgrdb",
+	                              ifgainSlider -> value ());
+        sdrplaySettings -> setValue ("sdrplay-lnastate",
+                                            lnaGainSetting -> value ());
+        sdrplaySettings -> setValue ("sdrplay-agcMode",
+                                          agcControl -> isChecked () ? 1 : 0);
+
 	sdrplaySettings -> endGroup ();
 
 	if (!libraryLoaded)
@@ -421,24 +455,15 @@ quint64	sdrplayHandler::getVFOFrequency	(void) {
 	return lastFrequency - localShift;
 }
 
-void	sdrplayHandler::setExternalGain	(int newGain) {
+void	sdrplayHandler::set_ifgainReduction (int newGain) {
 	(void)newGain;
 int	GRdB		= ifgainSlider	-> value ();
 int	lnaState	= lnaGainSetting -> value ();
 int	lnaGRdB;
 mir_sdr_ErrT err;
 
-	switch (hwVersion) {
-	   case 1:
-	      lnaGRdB = RSP1_Table [lnaState];
-	      break;
-	   case 2:
-	      lnaGRdB = RSP2_Table [lnaState];
-	      break;
-	   default:
-	      lnaGRdB = RSP1A_Table [lnaState];
-	      break;
-	}
+	if (agcMode)
+	   return;
 
 	err = my_mir_sdr_RSP_SetGr (GRdB, lnaState, 1, 0);
 	if (err != mir_sdr_Success)
@@ -446,8 +471,24 @@ mir_sdr_ErrT err;
 	                           errorCodes (err). toLatin1 (). data ());
 	else {
 	   GRdBDisplay	-> display (GRdB);
-	   lnaGRdBDisplay	-> display (lnaGRdB);
+	   lnaGRdBDisplay -> display (get_lnaGRdB (hwVersion, lnaState));
 	}
+}
+
+void    sdrplayHandler::set_lnagainReduction (int lnaState) {
+mir_sdr_ErrT err;
+
+        if (!agcMode) {
+           set_ifgainReduction (0);
+           return;
+        }
+
+        err     = my_mir_sdr_AgcControl (true, -30, 0, 0, 0, 0, lnaState);
+        if (err != mir_sdr_Success)
+           fprintf (stderr, "Error at set_lnagainReduction %s\n",
+                               errorCodes (err). toLatin1 (). data ());
+        else
+           lnaGRdBDisplay       -> display (get_lnaGRdB (hwVersion, lnaState));
 }
 
 //
@@ -536,6 +577,14 @@ int	lnaState	= lnaGainSetting	-> value ();
 	                             errorCodes (err). toLatin1 (). data ());
 	   return false;
 	}
+        if (agcControl -> isChecked ()) {
+           my_mir_sdr_AgcControl (this -> agcMode,
+                                  -30,
+                                  0, 0, 0, 0, lnaGainSetting -> value ());
+           ifgainSlider         -> hide ();
+           gainsliderLabel      -> hide ();
+        }
+
 	my_mir_sdr_SetPpm (double (ppmControl -> value ()));
 	err		= my_mir_sdr_SetDcMode (4, 1);
 	err		= my_mir_sdr_SetDcTrackTime (63);
@@ -749,9 +798,17 @@ bool	sdrplayHandler::loadFunctions	(void) {
 void	sdrplayHandler::agcControl_toggled (int agcMode) {
 	this	-> agcMode	= agcControl -> isChecked ();
 	my_mir_sdr_AgcControl (this -> agcMode,
-	                -ifgainSlider -> value (), 0, 0, 0, 0, 1);
-	if (agcMode == 0)
-	   setExternalGain (ifgainSlider -> value ());
+	                -30, 0, 0, 0, 0, lnaGainSetting -> value ());
+	if (agcMode == 0) {
+	   ifgainSlider         -> show ();
+	   gainsliderLabel      -> show ();
+	   set_ifgainReduction (0);
+        }
+        else {
+	   ifgainSlider         -> hide ();
+	   gainsliderLabel      -> hide ();
+	}
+
 }
 
 void	sdrplayHandler::set_ppmControl (int ppm) {

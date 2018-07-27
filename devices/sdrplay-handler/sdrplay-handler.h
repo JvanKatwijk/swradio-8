@@ -158,7 +158,6 @@ private:
 	uint16_t	deviceIndex;
 	bool		loadFunctions	(void);
 	QFrame		*myFrame;
-	int		currentGred;
 	int		nrBits;
 
 	bool		libraryLoaded;
@@ -167,7 +166,8 @@ private:
 	bool		agcMode;
 //
 private slots:
-	void		setExternalGain	(int);
+	void		set_ifgainReduction	(int);
+	void		set_lnagainReduction	(int);
 	void		agcControl_toggled	(int);
 	void		set_ppmControl		(int);
 	void		set_antennaSelect	(const QString &);
