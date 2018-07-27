@@ -309,8 +309,8 @@ ULONG APIkeyValue_length = 255;
 	connect (ppmControl, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_ppmControl (int)));
 
-        lnaGRdBDisplay          -> display (get_lnaGRdB (hwVersion,
-                                                 lnaGainSetting -> value ()));
+//	lnaGRdBDisplay          -> display (get_lnaGRdB (hwVersion,
+//	                                    lnaGainSetting -> value ()));
 
 	running. store (false);	
 	sampleCnt	= 0;
@@ -471,7 +471,7 @@ mir_sdr_ErrT err;
 	                           errorCodes (err). toLatin1 (). data ());
 	else {
 	   GRdBDisplay	-> display (GRdB);
-	   lnaGRdBDisplay -> display (get_lnaGRdB (hwVersion, lnaState));
+//	   lnaGRdBDisplay -> display (get_lnaGRdB (hwVersion, lnaState));
 	}
 }
 
@@ -487,8 +487,8 @@ mir_sdr_ErrT err;
         if (err != mir_sdr_Success)
            fprintf (stderr, "Error at set_lnagainReduction %s\n",
                                errorCodes (err). toLatin1 (). data ());
-        else
-           lnaGRdBDisplay       -> display (get_lnaGRdB (hwVersion, lnaState));
+//	else
+//	   lnaGRdBDisplay       -> display (get_lnaGRdB (hwVersion, lnaState));
 }
 
 //
@@ -542,12 +542,12 @@ int	cnt	= 0;
 	(void)	reset;
 }
 
-void	myGainChangeCallback (uint32_t	gRdB,
+void	myGainChangeCallback (uint32_t	GRdB,
 	                      uint32_t	lnaGRdB,
 	                      void	*cbContext) {
-	(void)gRdB;
-	(void)lnaGRdB;	
-	(void)cbContext;
+sdrplayHandler	*p	= static_cast<sdrplayHandler *> (cbContext);
+	p -> GRdBDisplay	-> display ((int)GRdB);
+	p -> lnaGRdBDisplay	-> display ((int)lnaGRdB);
 }
 
 bool	sdrplayHandler::restartReader	(void) {
