@@ -28,29 +28,47 @@
 #include	"sdrplayselect.h"
 #include	"radio.h"
 
+//
+//	lna gain reduction tables, per band.
+//	The first number in each row tells the number of valid elements
 static
-int     RSP1_Table [] = {0, 24, 19, 43};
+int     RSP1_Table [6] [5] = {{4, 0, 24, 19, 43},
+	                      {4, 0, 24, 19, 43},
+	                      {4, 0, 24, 19, 43},
+	                      {4, 0, 24, 19, 43},
+	                      {4, 0,  7, 19, 26},
+	                      {4, 0,  5, 19, 24} };
 
 static
-int     RSP1A_Table [] = {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
+int     RSP1A_Table [6] [11] = {
+	{7,  0, 6, 12, 18, 37, 42, 61, -1, -1, -1},
+	{10, 0, 6, 12, 18, 20, 26, 32, 38, 57, 62},
+	{10, 0, 6, 12, 18, 20, 26, 32, 38, 57, 62},
+	{10, 0, 6, 12, 18, 20, 26, 32, 38, 57, 62},
+	{10, 0, 7, 13, 19, 20, 27, 33, 39, 45, 64},
+	{10, 0, 6, 12, 20, 26, 32, 38, 43, 62, -1}};
+
 
 static
-int     RSP2_Table [] = {0, 10, 15, 21, 24, 34, 39, 45, 64};
+int     RSP2_Table [6] [10] = {
+	{9, 0, 10, 15, 21, 24, 34, 39, 45, 64},
+	{9, 0, 10, 15, 21, 24, 34, 39, 45, 64},
+	{9, 0, 10, 15, 21, 24, 34, 39, 45, 64},
+	{9, 0, 10, 15, 21, 24, 34, 39, 45, 64},
+	{6, 0,  7, 10, 17, 22, 41, -1, -1, -1},
+	{6, 0,  5, 21, 15, 15, 32, -1, -1, -1}};
 
 static
-int     RSPduo_Table [] = {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
-
-static
-int     get_lnaGRdB (int hwVersion, int lnaState) {
+int     get_lnaGRdB (int hwVersion, int lnaState, int band) {
         switch (hwVersion) {
            case 1:
-              return RSP1_Table [lnaState];
+              return RSP1_Table [band][lnaState + 1];
 
            case 2:
-              return RSP2_Table [lnaState];
+              return RSP2_Table [band][lnaState + 1];
 
            default:
-              return RSP1A_Table [lnaState];
+              return RSP1A_Table [band][lnaState + 1];
         }
 }
 
@@ -170,7 +188,8 @@ ULONG APIkeyValue_length = 255;
 
         ppmControl      -> setValue (
                     sdrplaySettings -> value ("ppmOffset", 0). toInt ());
-       agcMode         =
+
+	agcMode         =
                     sdrplaySettings -> value ("sdrplay-agcMode", 0). toInt ();
         if (agcMode) {
            agcControl -> setChecked (true);
@@ -306,11 +325,10 @@ ULONG APIkeyValue_length = 255;
 	         this, SLOT (set_lnagainReduction (int)));
 	connect (agcControl, SIGNAL (stateChanged (int)),
 	         this, SLOT (agcControl_toggled (int)));
+	connect (debugControl, SIGNAL (stateChanged (int)),
+	         this, SLOT (debugControl_toggled (int)));
 	connect (ppmControl, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_ppmControl (int)));
-
-//	lnaGRdBDisplay          -> display (get_lnaGRdB (hwVersion,
-//	                                    lnaGainSetting -> value ()));
 
 	running. store (false);	
 	sampleCnt	= 0;
@@ -353,17 +371,17 @@ int32_t	sdrplayHandler::getRate	(void) {
 static inline
 int16_t	bankFor_rsp (int32_t freq) {
 	if (freq < 60 * MHz (1))
-	   return 1;
+	   return 0;
 	if (freq < 120 * MHz (1))
-	   return 2;
+	   return 1;
 	if (freq < 250 * MHz (1))
-	   return 3;
+	   return 2;
 	if (freq < 420 * MHz (1))
-	   return 4;
+	   return 3;
 	if (freq < 1000 * MHz (1))
-	   return 5;
+	   return 4;
 	if (freq < 2000 * MHz (1))
-	   return 6;
+	   return 5;
 	return -1;
 }
 
@@ -449,6 +467,8 @@ int     lnaState        = lnaGainSetting        -> value ();
 	                               errorCodes (err). toLatin1 (). data ());
 	else
 	   lastFrequency = newFrequency;
+	int	bank	= bankFor_rsp (lastFrequency);
+	lnaGRdBDisplay -> display (get_lnaGRdB (hwVersion, lnaState, bank));
 }
 
 quint64	sdrplayHandler::getVFOFrequency	(void) {
@@ -461,7 +481,7 @@ int	GRdB		= ifgainSlider	-> value ();
 int	lnaState	= lnaGainSetting -> value ();
 int	lnaGRdB;
 mir_sdr_ErrT err;
-
+int	bank		= bankFor_rsp (getVFOFrequency ());
 	if (agcMode)
 	   return;
 
@@ -471,24 +491,27 @@ mir_sdr_ErrT err;
 	                           errorCodes (err). toLatin1 (). data ());
 	else {
 	   GRdBDisplay	-> display (GRdB);
-//	   lnaGRdBDisplay -> display (get_lnaGRdB (hwVersion, lnaState));
+	   lnaGRdBDisplay -> display (get_lnaGRdB (hwVersion, lnaState, bank));
 	}
 }
 
 void    sdrplayHandler::set_lnagainReduction (int lnaState) {
 mir_sdr_ErrT err;
+int	bank	= bankFor_rsp (getVFOFrequency ());
 
         if (!agcMode) {
            set_ifgainReduction (0);
            return;
         }
-
+	
         err     = my_mir_sdr_AgcControl (true, -30, 0, 0, 0, 0, lnaState);
         if (err != mir_sdr_Success)
            fprintf (stderr, "Error at set_lnagainReduction %s\n",
                                errorCodes (err). toLatin1 (). data ());
-//	else
-//	   lnaGRdBDisplay       -> display (get_lnaGRdB (hwVersion, lnaState));
+	else
+	   lnaGRdBDisplay       -> display (get_lnaGRdB (hwVersion,
+	                                                 lnaState,
+	                                                 bank));
 }
 
 //
@@ -547,7 +570,7 @@ void	myGainChangeCallback (uint32_t	GRdB,
 	                      void	*cbContext) {
 sdrplayHandler	*p	= static_cast<sdrplayHandler *> (cbContext);
 	p -> GRdBDisplay	-> display ((int)GRdB);
-	p -> lnaGRdBDisplay	-> display ((int)lnaGRdB);
+//	p -> lnaGRdBDisplay	-> display ((int)lnaGRdB);
 }
 
 bool	sdrplayHandler::restartReader	(void) {
@@ -809,6 +832,10 @@ void	sdrplayHandler::agcControl_toggled (int agcMode) {
 	   gainsliderLabel      -> hide ();
 	}
 
+}
+
+void    sdrplayHandler::debugControl_toggled (int debugMode) {
+        my_mir_sdr_DebugEnable (debugControl -> isChecked () ? 1 : 0);
 }
 
 void	sdrplayHandler::set_ppmControl (int ppm) {

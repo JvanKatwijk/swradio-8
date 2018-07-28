@@ -169,6 +169,7 @@ private slots:
 	void		set_ifgainReduction	(int);
 	void		set_lnagainReduction	(int);
 	void		agcControl_toggled	(int);
+	void		debugControl_toggled	(int);
 	void		set_ppmControl		(int);
 	void		set_antennaSelect	(const QString &);
 	void		set_tunerSelect		(const QString &);
