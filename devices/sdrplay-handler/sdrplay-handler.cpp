@@ -385,6 +385,48 @@ int16_t	bankFor_rsp (int32_t freq) {
 	return -1;
 }
 
+static	inline
+int16_t	bank_rsp1 (int32_t freq) {
+	if (freq < 12 * MHz (1))
+	   return mir_sdr_BAND_AM_LO;
+	if (freq < 30 * MHz (1))
+	   return mir_sdr_BAND_AM_MID;
+	if (freq < 60 * MHz (1))
+	   return mir_sdr_BAND_AM_HI;
+        if (freq < 120 * MHz (1))
+	   return mir_sdr_BAND_VHF;
+        if (freq < 250 * MHz (1))
+	   return mir_sdr_BAND_3;
+        if (freq < 420 * MHz (1))
+	   return mir_sdr_BAND_X;
+        if (freq < 1000 * MHz (1))
+	   return mir_sdr_BAND_4_5;
+        if (freq < 2000 * MHz (1))
+           return mir_sdr_BAND_L;;
+        return -1;
+}
+
+static	inline
+int16_t	bank_rsp2 (int32_t freq) {
+	if (freq < 12 * MHz (1))
+	   return mir_sdr_BAND_AM_LO;
+	if (freq < 30 * MHz (1))
+	   return mir_sdr_BAND_AM_MID;
+	if (freq < 60 * MHz (1))
+	   return mir_sdr_BAND_AM_HI;
+        if (freq < 120 * MHz (1))
+	   return mir_sdr_BAND_VHF;
+        if (freq < 250 * MHz (1))
+	   return mir_sdr_BAND_3;
+        if (freq < 420 * MHz (1))
+	   return mir_sdr_BAND_X;
+        if (freq < 1000 * MHz (1))
+	   return mir_sdr_BAND_4_5;
+        if (freq < 2000 * MHz (1))
+           return mir_sdr_BAND_L;;
+        return -1;
+}
+
 static
 int	rsp1Tables []	= {4, 4, 4, 4, 4, 4};
 
@@ -418,7 +460,7 @@ mir_sdr_ErrT	err;
 int     GRdB            = ifgainSlider          -> value ();
 int     lnaState        = lnaGainSetting        -> value ();
 
-	if (bankFor_rsp ((uint32_t)newFrequency) == -1)
+	if (bank_rsp1 ((uint32_t)newFrequency) == -1)
 	   return;
 	
 	if ((uint32_t)newFrequency < inputRate / 2) {
@@ -434,8 +476,8 @@ int     lnaState        = lnaGainSetting        -> value ();
 	   return;
 	}
 
-	if (bankFor_rsp ((uint32_t)newFrequency) ==
-	                        bankFor_rsp ((uint32_t)lastFrequency)) {
+	if (bank_rsp1 ((uint32_t)newFrequency) ==
+	                        bank_rsp1 ((uint32_t)lastFrequency)) {
 	   err = my_mir_sdr_SetRf (double ((uint32_t)newFrequency), 1, 0);
 	   if (err != mir_sdr_Success) 
 	      fprintf (stderr, "Error in freq select %s\n", 
