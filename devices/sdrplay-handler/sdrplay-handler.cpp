@@ -72,6 +72,44 @@ int     get_lnaGRdB (int hwVersion, int lnaState, int band) {
         }
 }
 
+static inline
+int16_t	bankFor_rsp (int32_t freq) {
+	if (freq < 60 * MHz (1))
+	   return 0;
+	if (freq < 120 * MHz (1))
+	   return 1;
+	if (freq < 250 * MHz (1))
+	   return 2;
+	if (freq < 420 * MHz (1))
+	   return 3;
+	if (freq < 1000 * MHz (1))
+	   return 4;
+	if (freq < 2000 * MHz (1))
+	   return 5;
+	return -1;
+}
+
+static	inline
+int16_t	bank_rsp1 (int32_t freq) {
+	if (freq < 12 * MHz (1))
+	   return mir_sdr_BAND_AM_LO;
+	if (freq < 30 * MHz (1))
+	   return mir_sdr_BAND_AM_MID;
+	if (freq < 60 * MHz (1))
+	   return mir_sdr_BAND_AM_HI;
+        if (freq < 120 * MHz (1))
+	   return mir_sdr_BAND_VHF;
+        if (freq < 250 * MHz (1))
+	   return mir_sdr_BAND_3;
+        if (freq < 420 * MHz (1))
+	   return mir_sdr_BAND_X;
+        if (freq < 1000 * MHz (1))
+	   return mir_sdr_BAND_4_5;
+        if (freq < 2000 * MHz (1))
+           return mir_sdr_BAND_L;;
+        return -1;
+}
+
 	sdrplayHandler::sdrplayHandler  (RadioInterface *mr,
 	                                 int32_t	outputRate,
 	                                 RingBuffer<DSPCOMPLEX> *r,
@@ -80,7 +118,6 @@ int     get_lnaGRdB (int hwVersion, int lnaState, int band) {
 mir_sdr_ErrT err;
 float	ver;
 mir_sdr_DeviceT devDesc [4];
-mir_sdr_GainValuesT gainDesc;
 sdrplaySelect	*sdrplaySelector;
 
 	this	-> outputRate	= outputRate;
@@ -200,7 +237,7 @@ ULONG APIkeyValue_length = 255;
         sdrplaySettings -> endGroup ();
 
 	oscillatorTable	= new std::complex<float> [inputRate];
-	for (int32_t i = 0; i < inputRate; i ++)
+	for (int32_t i = 0; i < (int)inputRate; i ++)
 	   oscillatorTable [i] = std::complex<float> (
 	                           cos ((float) i * 2 * M_PI / inputRate),
 	                           sin ((float) i * 2 * M_PI / inputRate));
@@ -211,7 +248,7 @@ ULONG APIkeyValue_length = 255;
 	                                     inputRate,
 	                                     inputRate / outputRate);
 	api_version	-> display (ver);
-	lastFrequency	= Khz (2200);
+	lastFrequency	= Khz (14070);
 //
 	err = my_mir_sdr_GetDevices (devDesc, &numofDevs, uint32_t (4));
 	if (err != mir_sdr_Success) {
@@ -284,12 +321,24 @@ ULONG APIkeyValue_length = 255;
               deviceLabel       -> setText ("RSP-II");
 	      nrBits		= 12;
 	      denominator	= 2048;
+              antennaSelector -> show ();
+              err = my_mir_sdr_RSPII_AntennaControl (mir_sdr_RSPII_ANTENNA_A);
+              if (err != mir_sdr_Success)
+                 fprintf (stderr, "error %d in setting antenna\n", err);
+              connect (antennaSelector, SIGNAL (activated (const QString &)),
+                       this, SLOT (set_antennaSelect (const QString &)));
               break;
            case 3:
               lnaGainSetting    -> setRange (0, 8);
               deviceLabel       -> setText ("RSP-DUO");
 	      nrBits		= 14;
 	      denominator	= 8192;
+              tunerSelector        -> show ();
+              err  = my_mir_sdr_rspDuo_TunerSel (mir_sdr_rspDuo_Tuner_1);
+              if (err != mir_sdr_Success)
+                 fprintf (stderr, "error %d in setting of rspDuo\n", err);
+              connect (tunerSelector, SIGNAL (activated (const QString &)),
+                       this, SLOT (set_tunerControl (const QString &)));
               break;
            default:
               lnaGainSetting    -> setRange (0, 9);
@@ -299,24 +348,9 @@ ULONG APIkeyValue_length = 255;
               break;
         }
 
-        if (hwVersion == 2) {
-           mir_sdr_ErrT err;
-           antennaSelector -> show ();
-           err = my_mir_sdr_RSPII_AntennaControl (mir_sdr_RSPII_ANTENNA_A);
-           if (err != mir_sdr_Success)
-              fprintf (stderr, "error %d in setting antenna\n", err);
-           connect (antennaSelector, SIGNAL (activated (const QString &)),
-                    this, SLOT (set_antennaSelect (const QString &)));
-        }
-
-       if (hwVersion == 3) {   // duo
-           tunerSelector        -> show ();
-           err  = my_mir_sdr_rspDuo_TunerSel (mir_sdr_rspDuo_Tuner_1);
-           if (err != mir_sdr_Success)
-              fprintf (stderr, "error %d in setting of rspDuo\n", err);
-           connect (tunerSelector, SIGNAL (activated (const QString &)),
-                    this, SLOT (set_tunerControl (const QString &)));
-        }
+	lnaGRdBDisplay -> display (get_lnaGRdB (hwVersion,
+	                           lnaGainSetting -> value (),
+	                           bankFor_rsp (lastFrequency)));
 
 //      and be prepared for future changes in the settings
 	connect (ifgainSlider, SIGNAL (valueChanged (int)),
@@ -368,44 +402,6 @@ int32_t	sdrplayHandler::getRate	(void) {
 	return kHz (2112);
 }
 
-static inline
-int16_t	bankFor_rsp (int32_t freq) {
-	if (freq < 60 * MHz (1))
-	   return 0;
-	if (freq < 120 * MHz (1))
-	   return 1;
-	if (freq < 250 * MHz (1))
-	   return 2;
-	if (freq < 420 * MHz (1))
-	   return 3;
-	if (freq < 1000 * MHz (1))
-	   return 4;
-	if (freq < 2000 * MHz (1))
-	   return 5;
-	return -1;
-}
-
-static	inline
-int16_t	bank_rsp1 (int32_t freq) {
-	if (freq < 12 * MHz (1))
-	   return mir_sdr_BAND_AM_LO;
-	if (freq < 30 * MHz (1))
-	   return mir_sdr_BAND_AM_MID;
-	if (freq < 60 * MHz (1))
-	   return mir_sdr_BAND_AM_HI;
-        if (freq < 120 * MHz (1))
-	   return mir_sdr_BAND_VHF;
-        if (freq < 250 * MHz (1))
-	   return mir_sdr_BAND_3;
-        if (freq < 420 * MHz (1))
-	   return mir_sdr_BAND_X;
-        if (freq < 1000 * MHz (1))
-	   return mir_sdr_BAND_4_5;
-        if (freq < 2000 * MHz (1))
-           return mir_sdr_BAND_L;;
-        return -1;
-}
-
 static	inline
 int16_t	bank_rsp2 (int32_t freq) {
 	if (freq < 12 * MHz (1))
@@ -443,13 +439,13 @@ static
 int	lnaStates (int hwVersion, int band) {
 	switch (hwVersion) {
 	   case 1:
-	      return rsp1Tables [band - 1];
+	      return rsp1Tables [band];
 	   case 2:
-	      return rsp2Tables [band - 1];
+	      return rsp2Tables [band];
 	   case 3:
-	      return rspduoTables [band - 1];
+	      return rspduoTables [band];
 	   default:
-	      return rsp1ATables [band - 1];
+	      return rsp1ATables [band];
 	}
 }
 
@@ -463,7 +459,7 @@ int     lnaState        = lnaGainSetting        -> value ();
 	if (bank_rsp1 ((uint32_t)newFrequency) == -1)
 	   return;
 	
-	if ((uint32_t)newFrequency < inputRate / 2) {
+	if (newFrequency < inputRate / 2) {
 	   localShift	= inputRate / 2 -  (uint32_t)newFrequency;
 	   newFrequency = inputRate / 2;
 	}
@@ -521,7 +517,6 @@ void	sdrplayHandler::set_ifgainReduction (int newGain) {
 	(void)newGain;
 int	GRdB		= ifgainSlider	-> value ();
 int	lnaState	= lnaGainSetting -> value ();
-int	lnaGRdB;
 mir_sdr_ErrT err;
 int	bank		= bankFor_rsp (getVFOFrequency ());
 	if (agcMode)
@@ -537,11 +532,13 @@ int	bank		= bankFor_rsp (getVFOFrequency ());
 	}
 }
 
-void    sdrplayHandler::set_lnagainReduction (int lnaState) {
+void    sdrplayHandler::set_lnagainReduction (int dummy) {
 mir_sdr_ErrT err;
 int	bank	= bankFor_rsp (getVFOFrequency ());
+int	lnaState	= lnaGainSetting -> value ();
 
-        if (!agcMode) {
+	(void)dummy;
+        if (!agcControl -> isChecked ()) {
            set_ifgainReduction (0);
            return;
         }
@@ -585,7 +582,7 @@ int	cnt	= 0;
 	   p -> oscillatorPhase += p -> localShift;
 	   if (p -> oscillatorPhase < 0)
 	      p -> oscillatorPhase += p -> inputRate;
-	   if (p -> oscillatorPhase >= p -> inputRate)
+	   if (p -> oscillatorPhase >=  (int)p -> inputRate)
 	      p -> oscillatorPhase -= p -> inputRate;
 
 	   if (p -> filter -> Pass (temp, &localBuf [cnt])) 
@@ -612,6 +609,7 @@ void	myGainChangeCallback (uint32_t	GRdB,
 	                      void	*cbContext) {
 sdrplayHandler	*p	= static_cast<sdrplayHandler *> (cbContext);
 	p -> GRdBDisplay	-> display ((int)GRdB);
+	(void)lnaGRdB;
 //	p -> lnaGRdBDisplay	-> display ((int)lnaGRdB);
 }
 
@@ -877,6 +875,7 @@ void	sdrplayHandler::agcControl_toggled (int agcMode) {
 }
 
 void    sdrplayHandler::debugControl_toggled (int debugMode) {
+	(void)debugMode;
         my_mir_sdr_DebugEnable (debugControl -> isChecked () ? 1 : 0);
 }
 

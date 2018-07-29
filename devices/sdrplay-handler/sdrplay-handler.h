@@ -112,7 +112,7 @@ public:
 //	should be visible
 	RingBuffer<DSPCOMPLEX>	*_I_Buffer;
 	int32_t		sampleCnt;
-	int32_t		inputRate;
+	uint32_t	inputRate;
 	int32_t		outputRate;
 	void		report_dataAvailable	(void);
 	decimatingFIR	*filter;
