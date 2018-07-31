@@ -605,7 +605,7 @@ DSPCOMPLEX buffer [rate / 10];
 void    RadioInterface::set_AGCMode (const QString &s) {
 uint8_t gainControl;
 
-        if (s == "off AGC")
+        if (s == "AGC off")
            gainControl  = agcHandler::AGC_OFF;
         else
         if (s == "slow")
