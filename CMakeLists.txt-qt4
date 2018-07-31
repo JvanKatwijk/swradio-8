@@ -372,6 +372,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
            ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h
 	   ./decoders/drm-decoder/data/mot-data.h
 	   ./decoders/drm-decoder/data/data-processor.h
+	   ./decoders/drm-decoder/data/drm_aacdecoder.h
 	   ./decoders/drm-decoder/data/message-processor.h
 	)
 
