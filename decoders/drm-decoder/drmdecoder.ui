@@ -16,7 +16,7 @@
   <widget class="QFrame" name="frame">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>0</y>
      <width>441</width>
      <height>121</height>
@@ -133,7 +133,7 @@
    <widget class="QLabel" name="modeIndicator">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>170</x>
       <y>50</y>
       <width>31</width>
       <height>21</height>
@@ -181,7 +181,7 @@
    <widget class="QLabel" name="stationLabel">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>140</x>
       <y>70</y>
       <width>131</width>
       <height>21</height>
@@ -200,7 +200,7 @@
    <widget class="QLabel" name="audioModelabel">
     <property name="geometry">
      <rect>
-      <x>230</x>
+      <x>200</x>
       <y>50</y>
       <width>71</width>
       <height>20</height>
@@ -241,7 +241,7 @@
    <widget class="QLabel" name="spectrumIndicator">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>140</x>
       <y>50</y>
       <width>31</width>
       <height>21</height>
@@ -443,6 +443,19 @@
     </property>
     <property name="segmentStyle">
      <enum>QLCDNumber::Flat</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="aacDataLabel">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>70</y>
+      <width>91</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
     </property>
    </widget>
   </widget>

@@ -72,7 +72,7 @@ uint32_t y;
 	dataProcessor::dataProcessor	(mscConfig *msc,
 	                                 drmDecoder *drm):
 	                                      my_messageProcessor (drm) ,
-	                                      my_aacDecoder (),
+	                                      my_aacDecoder (drm),
 	                                      upFilter_24000 (5, 12000, 48000),
 	                                      upFilter_12000 (5, 6000, 48000) {
 	

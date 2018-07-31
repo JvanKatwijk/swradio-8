@@ -25,18 +25,22 @@
 #define __DRM_AACDECODER
 
 #include	<neaacdec.h>
+#include	<QObject>
 //#include	<faad.h>
 #include	<stdio.h>
 #include	<stdint.h>
+
+class	drmDecoder;
 
 #define	AUD_DEC_TRANSFORM_LENGTH	960
 //
 //	It turns out that faad2 supports DRM, so the interface
 //	can be kept pretty simple
 
-class DRM_aacDecoder {
+class DRM_aacDecoder: public QObject {
+Q_OBJECT
 public:
-		DRM_aacDecoder	(void);
+		DRM_aacDecoder	(drmDecoder *drm);
 	 	~DRM_aacDecoder (void);
 	bool	checkfor 	(uint8_t, bool, uint8_t);
 	bool	initDecoder	(int16_t, bool, uint8_t);
@@ -47,10 +51,13 @@ public:
 	                         int16_t	*, int32_t *);
 	void	closeDecoder	(void);
 protected:
-	NeAACDecHandle the_aacDecoder;
-	bool	SBR_flag;
-	uint8_t	audioMode;
-	int16_t	audioRate;
+	drmDecoder	*the_drmDecoder;
+	NeAACDecHandle	the_aacDecoder;
+	bool		SBR_flag;
+	uint8_t		audioMode;
+	int16_t		audioRate;
+signals:
+	void		aacData	(QString);
 };
 
 #endif // __DRM_AACDECODER

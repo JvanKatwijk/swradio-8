@@ -36,8 +36,8 @@
 		drmDecoder::drmDecoder (int32_t		inRate,
 	                                RingBuffer<std::complex<float> > *audioBuffer,
 	                                QSettings *s):
-	                               virtualDecoder (inRate,
-	                                audioBuffer) {
+	                                   virtualDecoder (inRate,
+	                                                   audioBuffer) {
 QString	temp;
 int16_t	symbs;
 
@@ -56,6 +56,7 @@ int16_t	symbs;
 	                        tr ("Will only work with 12 or 24 k input"));
 	   theRate = 12000;
 	}
+
 	localOscillator. resize (theRate);
 	for (int i = 0; i < theRate; i ++)
 	   localOscillator [i] =
@@ -304,6 +305,10 @@ void	drmDecoder::faadSuccess		(bool b) {
 	   goodfaad	= 0;
 	   faadCounter	= 0;
 	}
+}
+
+void	drmDecoder::aacData (QString text) {
+	aacDataLabel -> setText (text);
 }
 
 //	showMOT is triggered by the MOT handler,

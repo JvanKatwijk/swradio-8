@@ -25,12 +25,16 @@
 #include	"drm-aacdecoder.h"
 //#include	<faad.h>
 #include	<stdio.h>
+#include	"drm-decoder.h"
 
-	DRM_aacDecoder::DRM_aacDecoder (void) {
-	the_aacDecoder = NULL;
+	DRM_aacDecoder::DRM_aacDecoder (drmDecoder *drm) {
+	the_drmDecoder	= drm;
+	the_aacDecoder	= NULL;
 	SBR_flag	= false;
 	audioMode	= 0x77;
 	audioRate	= 0x77;
+	connect (this, SIGNAL (aacData (QString)),
+	         drm,  SLOT (aacData (QString)));
 }
 
 	DRM_aacDecoder::~DRM_aacDecoder (void) {
@@ -67,6 +71,8 @@ bool DRM_aacDecoder::initDecoder (int16_t	audioSampleRate,
 int16_t aacRate = 12000;
 uint8_t	aacMode	= DRMCH_SBR_PS_STEREO;
 int	s;
+QString	text;
+
 	if (the_aacDecoder == NULL)
 	   the_aacDecoder = NeAACDecOpen ();
 	if (the_aacDecoder == NULL) 	// should not happen
@@ -74,19 +80,23 @@ int	s;
 
 // Only 12 kHz and 24 kHz with DRM
 	aacRate = audioSampleRate == 01 ? 12000 : 24000;
+	text = QString::number (aacRate);
+	text. append (" ");
 
 // Number of channels for AAC: Mono, PStereo, Stereo 
 	switch (audioMode) {
 	   case 0:		// audioMode == 0, MONO
-	      if (SBR_used)
+	      if (SBR_used) 
 	         aacMode = DRMCH_SBR_MONO;
-	      else
+	      else 
 	         aacMode = DRMCH_MONO;
+	      text. append ("mono");
 	      break;
 
 	   case 1:
 /* Low-complexity stereo only defined in SBR mode */
 	      aacMode = DRMCH_SBR_PS_STEREO;
+	      text. append ("stereo");
 	      break;
 	
 	   default:
@@ -95,9 +105,11 @@ int	s;
 	         aacMode = DRMCH_SBR_STEREO;
 	      else
 	         aacMode = DRMCH_STEREO;
+	      text. append ("stereo");
 	      break;
 	}
 
+	aacData (text);
 	s = NeAACDecInitDRM (&the_aacDecoder, aacRate, (uint8_t)aacMode);
 	return s >= 0;
 }

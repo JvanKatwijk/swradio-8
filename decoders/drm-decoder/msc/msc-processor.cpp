@@ -142,8 +142,8 @@ void	mscProcessor::create_Handlers (mscConfig *msc) {
 	      default:  
 	         fprintf (stderr, "not implemented yet\n");
 	         my_mscHandler = new QAM64_SM_Handler  (msc,
-	                                               qam64Roulette,
-	                                               viterbiDecoder);
+	                                                qam64Roulette,
+	                                                viterbiDecoder);
 	         break;
 	   }
 	}

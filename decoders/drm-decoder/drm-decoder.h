@@ -83,6 +83,7 @@ public slots:
 	void		show_angle		(float);
 	void		faadSuccess		(bool);
 	void		showMOT			(QByteArray, int);
+	void		aacData			(QString);
 private slots:
 	void		executeTimeSync		(bool);
 	void		executeFACSync		(bool);
