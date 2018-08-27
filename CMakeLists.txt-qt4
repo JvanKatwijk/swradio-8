@@ -204,7 +204,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-filenames.h
 	   ./decoders/mfsk-decoder/mfsk-decoder.h 
 	   ./decoders/mfsk-decoder/goertzel-filter.h 
-	   ./decoders/mfsk-decoder/slidingfft.h \
+	   ./decoders/mfsk-decoder/slidingfft.h 
 	   ./decoders/mfsk-decoder/interleave.h
 	   ./decoders/drm-decoder/drm-decoder.h  
 	   ./decoders/drm-decoder/basics.h 
