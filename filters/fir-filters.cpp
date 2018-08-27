@@ -390,8 +390,8 @@ int16_t	i;
 //
 //	windowing
 	   tmp [i]  *= (0.42 -
-		    0.5 * cos (2 * M_PI * (float)i / (float)filterSize) +
-		    0.08 * cos (4 * M_PI * (float)i / (float)filterSize));
+		        0.5 * cos (2 * M_PI * (float)i / (float)filterSize) +
+		        0.08 * cos (4 * M_PI * (float)i / (float)filterSize));
 
 	   sum += tmp [i];
 	}

@@ -30,7 +30,7 @@
 #include	"ui_rtty-decoder.h"
 #include	"shifter.h"
 
-class	BandPassIIR;
+class	bandpassFIR;
 class	QSettings;
 class	average;
 /*
@@ -102,8 +102,6 @@ private:
 	double		adjust_IF		(double);
 	double		rttyS2N			(void);
 	average		*rttyAverager;
-	double		filterLowend;
-	double		filterHighend;
 	shifter		localShifter;
 	int16_t		rttyCycleCount;
 	uint8_t		rttyBitFragment;
@@ -113,7 +111,7 @@ private:
 	double		rttyNegFreq;
 	double		rttyFreqError;
 	std::complex<float>	rttyPrevsample;
-	BandPassIIR	*LPM_Filter;
+	bandpassFIR	*BPM_Filter;
 	uint8_t		rttyAfcon;
 	double		rttyShift;
 	double		rttyIF;

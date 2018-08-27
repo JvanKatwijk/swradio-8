@@ -22,12 +22,12 @@ int	err;
         ratio                   = double(outRate) / inRate;
         outputLimit             = inputLimit * ratio;
 //	src_converter		= src_new (SRC_SINC_BEST_QUALITY, 2, &err);
-	src_converter		= src_new (SRC_LINEAR, 2, &err);
+//	src_converter		= src_new (SRC_LINEAR, 2, &err);
+	src_converter		= src_new (SRC_SINC_MEDIUM_QUALITY, 2, &err);
 	if (src_converter == NULL)
 	   fprintf (stderr, "van %d naar %d ging niet\n", inRate, outRate);
 	else
 	   fprintf (stderr, "van %d naar %d gaat wel\n", inRate, outRate);
-//	src_converter		= src_new (SRC_SINC_MEDIUM_QUALITY, 2, &err);
         src_data                = new SRC_DATA;
         inBuffer                = new float [2 * inputLimit + 20];
         outBuffer               = new float [2 * outputLimit + 20];

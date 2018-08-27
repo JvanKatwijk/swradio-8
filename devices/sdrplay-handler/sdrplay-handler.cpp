@@ -384,7 +384,7 @@ ULONG APIkeyValue_length = 255;
 
 	sdrplaySettings -> endGroup ();
 
-	if (!libraryLoaded)
+	if (!libraryLoaded)	// should not happen
 	   return;
 	delete	myFrame;
 

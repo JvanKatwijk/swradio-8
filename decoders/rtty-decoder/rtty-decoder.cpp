@@ -24,7 +24,7 @@
 #include	<math.h>
 #include	"shifter.h"
 #include	"utilities.h"
-#include	"iir-filters.h"
+#include	"fir-filters.h"
 
 #define	RTTY_IF		800
 
@@ -66,7 +66,7 @@
 	rttySettings	-> endGroup ();
 	myFrame	-> hide ();
 	delete	rttyAverager;
-	delete	LPM_Filter;
+	delete	BPM_Filter;
 	delete	myFrame;
 }
 
@@ -87,17 +87,11 @@ int16_t	k;
 	rttyAfcon		= false;
 	rttyMsb			= false;
 	rttyFilterDegree	= 10;
-	filterLowend		= 0.1 * theRate;
-	filterHighend		= 0.2 * theRate;
-	LPM_Filter		= new BandPassIIR (rttyFilterDegree,
-	                                           0.1 * theRate,
-	                                           0.2 * theRate,
-	                                           theRate,
-	                                           S_BUTTERWORTH);
-/*
- *	we only consider baudrates > 40, so OutputRate / 40
- *	is a safe upperbound for the length of the filter
- */
+	BPM_Filter		= new bandpassFIR (rttyFilterDegree,
+	                                           RTTY_IF - rttyBaudrate,
+	                                           RTTY_IF + rttyBaudrate,
+	                                           theRate);
+
 	rttyAverager	= new average (rttySymbolLength / 3);
         rtty_clrText	();
 	rtty_setup ();
@@ -149,18 +143,13 @@ void	rttyDecoder::rtty_setup (void) {
 	   rttyShift	= 170;
 	   rttyBaudrate = 45;
 	}
-
 	rttyIF		= RTTY_IF;
 
-        filterLowend	= (int)(rttyShift / 2 - 3 * rttyBaudrate / 4);
-        filterHighend	= (int)(rttyShift / 2 + 3 * rttyBaudrate / 4);
-
-	delete		LPM_Filter;
-	LPM_Filter	= new  BandPassIIR (rttyFilterDegree,
-	                                    filterLowend, 
-	                                    filterHighend,
-	                                    theRate,
-	                                    S_BUTTERWORTH);
+	delete		BPM_Filter;
+	BPM_Filter	= new  bandpassFIR (rttyFilterDegree,
+	                                    RTTY_IF - 3 * rttyBaudrate / 4, 
+	                                    RTTY_IF + 3 * rttyBaudrate / 4,
+	                                    theRate);
 	rttySymbolLength	= (int)(theRate / rttyBaudrate + 0.5);
 	delete		rttyAverager;
 	rttyAverager		= new average (rttySymbolLength / 3);
@@ -221,8 +210,8 @@ int	res;
 //	keep a local copy of the sample
 	local_copy	= z;
 
+	z	= BPM_Filter -> Pass (z);
 	z	= localShifter. do_shift (z, rttyIF);
-	z	= LPM_Filter -> Pass (z);
 // 	then we apply slicing to end up with omega and
 //	we compute the offset frequency
 	FreqOffset	= arg (conj (rttyPrevsample) * z) *
@@ -258,7 +247,7 @@ int	res;
 	      rttyIF += FreqAdjust;
 	}
 	else 
-	if (res) 
+	if (res) {
 	   if ((rttyPoscnt > 100) && (rttyNegcnt > 100)) {
 	      double ferr = - (rttyPosFreq / rttyPoscnt +
 	                             rttyNegFreq / rttyNegcnt) / 2;
@@ -267,15 +256,16 @@ int	res;
 	      rttyPoscnt = 0; rttyPosFreq = 0.0;
 	      rttyNegcnt = 0; rttyNegFreq = 0.0;
 	   }
+	}
 
-	if (++rttyCycleCount > theRate / 10) {
+	if (++rttyCycleCount > theRate / 4) {
 	   rttyCycleCount	= 0;
 //	   rtty_showStrength   (rttyS2N ());
 	   rtty_showStrength   ((float)rttyIF);
 //	   rtty_showFreqCorrection ((float)rttyIF);
 	   setDetectorMarker	(rttyIF);
 	   rtty_showGuess      ((int)(2.0 * FreqOffset));
-	   audioAvailable (theRate / 10, theRate);
+	   audioAvailable	(theRate / 10, theRate);
 	}
 
 	audioOut	-> putDataIntoBuffer (&local_copy, 1);

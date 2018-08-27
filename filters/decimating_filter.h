@@ -1,9 +1,10 @@
 
 
-#ifndef	__DECIMATING_FILTER___
+#ifndef	__DECIMATING_FILTER__
 #define	__DECIMATING_FILTER__
 
 #include	"fft.h"
+#include	<vector>
 
 class	decimating_filter {
 public:
@@ -11,14 +12,15 @@ public:
 	~decimating_filter	(void);
 bool	Pass		(std::complex<float>, std::complex<float> *);
 private:
-	int		insize;
-	int		outsize;
-	float		*inwindow;
-	float		*freqWindow;	
+	int		inrate;
+	int		outrate;
+	common_fft	fft_in;
+	common_ifft	fft_out;
+	std::vector<float>	inwindow;
+	std::vector<std::complex<float>>	freqWindow;	
+	std::complex<float>	*hulpbuffer;
 	int		inp;
 	int		outp;
-	common_fft	*fft_in;
-	common_fft	*fft_out;
 	std::complex<float>	*inbuffer;
 	std::complex<float>	*outbuffer;
 };

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>psk_widget</class>
- <widget class="QWidget" name="psk_widget">
+ <class>new_decoder</class>
+ <widget class="QWidget" name="new_decoder">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>595</width>
-    <height>234</height>
+    <width>605</width>
+    <height>237</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>psk-decoder</string>
+   <string>new-decoder</string>
   </property>
   <widget class="QFrame" name="frame">
    <property name="geometry">
@@ -203,9 +203,9 @@
    <widget class="QLabel" name="psktextBox">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>200</y>
-      <width>571</width>
+      <width>581</width>
       <height>21</height>
      </rect>
     </property>
@@ -231,33 +231,30 @@
      </font>
     </property>
     <property name="text">
-     <string>psk decoder</string>
-    </property>
-   </widget>
-   <widget class="QSlider" name="amplitudeSlider">
-    <property name="geometry">
-     <rect>
-      <x>140</x>
-      <y>70</y>
-      <width>24</width>
-      <height>101</height>
-     </rect>
-    </property>
-    <property name="sliderPosition">
-     <number>50</number>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
+     <string>new decoder</string>
     </property>
    </widget>
    <widget class="QwtPlot" name="pskScope">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>70</y>
-      <width>400</width>
-      <height>121</height>
+      <x>150</x>
+      <y>80</y>
+      <width>421</width>
+      <height>111</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QSlider" name="amplitudeSlider">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>89</y>
+      <width>24</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
     </property>
    </widget>
   </widget>

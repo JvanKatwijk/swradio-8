@@ -45,11 +45,11 @@ double	temp;
 	this	-> displaySize		= displaySize;
 	this	-> segmentSize		= SampleRate / freq;
 	this	-> scale		= scale;
-	this	-> spectrumSize		= 4 * displaySize;
+	this	-> spectrumSize		= 2 * displaySize;
 	this	-> sampleRate		= SampleRate;
 	this	-> MaxFrequency		= SampleRate / 2;
 	this	-> freq			= freq;
-	bitDepth			= 16;
+	bitDepth			= 8;
 	averageCounter			= 0;
 	this	-> fillPointer		= 0;
 	this	-> vfo			= 0;
@@ -75,6 +75,8 @@ double	temp;
 	   X_axis [i] =
 	      ((double)vfo - (double)MaxFrequency
 	           +  (double)((i) * (double) 2 * temp)) / ((double)scale);
+	
+	scope	-> set_bitDepth (bitDepth);
 }
 
 	fftScope::~fftScope (void) {
@@ -132,11 +134,11 @@ int32_t	i, j;
 	for (i = 0; i < displaySize / 2; i ++) {
 	   displayBuffer [i] = 0;
 	   displayBuffer [displaySize / 2 + i] = 0;
-	   for (j = 0; j < 4; j ++) {
+	   for (j = 0; j < 2; j ++) {
 	      displayBuffer [i] +=
-	           0.25 * abs (spectrumBuffer [spectrumSize / 2 + 4 * i + j]);
+	           0.25 * abs (spectrumBuffer [spectrumSize / 2 + 2 * i + j]);
 	      displayBuffer [displaySize / 2 + i] +=
-	           0.25 * abs (spectrumBuffer [4 * i + j]);
+	           0.25 * abs (spectrumBuffer [2 * i + j]);
 	   }
 	}
 

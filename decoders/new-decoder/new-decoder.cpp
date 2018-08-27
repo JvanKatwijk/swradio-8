@@ -26,8 +26,8 @@
 #include	<QWidget>
 #include	<qwt_dial.h>
 #include	<qwt_dial_needle.h>
-#include	"psk-decoder.h"
-#include	"fir-filters.h"
+#include	"new-decoder.h"
+#include	"iir-filters.h"
 #include	"shifter.h"
 #include	"utilities.h"
 #include	"viterbi.h"
@@ -48,7 +48,8 @@
  *	then down decimate to PSKRATE, after which we 
  *	decimate such that we end up with 16 samples per bit
  */
-		pskDecoder::pskDecoder (int32_t rate,
+
+		newDecoder::newDecoder (int32_t rate,
 	                                RingBuffer<std::complex<float> > *b,
 	                                QSettings *s):
 	                                   virtualDecoder (rate, b),
@@ -61,17 +62,19 @@
 	myFrame		-> show ();
 
 	setup_pskDecoder (rate);
-	pskViewer       = new fftScope (pskScope,
+	psk_setup ();
+
+	pskViewer	= new fftScope (pskScope,
                                         128,
                                           1,
                                         512,
                                          50,
                                           8);
         pskViewer       -> setScope (0, 0);
-	pskViewer       -> switch_viewMode  ();
+//      pskViewer       -> switch_viewMode  ();
         connect (amplitudeSlider, SIGNAL (valueChanged (int)),
                  this, SLOT (handle_amplitude (int)));
-	psk_setup ();
+
 
 	restore_GUISettings (pskSettings);
 //	setting the initial values
@@ -97,7 +100,7 @@
 }
 //
 //
-	pskDecoder::~pskDecoder	(void) {
+	newDecoder::~newDecoder	(void) {
 	pskSettings	-> beginGroup ("pskDecoder");
 	pskSettings	-> setValue ("pskAfconTrigger",
 	                              pskAfconTrigger -> currentText ());
@@ -111,21 +114,22 @@
 	                              pskFilterDegreeTrigger -> value ());
 	pskSettings	-> endGroup ();
 	delete		viterbiDecoder;
-	delete		BPM_Filter;
+	delete		LPM_Filter;
 	delete[]	pskBuffer;	
 	myFrame		-> hide ();
 	delete		myFrame;
+	delete		newFilter;
 }
 
-int32_t	pskDecoder::rateOut		(void) {
+int32_t	newDecoder::rateOut		(void) {
 	return theRate;
 }
 
-int16_t	pskDecoder::detectorOffset	(void) {
+int16_t	newDecoder::detectorOffset	(void) {
 	return psk_IF;
 }
 
-void	pskDecoder::setup_pskDecoder	(int32_t rate) {
+void	newDecoder::setup_pskDecoder	(int32_t rate) {
 	theRate		= rate;
 	mapTable	(theRate, PSKRATE);
 	pskFilterDegree	= 12;		/* default	*/
@@ -138,10 +142,13 @@ void	pskDecoder::setup_pskDecoder	(int32_t rate) {
 	memset (pskBuffer, 0, 16 * sizeof (std::complex<float>));
 	pskBitclk	= 0;
 	pskDecimatorCount	= 0;
-	BPM_Filter	= new bandpassFIR (2 * pskFilterDegree + 1,
-	                                  PSK_IF - PSK31_SPEED,
-	                                  PSK_IF + PSK31_SPEED,
-	                                  theRate);
+	LPM_Filter	= new LowPassIIR (pskFilterDegree,
+	                                  (int)(PSK31_SPEED),
+	                                  theRate,
+	                                  S_BUTTERWORTH);
+	newFilter	= new decimating_filter (theRate,
+	                                     PSKRATE / DecimatingCountforpskMode (),
+	                                         PSK31_SPEED);
 
 	viterbiDecoder	= new viterbi (pskK, pskPOLY1, pskPOLY2);
 	QwtDialSimpleNeedle *needle;
@@ -155,7 +162,7 @@ void	pskDecoder::setup_pskDecoder	(int32_t rate) {
 	pskPhaseDisplay	-> setNeedle (needle);
 }
 
-void	pskDecoder::psk_setup (void) {
+void	newDecoder::psk_setup (void) {
 
 	if (!pskAfcon) {
 	   psk_IF	= PSK_IF;
@@ -167,7 +174,7 @@ void	pskDecoder::psk_setup (void) {
 //	pskFilterDegree
 
 	pskCycleCount		= 0;
-        pskPhaseAcc		= 0;
+	pskPhaseAcc		= 0;
 	pskOldz			= 0;
 	psk_phasedifference	= 0.0;
 	pskShiftReg		= 0;
@@ -179,32 +186,25 @@ void	pskDecoder::psk_setup (void) {
 	pskBitclk		= 0;
 	pskDecimatorCount	= 0;
 
-	delete	BPM_Filter;
-	BPM_Filter		= new bandpassFIR (2 * pskFilterDegree + 1,
-	                                           PSK_IF - speedofPskMode (),
-	                                           PSK_IF + speedofPskMode (),
-	                                           theRate);
-	delete pskViewer;
-	pskViewer       = new fftScope (pskScope,
-                                        128,
-                                          1,
-	                                PSKRATE / DecimatingCountforpskMode  (),
-                                         50,
-                                          8);
-        pskViewer       -> setScope (0, 0);
-	pskViewer       -> switch_viewMode  ();
-        connect (amplitudeSlider, SIGNAL (valueChanged (int)),
-                 this, SLOT (handle_amplitude (int)));
+	delete newFilter;
+	newFilter	= new decimating_filter (theRate,
+	                                         PSKRATE / DecimatingCountforpskMode (),
+	                                         3 * speedofPskMode ());
+	delete	LPM_Filter;
+	LPM_Filter		= new LowPassIIR (pskFilterDegree,
+	                                          (int)(speedofPskMode ()),
+	                                          theRate,
+	                                          S_BUTTERWORTH);
 }
 
-bool	pskDecoder::isBinarypskMode () {
+bool	newDecoder::isBinarypskMode () {
 	if ((pskMode == MODE_PSK31) ||
 	    (pskMode == MODE_PSK63) ||
 	    (pskMode == MODE_PSK125)) return true;
 	return false;
 }
 
-bool	pskDecoder::isQuadpskMode () {
+bool	newDecoder::isQuadpskMode () {
 
 	if ((pskMode == MODE_QPSK31) ||
 	    (pskMode == MODE_QPSK63) ||
@@ -212,7 +212,7 @@ bool	pskDecoder::isQuadpskMode () {
 	return false;
 }
 
-float	pskDecoder::speedofPskMode (void) {
+float	newDecoder::speedofPskMode (void) {
 	switch (pskMode) {
 	   default:
 	   case MODE_PSK31:
@@ -229,21 +229,21 @@ float	pskDecoder::speedofPskMode (void) {
 	}
 }
 
-void	pskDecoder::psk_setAfcon (const QString &s) {
+void	newDecoder::psk_setAfcon (const QString &s) {
 	pskAfcon = s == "Afc on";
 	psk_setup ();
 }
 
-void	pskDecoder::psk_setReverse (const QString &s) {
+void	newDecoder::psk_setReverse (const QString &s) {
 	pskReverse = s != "normal";
 	psk_setup ();
 }
 
-void	pskDecoder::psk_setSquelchLevel (int n) {
+void	newDecoder::psk_setSquelchLevel (int n) {
 	pskSquelchLevel = n;
 }
 
-void	pskDecoder::psk_setMode (const QString &s) {
+void	newDecoder::psk_setMode (const QString &s) {
 	if (s == "psk31")
 	   pskMode	= MODE_PSK31;
 	else
@@ -263,12 +263,12 @@ void	pskDecoder::psk_setMode (const QString &s) {
 	psk_setup ();
 }
 
-void	pskDecoder::psk_setFilterDegree (int n) {
+void	newDecoder::psk_setFilterDegree (int n) {
 	pskFilterDegree = n;
 	psk_setup ();
 }
 
-uint8_t	pskDecoder::getIntPhase (DSPCOMPLEX z) {
+uint8_t	newDecoder::getIntPhase (DSPCOMPLEX z) {
 double phase = arg (z);
 
 	if (phase < 0)
@@ -279,7 +279,7 @@ double phase = arg (z);
 	   return (((uint8_t)(phase / M_PI + 0.5)) & 1);
 }
 
-int16_t	pskDecoder::DecimatingCountforpskMode (void) {
+int16_t	newDecoder::DecimatingCountforpskMode (void) {
 	switch (pskMode) {
 	   default:
 	   case MODE_PSK31:
@@ -294,7 +294,7 @@ int16_t	pskDecoder::DecimatingCountforpskMode (void) {
 	}
 }
 
-void	pskDecoder::process (std::complex<float> z) {
+void	newDecoder::process (std::complex<float> z) {
 std::complex<float>	old_z;
 std::complex<float>	out [256];
 uint16_t	i;
@@ -312,28 +312,32 @@ int16_t		cnt;
 	audioOut -> putDataIntoBuffer (&z, 1);
 //	we down-mix the signal to a zero-centered one,
 	old_z	= z;
-	z	= BPM_Filter -> Pass (z);
 	z	= localShifter. do_shift  (z, psk_IF);
-//
-//	and resample to PSKRATE
-	cnt	= resample (z, out);
-	if (cnt < 0) 
-	   return;
-
-	for (i = 0; i < cnt; i ++) {
-//	Now we are on PSKRATE 
-	   if (++pskDecimatorCount < this -> DecimatingCountforpskMode ()) 
-	      continue;
-	   doDecode (out [i]);
-	   pskViewer	-> addElements (&(out [i]), 1);
+	if (newFilter	-> Pass (z, &z)) {
+	   pskViewer	-> addElements (&z, 1);
+	   doDecode (z);
 	}
+
+//	z	= LPM_Filter -> Pass (z);
+////
+////	and resample to PSKRATE
+//	cnt	= resample (z, out);
+//	if (cnt < 0) 
+//	   return;
+//
+//	for (i = 0; i < cnt; i ++) {
+////	Now we are on PSKRATE 
+//	   if (++pskDecimatorCount < this -> DecimatingCountforpskMode ()) 
+//	      continue;
+//	   doDecode (out [i]);
+//	}
 }
 
 /*
  *	now we are finally back on 16 samples per symbol
  *	to apply the "standard" algorithm
  */
-void	pskDecoder::doDecode (std::complex<float> v) {
+void	newDecoder::doDecode (std::complex<float> v) {
 uint16_t	pskBufferp;
 float		sum	= 0;
 float		ampsum	= 0;
@@ -376,12 +380,12 @@ uint8_t	bits;
 	pskAfcmetrics	= 0.99 * pskAfcmetrics +
 	                               0.01 * (100 * norm (pskQuality));
 
-	if (pskAfcon)
-	   psk_IF += psk_IFadjust (psk_phasedifference, bits);
+	if (pskAfcon) {
+	   psk_IF	+= 0.01 * psk_IFadjust (psk_phasedifference, bits);
+	}
 }
 
-
-uint8_t	pskDecoder::decodingIsOn (uint8_t n,
+uint8_t	newDecoder::decodingIsOn (uint8_t n,
 	                          double phase,
 	                          uint8_t bits, DSPCOMPLEX *pskQuality) {
 	pskDecodeShifter	= (pskDecodeShifter << 2) | bits;
@@ -409,9 +413,9 @@ uint8_t	pskDecoder::decodingIsOn (uint8_t n,
  *	otherwise, find a basis for correcting the IF
  *	phase and bits are related
  */
-double	pskDecoder::psk_IFadjust (double phasedifference, uint16_t bits) {
+double	newDecoder::psk_IFadjust (double phasedifference,
+	                                       uint16_t bits) {
 double	error;
-
 	if (pskAfcmetrics < 0.1)
 	   return 0.0;
 
@@ -423,11 +427,12 @@ double	error;
 	   error -= 2 * M_PI;
 
 	error /= 2 * M_PI;
-	error *= (double)(PSKRATE / DecimatingCountforpskMode ()) / 8;
-	return  - error / 256;
+	error *= (double)(PSKRATE / DecimatingCountforpskMode ()) / 16;
+	return  - error;
+
 }
 
-void	pskDecoder::bpsk_bit (uint16_t bit) {
+void	newDecoder::bpsk_bit (uint16_t bit) {
 int16_t	c;
 
 	pskShiftReg = (pskShiftReg << 1) | !!bit;
@@ -439,7 +444,7 @@ int16_t	c;
 	}
 }
 
-void	pskDecoder::qpsk_bit (uint16_t bits) {
+void	newDecoder::qpsk_bit (uint16_t bits) {
 uint8_t sym [2];
 int16_t	c;
 
@@ -500,8 +505,7 @@ static unsigned int varicodetab2[] = {
 	0xAF5, 0xAF7, 0xAFB, 0xAFD, 0xAFF, 0xB55, 0xB57, 0xB5B
 };
 
-
-int16_t	pskDecoder::pskVaridecode (uint16_t symbol) {
+int16_t	newDecoder::pskVaridecode (uint16_t symbol) {
 int i;
 
 	for (i = 0; i < 256; i++)
@@ -511,19 +515,19 @@ int i;
 	return -1;
 }
 
-void	pskDecoder::psk_showDial	(float f) {
+void	newDecoder::psk_showDial	(float f) {
 	pskPhaseDisplay		-> setValue (f * 360.0 / (2 * M_PI));
 }
 
-void	pskDecoder::psk_showMetrics	(float f) {
+void	newDecoder::psk_showMetrics	(float f) {
 	pskQualitydisplay	-> display (f);
 }
 
-void	pskDecoder::psk_showIF		(float f) {
+void	newDecoder::psk_showIF		(float f) {
 	pskIFdisplay		-> display (f);
 }
 
-void	pskDecoder::psk_addText		(char c) {
+void	newDecoder::psk_addText		(char c) {
 	if (c < ' ') c = ' ';
 	pskText. append (QString (QChar (c)));
 	if (pskText. length () > 86)
@@ -531,14 +535,14 @@ void	pskDecoder::psk_addText		(char c) {
 	psktextBox	-> setText (pskText);
 }
 
-void	pskDecoder::psk_clrText		(void) {
+void	newDecoder::psk_clrText		(void) {
 	pskText		= QString ("");
 	psktextBox	-> setText (pskText);
 }
 //
 //	simple "resampler", a simple table addressing N output samples
 //	in M inputsamples
-void	pskDecoder::mapTable		(int32_t inRate, int32_t outRate) {
+void	newDecoder::mapTable		(int32_t inRate, int32_t outRate) {
 int16_t	i;
 
 	theTable. resize (outRate / 100);
@@ -548,7 +552,7 @@ int16_t	i;
 	tablePointer	= 0;
 }
 
-int	pskDecoder::resample		(std::complex<float> in,
+int	newDecoder::resample		(std::complex<float> in,
 	                                 std::complex<float> *out) {
 int16_t i;
 
@@ -567,7 +571,7 @@ int16_t i;
 	return theTable. size ();
 }
 	
-void	pskDecoder::restore_GUISettings (QSettings *p) {
+void	newDecoder::restore_GUISettings (QSettings *p) {
 QString	temp;
 int	k;
 
@@ -601,8 +605,7 @@ int	k;
 	pskSettings		-> endGroup ();
 }
 
-void    pskDecoder::handle_amplitude   (int a) {
+void    newDecoder::handle_amplitude   (int a) {
         pskViewer       -> setLevel (a);
 }
-
 

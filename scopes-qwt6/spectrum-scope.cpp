@@ -84,7 +84,7 @@
 }
 
 	spectrumScope::~spectrumScope () {
-	plotgrid	-> enableAxis (QwtPlot::yLeft, false);
+//	plotgrid	-> enableAxis (QwtPlot::yLeft, false);
 	Marker		-> detach ();
 	SpectrumCurve	-> detach ();
 	grid		-> detach ();
@@ -105,10 +105,10 @@ void	spectrumScope::rightMouseClick (const QPointF &point) {
 }
 
 void	spectrumScope::display (double *X_axis,
-		                 double *Y1_value,
-	                         double amp,
-	                         int32_t markerValue,
-	                         int32_t theBin) {
+		                double *Y1_value,
+	                        double amp,
+	                        int32_t markerValue,
+	                        int32_t theBin) {
 int16_t	i;
 double binVal = 0;
 

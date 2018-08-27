@@ -46,6 +46,9 @@
 //
 //	decoders
 #include	"virtual-decoder.h"
+#ifdef	HAVE_TEST_DECODER
+#include	"test-decoder.h"
+#endif
 #ifdef	HAVE_AM_DECODER
 #include	"am-decoder.h"
 #endif
@@ -61,11 +64,17 @@
 #ifdef	HAVE_PSK_DECODER
 #include	"psk-decoder.h"
 #endif
+#ifdef	HAVE_NEW_DECODER
+#include	"new-decoder.h"
+#endif
 #ifdef	HAVE_RTTY_DECODER
 #include	"rtty-decoder.h"
 #endif
 #ifdef	HAVE_FAX_DECODER
 #include	"fax-decoder.h"
+#endif
+#ifdef	HAVE_MFSK_DECODER
+#include	"mfsk-decoder.h"
 #endif
 #ifdef	HAVE_DRM_DECODER
 #include	"drm-decoder.h"
@@ -117,6 +126,9 @@ QString	FrequencytoString (quint64 freq) {
 	theDecoder	= new virtualDecoder (decoderRate,
 	                                      audioData);
 
+#ifdef	HAVE_TEST_DECODER
+	decoderTable	-> addItem ("test decoder");
+#endif
 #ifdef	HAVE_AM_DECODER
 	decoderTable	-> addItem ("am decoder");
 #endif
@@ -132,11 +144,17 @@ QString	FrequencytoString (quint64 freq) {
 #ifdef	HAVE_PSK_DECODER
 	decoderTable	-> addItem ("psk decoder");
 #endif
+#ifdef	HAVE_NEW_DECODER
+	decoderTable	-> addItem ("new decoder");
+#endif
 #ifdef	HAVE_RTTY_DECODER
 	decoderTable	-> addItem ("rtty decoder");
 #endif
 #ifdef	HAVE_FAX_DECODER
 	decoderTable	-> addItem ("wfax decoder");
+#endif
+#ifdef	HAVE_MFSK_DECODER
+	decoderTable	-> addItem ("mfsk decoder");
 #endif
 #ifdef	HAVE_DRM_DECODER
 	decoderTable	-> addItem ("drm decoder");
@@ -321,6 +339,20 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	disconnect (theDecoder, SIGNAL (setDetectorMarker (int)),
 	            this, SLOT (setDetectorMarker (int)));
 	delete theDecoder;
+#ifdef	HAVE_MFSK_DECODER
+	if (s == "mfsk decoder") {
+	   theDecoder	= new mfskDecoder (decoderRate,
+	                                   audioData, settings);
+	}
+	else
+#endif
+#ifdef	HAVE_TEST_DECODER
+	if (s == "test decoder") {
+	   theDecoder	= new testDecoder (decoderRate,
+	                                   audioData, settings);
+	}
+	else
+#endif
 #ifdef	HAVE_AM_DECODER
 	if (s == "am decoder") {
 	   theDecoder	= new amDecoder (decoderRate,
@@ -352,6 +384,13 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 #ifdef	HAVE_PSK_DECODER
 	if (s == "psk decoder") {
 	   theDecoder	= new pskDecoder (decoderRate,
+	                                   audioData, settings);
+	}
+	else
+#endif
+#ifdef	HAVE_NEW_DECODER
+	if (s == "new decoder") {
+	   theDecoder	= new newDecoder (decoderRate,
 	                                   audioData, settings);
 	}
 	else

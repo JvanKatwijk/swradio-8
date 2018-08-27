@@ -24,7 +24,7 @@
 #include	<QFrame>
 #include	<QSettings>
 #include	"cw-decoder.h"
-#include	"iir-filters.h"
+#include	"fir-filters.h"
 #include	"fft-scope.h"
 #include	"utilities.h"
 
@@ -80,7 +80,7 @@ int16_t	temp;
 /*
  *	the filter will be set later on
  */
-	cw_LowPassFilter	= NULL;
+	cw_BandPassFilter	= NULL;
 	cwCurrent		= 0;
 	agc_peak		= 0;
 	noiseLevel		= 0;
@@ -155,12 +155,12 @@ void	cwDecoder::cw_setSquelchValue (int s) {
 
 void	cwDecoder::cw_setFilterDegree (int n) {
 	cwFilterDegree	= n;
-	if (cw_LowPassFilter != NULL)
-	   delete cw_LowPassFilter;
-	cw_LowPassFilter	= new LowPassIIR (cwFilterDegree,
-	                                          75,
-	                                          workingRate,
-	                                          S_BUTTERWORTH);
+	if (cw_BandPassFilter != NULL)
+	   delete cw_BandPassFilter;
+	cw_BandPassFilter	= new bandpassFIR (2 * cwFilterDegree + 1,
+	                                           cw_IF - 30,
+	                                           cw_IF + 20,
+	                                           workingRate);
 }
 
 void	cwDecoder::speedAdjust () {
@@ -202,7 +202,7 @@ void	cwDecoder::process (std::complex<float> z) {
 	   cw_showspeed		(cwSpeed);
 	   cw_showagcpeak	(clamp (agc_peak * 1000.0, 0.0, 100.0));
 	   cw_shownoiseLevel	(clamp (noiseLevel * 1000.0, 0.0, 100.0));
-           audioAvailable (theRate / 10, theRate);
+	   audioAvailable (theRate / 10, theRate);
 	   setDetectorMarker	((int)cw_IF);
 	}
 }
@@ -234,9 +234,8 @@ int32_t	t;
 char	buffer [4];
 std::complex<float>	s;
 
-
+	s	= cw_BandPassFilter	-> Pass (s);
 	s	= localShifter. do_shift (z, cw_IF * 10);
-	s	= cw_LowPassFilter	-> Pass (s);
 	value	=  abs (s);
 
 	if (value > agc_peak)
@@ -428,13 +427,13 @@ void 	cwDecoder::printChar (char a, char er) {
 	   case 1:	printf("\033[01;42m%c\033[m",a); break;
 	   case 2:	printf("\033[01;41m%c\033[m",a); break;
 	   case 3:	printf("\033[01;43m%c\033[m",a); break;
-           case 4:
-           case 5:
-           case 6:
-           case 7:	printf("\033[2J\033[H<BRK>\n"); break;
+	   case 4:
+	   case 5:
+	   case 6:
+	   case 7:	printf("\033[2J\033[H<BRK>\n"); break;
 	   default:
 			break;
-        }
+	}
 }
 
 const char * const codetable[] = {
@@ -476,7 +475,7 @@ const char * const codetable[] = {
 	"9____.",
 	".._._._",
 	",__..__",
-        "?..__..",
+	"?..__..",
 	"~"
 	};
 
@@ -526,14 +525,13 @@ void	cwDecoder::cw_showspeed (int l) {
 }
 
 void    cwDecoder::cw_adjustFrequency (int f) {
-        cw_IF  += f;
-        if (cw_IF > workingRate / 2 - workingRate / 20)
-           cw_IF = workingRate / 2 - workingRate / 20;
-        if (cw_IF < - workingRate / 2 + workingRate / 20)
-           cw_IF = -workingRate / 2 + workingRate / 20;
+	cw_IF  += f;
+	if (cw_IF > workingRate / 2 - workingRate / 20)
+	   cw_IF = workingRate / 2 - workingRate / 20;
+	if (cw_IF < - workingRate / 2 + workingRate / 20)
+	   cw_IF = -workingRate / 2 + workingRate / 20;
 	setDetectorMarker (cw_IF);
 	
 }
-
 
 

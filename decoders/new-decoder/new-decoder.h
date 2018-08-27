@@ -24,18 +24,19 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __PSK_DECODER__
-#define	__PSK_DECODER__
+#ifndef __NEW_DECODER__
+#define	__NEW_DECODER__
 #
 
 #include	"radio-constants.h"
 #include	"virtual-decoder.h"
-#include	"ui_psk-decoder.h"
+#include	"ui_new-decoder.h"
 #include	"shifter.h"
-#include	<vector>
+#include	"decimating_filter.h"
 #include	"fft-scope.h"
+#include	<vector>
 
-class	bandpassFIR;
+class	LowPassIIR;
 class	viterbi;
 class	QFrame;
 class	QSettings;
@@ -43,13 +44,13 @@ class	shifter;
 /*
  * PSK31  -- receiver classs
  */
-class pskDecoder: public virtualDecoder, public Ui_psk_widget {
+class newDecoder: public virtualDecoder, public Ui_new_decoder {
 Q_OBJECT
 public:
-			pskDecoder		(int32_t,
+			newDecoder		(int32_t,
 	                                         RingBuffer<std::complex <float> > *,
 	                                         QSettings *);
-			~pskDecoder		(void);
+			~newDecoder		(void);
 	void		process			(std::complex<float>);
 	int32_t		rateOut			(void);
 	int16_t		detectorOffset		(void);
@@ -59,7 +60,8 @@ private slots:
 	void		psk_setSquelchLevel	(int);
 	void		psk_setMode		(const QString &);
 	void		psk_setFilterDegree	(int);
-	void		handle_amplitude	(int);
+	void		handle_amplitude	(int a);
+
 private:
 	enum PskMode {
 	   MODE_PSK31 =		0100,
@@ -70,7 +72,9 @@ private:
 	   MODE_QPSK125 =	0112
 	};
 
+	decimating_filter	*newFilter;
 	fftScope	*pskViewer;
+
 	int32_t		theRate;
 	RingBuffer<std::complex<float> > *audioData;
 	QSettings	*pskSettings;
@@ -94,7 +98,7 @@ private:
 	shifter		localShifter;
 
 	int16_t		pskCycleCount;
-	bandpassFIR	*BPM_Filter;
+	LowPassIIR	*LPM_Filter;
 	viterbi		*viterbiDecoder;
 	double		psk_IF;
 	int16_t		pskDecimatorCount;

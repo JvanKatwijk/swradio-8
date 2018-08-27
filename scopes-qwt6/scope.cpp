@@ -159,11 +159,11 @@ void	SpectrumViewer::rightMouseClick (const QPointF &point) {
 
 void	SpectrumViewer::ViewSpectrum (double *X_axis,
 		                      double *Y1_value,
-	                              double amp,
+	                              double amp1,
 	                              int32_t marker) {
 uint16_t	i;
 
-	amp		= amp / 100 * (-get_db (0));
+	double amp	= amp1 / 100 * (-get_db (0));
 	IndexforMarker	= marker;
 	plotgrid	-> setAxisScale (QwtPlot::xBottom,
 				         (double)X_axis [0],
@@ -172,7 +172,7 @@ uint16_t	i;
 	plotgrid	-> setAxisScale (QwtPlot::yLeft,
 				         get_db (0), get_db (0) + amp);
 	for (i = 0; i < Displaysize; i ++) 
-	   Y1_value [i] = get_db (Y1_value [i]); 
+	   Y1_value [i] = get_db (amp1 / 100 * Y1_value [i]); 
 
 	SpectrumCurve	-> setBaseline (get_db (0));
 	Y1_value [0]	= get_db (0);

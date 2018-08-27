@@ -56,6 +56,7 @@ HEADERS += ./radio-constants.h \
 	   ./scopes-qwt6/spectrogramdata.h \
 	   ./scopes-qwt6/waterfall-scope.h \
 	   ./scopes-qwt6/spectrum-scope.h \
+           ./scopes-qwt6/scope.h \
            ./scopes-qwt6/fft-scope.h \
 	   ./devices/device-input.h \
            ./devices/filereader/filereader.h \
@@ -85,6 +86,7 @@ SOURCES += ./main.cpp \
 	   ./scopes-qwt6/virtual-scope.cpp \
 	   ./scopes-qwt6/waterfall-scope.cpp \
 	   ./scopes-qwt6/spectrum-scope.cpp \
+           ./scopes-qwt6/scope.cpp \
            ./scopes-qwt6/fft-scope.cpp \
 	   ./decimators/decimator.cpp \
 	   ./devices/device-input.cpp \
@@ -101,9 +103,12 @@ CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
 CONFIG		+= amtor-decoder
 CONFIG		+= psk-decoder
+#CONFIG		+= new-decoder
 CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
+CONFIG		+= mfsk-decoder
 #CONFIG		+= drm-decoder
+#CONFIG		+= test-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
 INCLUDEPATH	+= /usr/include/qt5/qwt
@@ -162,6 +167,15 @@ hackrf	{
         SOURCES         += ./devices/hackrf-handler/hackrf-handler.cpp 
 }
 	
+test-decoder {
+        DEFINES         += HAVE_TEST_DECODER
+        INCLUDEPATH     += ./decoders/test-decoder
+        DEPENDPATH      += ./decoders/test-decoder
+        FORMS           += ./decoders/test-decoder/test-decoder.ui
+        HEADERS         += ./decoders/test-decoder/test-decoder.h
+        SOURCES         += ./decoders/test-decoder/test-decoder.cpp
+}
+
 am-decoder {
         DEFINES         += HAVE_AM_DECODER
         INCLUDEPATH     += ./decoders/am-decoder
@@ -209,6 +223,15 @@ psk-decoder {
                            ./decoders/psk-decoder/viterbi.cpp
 }
 
+new-decoder {
+        DEFINES         += HAVE_NEW_DECODER
+        INCLUDEPATH     += ./decoders/new-decoder
+        DEPENDPATH      += ./decoders/new-decoder
+        FORMS           += ./decoders/new-decoder/new-decoder.ui
+        HEADERS         += ./decoders/new-decoder/new-decoder.h 
+        SOURCES         += ./decoders/new-decoder/new-decoder.cpp 
+}
+
 rtty-decoder {
         DEFINES         += HAVE_RTTY_DECODER
         INCLUDEPATH     += ./decoders/rtty-decoder
@@ -216,6 +239,21 @@ rtty-decoder {
         FORMS           += ./decoders/rtty-decoder/rtty-decoder.ui
         HEADERS         += ./decoders/rtty-decoder/rtty-decoder.h 
         SOURCES         += ./decoders/rtty-decoder/rtty-decoder.cpp 
+}
+
+mfsk-decoder {
+        DEFINES         += HAVE_MFSK_DECODER
+        INCLUDEPATH     += ./decoders/mfsk-decoder
+        DEPENDPATH      += ./decoders/mfsk-decoder
+        FORMS           += ./decoders/mfsk-decoder/mfsk-decoder.ui
+        HEADERS         += ./decoders/mfsk-decoder/mfsk-decoder.h \
+	                   ./decoders/mfsk-decoder/goertzel-filter.h \
+	                   ./decoders/mfsk-decoder/slidingfft.h \
+	                   ./decoders/mfsk-decoder/interleave.h
+        SOURCES         += ./decoders/mfsk-decoder/mfsk-decoder.cpp \
+	                   ./decoders/mfsk-decoder/goertzel-filter.cpp \
+	                   ./decoders/mfsk-decoder/slidingfft.cpp \
+	                   ./decoders/mfsk-decoder/interleave.cpp
 }
 
 fax-decoder {

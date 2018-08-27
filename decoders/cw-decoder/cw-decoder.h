@@ -30,9 +30,9 @@
 #include	"ringbuffer.h"
 #include	"shifter.h"
 #include	"downconverter.h"
+#include	"fir-filters.h"
 #include	"ui_cw-decoder.h"
 
-class	LowPassIIR;
 class	Oscillator;
 class	average;
 class	fftScope;
@@ -72,6 +72,7 @@ private:
 	RingBuffer<std::complex<float>> inputBuffer;
 	downConverter	inputConverter;
 	shifter		localShifter;
+	bandpassFIR	*cw_BandPassFilter;
 	void		processSample		(std::complex<float>);
 	void		setup_cwDecoder		(int32_t);
 	void		cw_clrText		(void);
@@ -104,7 +105,6 @@ private:
 	float		value;
 	float		metric;
 	double		cw_IF;
-	LowPassIIR	*cw_LowPassFilter;
 	int32_t		cwDotLength;
 	int32_t		cwSpaceLength;
 	int32_t		cwDashLength;
