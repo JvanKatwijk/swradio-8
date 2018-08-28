@@ -262,8 +262,11 @@ void	mfskDecoder::setupInterfaceforMode (uint8_t mode) {
 	                                     mfskNumTones + mfskBorder, 20);
 
 	mfskViewer	-> set_bitDepth (12);
-	for (int i = 0; i < mfskNumTones + mfskBorder; i ++)
-	   x_axis [i] = i;
+	for (int i = -mfskBorder / 2;
+	      i < mfskNumTones + mfskBorder / 2; i ++)
+	   x_axis [i + mfskBorder / 2] = i;
+	connect (mfskViewer, SIGNAL (clickedwithLeft (int)),
+	         this, SLOT (handleClick (int)));
 
 	mfskSyncCounter		= 0;
 	mfskDatashreg		= 0;
@@ -631,6 +634,10 @@ int i;
 	return -1;
 }
 
+void	mfskDecoder::handleClick (int a) {
+	adjustFrequency (a * mfskToneSpacing);
+}
+
 	Cache::Cache (int16_t a, int16_t b) {
 int16_t	i;
 
@@ -652,4 +659,5 @@ int	i;
 std::complex<float>	*Cache::CacheLine (int16_t n) {
 	return data [n];
 }
+
 

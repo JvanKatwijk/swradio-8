@@ -138,6 +138,7 @@ private slots:
 	void		mfsk_setMode		(const QString &);
 	void		mfsk_setSquelch		(int);
 //	void		handle_amplitude	(int);
+	void		handleClick		(int);
 private:
 	void		mfsk_clrText	();
 	void		mfsk_addText	(char);
