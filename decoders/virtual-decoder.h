@@ -19,8 +19,9 @@ protected:
 	int32_t		workingRate;
 	RingBuffer<DSPCOMPLEX> *audioOut;
 signals:
-	void	audioAvailable (int, int);
-	void	setDetectorMarker (int);
+	void	audioAvailable		(int, int);
+	void	setDetectorMarker	(int);
+	void	adjustFrequency		(int);
 };
 #endif
 

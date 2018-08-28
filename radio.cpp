@@ -343,6 +343,8 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	if (s == "mfsk decoder") {
 	   theDecoder	= new mfskDecoder (decoderRate,
 	                                   audioData, settings);
+	   connect (theDecoder, SIGNAL (adjustFrequency (int)),
+	            this, SLOT (adjustFrequency_hz (int)));
 	}
 	else
 #endif
@@ -385,6 +387,8 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	if (s == "psk decoder") {
 	   theDecoder	= new pskDecoder (decoderRate,
 	                                   audioData, settings);
+	   connect (theDecoder, SIGNAL (adjustFrequency (int)),
+	            this, SLOT (adjustFrequency_hz (int)));
 	}
 	else
 #endif

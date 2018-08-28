@@ -60,6 +60,8 @@ private slots:
 	void		psk_setMode		(const QString &);
 	void		psk_setFilterDegree	(int);
 	void		handle_amplitude	(int);
+	void		handleClick		(int);
+	
 private:
 	enum PskMode {
 	   MODE_PSK31 =		0100,

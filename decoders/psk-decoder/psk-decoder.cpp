@@ -186,15 +186,17 @@ void	pskDecoder::psk_setup (void) {
 	                                           theRate);
 	delete pskViewer;
 	pskViewer       = new fftScope (pskScope,
-                                        128,
+	                                PSKRATE / 4 / DecimatingCountforpskMode (),
                                           1,
-	                                PSKRATE / DecimatingCountforpskMode  (),
+	                                PSKRATE / 2 / DecimatingCountforpskMode  (),
                                          50,
                                           8);
         pskViewer       -> setScope (0, 0);
 	pskViewer       -> switch_viewMode  ();
         connect (amplitudeSlider, SIGNAL (valueChanged (int)),
                  this, SLOT (handle_amplitude (int)));
+	connect (pskViewer, SIGNAL (clickedwithLeft (int)),
+	         this, SLOT (handleClick (int)));
 }
 
 bool	pskDecoder::isBinarypskMode () {
@@ -320,12 +322,20 @@ int16_t		cnt;
 	if (cnt < 0) 
 	   return;
 
+static	bool decCnt	= false;
+
 	for (i = 0; i < cnt; i ++) {
 //	Now we are on PSKRATE 
 	   if (++pskDecimatorCount < this -> DecimatingCountforpskMode ()) 
 	      continue;
 	   doDecode (out [i]);
-	   pskViewer	-> addElements (&(out [i]), 1);
+	   if (decCnt) {
+	      std::complex<float> xx = std::complex<float> (
+	                                  real (out [i]) * 512,
+	                                  imag (out [i]) * 512);
+	      pskViewer	-> addElements (&xx, 1);
+	   }
+	   decCnt = !decCnt;
 	}
 }
 
@@ -605,4 +615,7 @@ void    pskDecoder::handle_amplitude   (int a) {
         pskViewer       -> setLevel (a);
 }
 
+void	pskDecoder::handleClick	(int a) {
+	adjustFrequency (a);
+}
 
