@@ -62,7 +62,8 @@ to waterfall display (or vice-versa).
 **Decoders** are:
 * am
 * ssb, with selection for usb or lsb;
-* psk, with selection of a variety of modes and settings;
+* psk, with selection of a variety of modes and settings and a tuning aid,
+* mfsk, with a tuning aid,
 * rtty, with selection of a variety of modes and settings;
 * cw, with (almost) automatic selection of speed;
 * drm, limited to 10 k bandwidth;
@@ -123,6 +124,7 @@ Select - or deselect - decoders:
 * CONFIG          += rtty-decoder
 * CONFIG          += fax-decoder
 * CONFIG          += drm-decoder
+* CONFIG          += mfsk-decoder
 
 The "DESTDIR" parameter in the unix section in the ".pro" file tells where the result is to be put.
 
@@ -140,7 +142,17 @@ included, one has to obtain that from SDRplay.com
 --------------------------------------------------------------------------
 
 ![swradio-8](/swradio-psk.png?raw=true)
-Example of use of the psk decoder.
+Example of use of the psk decoder. The psk decoder now is equipped with
+a small "scope" as an aid in tuning. Clicking on a positionin the
+psk window will shift the frequency such that that point is in the middle.
+
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+
+![swradio-8](/swradio-mfsk.png?raw=true)
+Example of use of the mfsk decoder. The psk decoder now is equipped with
+a small "scope" as an aid in tuning. Clicking on a positionin the
+psk window will shift the frequency such that that point is on the mark.
 
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
