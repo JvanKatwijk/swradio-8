@@ -104,7 +104,11 @@ int     i, j;
 	plotgrid        -> enableAxis (QwtPlot::yRight, false);
 	plotgrid        -> enableAxis (QwtPlot::xBottom, false);
 	plotgrid        -> enableAxis (QwtPlot::yLeft, false);
+	delete	lm_picker;
+	delete	rm_picker;
 	this            -> detach ();
+//	delete	colorMap;
+//	delete	WaterfallData;
 }
 
 void    waterfallScope::leftMouseClick (const QPointF &point) {
@@ -144,7 +148,7 @@ int     width   = (int)(X_axis [displaySize - 1] - orig);
 	        &Y1_value [0],
 	        displaySize * sizeof (double));
 
-
+	invalidateCache ();
 	WaterfallData = new SpectrogramData (plotData,
 	                                     orig,
 	                                     width,

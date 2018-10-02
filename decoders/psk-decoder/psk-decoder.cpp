@@ -331,8 +331,8 @@ static	bool decCnt	= false;
 	   doDecode (out [i]);
 	   if (decCnt) {
 	      std::complex<float> xx = std::complex<float> (
-	                                  real (out [i]) * 512,
-	                                  imag (out [i]) * 512);
+	                                  real (out [i]) * 2048,
+	                                  imag (out [i]) * 2048);
 	      pskViewer	-> addElements (&xx, 1);
 	   }
 	   decCnt = !decCnt;
