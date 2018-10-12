@@ -27,6 +27,10 @@ else ()
    add_definitions ("-DGITHASH=\"       \"")
 endif()
 
+if(DEFINED DRM)
+   set (DRM true)
+endif ()
+
 	add_definitions (-DHAVE_SDRPLAY)
 	add_definitions (-DHAVE_AM_DECODER)
 	add_definitions (-DHAVE_SSB_DECODER)
@@ -35,8 +39,6 @@ endif()
 	add_definitions (-DHAVE_PSK_DECODER)
 	add_definitions (-DHAVE_PSK_DECODER)
 	add_definitions (-DHAVE_FAX_DECODER)
-	add_definitions (-DHAVE_DRM_DECODER)
-	add_definitions (-DESTIMATOR_1)
 	
 ########################################################################
 # select the release build type by default to get optimization flags
@@ -54,15 +56,22 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 #
 #####################################################################
 
+        find_package (PkgConfig)
+        find_package (LSBId)
 
-	find_package (PkgConfig)
-	find_package (LSBId)
-
-#	set(CMAKE_AUTOMOC ON)
-	set(CMAKE_INCLUDE_CURRENT_DIR ON)
-	find_package(Qt4 REQUIRED COMPONENTS QtCore QtNetwork)
-	include(${QT_USE_FILE})
+        find_package (Qt5Core REQUIRED)
+        find_package (Qt5Widgets REQUIRED)
+        find_package (Qt5Network REQUIRED)
+        include_directories (
+          ${Qt5Network_INCLUDE_DIRS}
+        )
 	find_package(QWT REQUIRED)
+
+        find_package(FFTW3f)
+        if (NOT FFTW3F_FOUND)
+            message(FATAL_ERROR "please install FFTW3")
+        endif ()
+
 
 	find_package(Qwt)
         if (NOT QWT_FOUND)
@@ -71,21 +80,11 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	include_directories ( ${QWT_INCLUDE_DIRS})
         list(APPEND extraLibs ${QWT_LIBRARIES})
 
-        find_package(FFTW3f)
-        if (NOT FFTW3F_FOUND)
-            message(FATAL_ERROR "please install FFTW3")
-        endif ()
-
         find_package(Portaudio)
         if (NOT PORTAUDIO_FOUND)
             message(FATAL_ERROR "please install portaudio V19")
         endif ()
         list(APPEND extraLibs ${PORTAUDIO_LIBRARIES})
-
-        find_package(Faad)
-        if (NOT FAAD_FOUND )
-            message(FATAL_ERROR "please install libfaad")
-        endif ()
 
         find_package(zlib)
 	if (NOT ZLIB_FOUND)
@@ -141,17 +140,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	           decoders/rtty-decoder 
 	           decoders/amtor-decoder 
 	           decoders/fax-decoder 
-	           decoders/drm-decoder 
-	         ./decoders/drm-decoder/ 
-	         ./decoders/drm-decoder/signal-handling 
-	         ./decoders/drm-decoder/signal-handling/eq-1 
-	         ./decoders/drm-decoder/utilities 
-	         ./decoders/drm-decoder/parameters 
-	         ./decoders/drm-decoder/msc 
-	         ./decoders/drm-decoder/sdc 
-	         ./decoders/drm-decoder/fac 
-	         ./decoders/drm-decoder/data 
-	         ./decoders/drm-decoder/input
 	)
 
 	set (${objectName}_HDRS
@@ -177,14 +165,14 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./scopes-qwt6/spectrogramdata.h 
 	   ./scopes-qwt6/waterfall-scope.h 
 	   ./scopes-qwt6/spectrum-scope.h 
-	   ./scopes-qwt6/fft-scope.h 
-	   ./decimators/decimator.h 
-	   ./devices/virtual-input.h 
-	   ./devices/filereader/filereader.h 
-	   ./devices/filereader/filehulp.h 
+	   ./scopes-qwt6/fft-scope.h
+           ./devices/device-input.h
+           ./devices/filereader/filereader.h
+           ./devices/filereader/filehulp.h
+           ./devices/sdrplay-handler/sdrplay-handler.h
+           ./devices/sdrplay-handler/sdrplayselect.h
+#          ./devices/hackrf-handler/hackrf-handler.h
 	   ./decoders/virtual-decoder.h 
-	   ./devices/sdrplay-handler/sdrplay-handler.h 
-	   ./devices/sdrplay-handler/sdrplayselect.h
 	   ./decoders/am-decoder/am-decoder.h
 	   ./decoders/ssb-decoder/ssb-decoder.h
 	   ./decoders/cw-decoder/cw-decoder.h
@@ -197,50 +185,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-image.h 
 	   ./decoders/fax-decoder/fax-scroller.h 
 	   ./decoders/fax-decoder/fax-filenames.h
-	   ./decoders/drm-decoder/drm-decoder.h  
-	   ./decoders/drm-decoder/basics.h 
-	   ./decoders/drm-decoder/input/reader.h 
-	   ./decoders/drm-decoder/timesync.h 
-	   ./decoders/drm-decoder/freqsyncer.h 
-	   ./decoders/drm-decoder/word-collector.h 
-	   ./decoders/drm-decoder/frame-processor.h 
-	   ./decoders/drm-decoder/signal-handling/referenceframe.h 
-	   ./decoders/drm-decoder/signal-handling/equalizer-base.h 
-	   ./decoders/drm-decoder/signal-handling/matrix2.h 
-	   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h 
-	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h 
-	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h 
-	   ./decoders/drm-decoder/utilities/viterbi-drm.h 
-	   ./decoders/drm-decoder/utilities/mapper.h 
-	   ./decoders/drm-decoder/utilities/prbs.h 
-	   ./decoders/drm-decoder/utilities/checkcrc.h 
-	   ./decoders/drm-decoder/utilities/qam64-metrics.h 
-	   ./decoders/drm-decoder/utilities/qam16-metrics.h 
-	   ./decoders/drm-decoder/utilities/qam4-metrics.h 
-	   ./decoders/drm-decoder/utilities/deinterleaver.h 
-	   ./decoders/drm-decoder/parameters/msc-config.h 
-	   ./decoders/drm-decoder/parameters/fac-data.h 
-	   ./decoders/drm-decoder/parameters/channelparameters.h 
-	   ./decoders/drm-decoder/parameters/serviceparameters.h 
-	   ./decoders/drm-decoder/parameters/puncture-tables.h 
-	   ./decoders/drm-decoder/fac/fac-processor.h 
-	   ./decoders/drm-decoder/sdc/sdc-streamer.h 
-	   ./decoders/drm-decoder/sdc/sdc-processor.h 
-	   ./decoders/drm-decoder/msc/msc-processor.h 
-	   ./decoders/drm-decoder/msc/msc-handler-qam16.h 
-	   ./decoders/drm-decoder/msc/msc-handler-qam64.h 
-	   ./decoders/drm-decoder/msc/msc-streamer.h 
-	   ./decoders/drm-decoder/msc/msc-handler.h 
-	   ./decoders/drm-decoder/data/data-processor.h 
-	   ./decoders/drm-decoder/data/fec-handler.h 
-	   ./decoders/drm-decoder/data/galois.h 
-	   ./decoders/drm-decoder/data/reed-solomon.h 
-	   ./decoders/drm-decoder/data/message-processor.h 
-	   ./decoders/drm-decoder/data/packet-assembler.h 
-	   ./decoders/drm-decoder/data/virtual-datahandler.h 
-	   ./decoders/drm-decoder/data/mot-data.h 
-	   ./decoders/drm-decoder/data/drm-aacdecoder.h 
-	   ./decoders/drm-decoder/data/neaacdec_dll.h
 	)
 
 	set (${objectName}_SRCS
@@ -265,7 +209,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./scopes-qwt6/spectrum-scope.cpp 
 	   ./scopes-qwt6/fft-scope.cpp 
 	   ./decimators/decimator.cpp 
-	   ./devices/virtual-input.cpp 
+	   ./devices/device-input.cpp 
 	   ./devices/filereader/filereader.cpp 
 	   ./devices/filereader/filehulp.cpp 
 	   ./decoders/virtual-decoder.cpp 
@@ -283,49 +227,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-image.cpp 
 	   ./decoders/fax-decoder/fax-scroller.cpp 
 	   ./decoders/fax-decoder/fax-filenames.cpp
-	   ./decoders/drm-decoder/drm-decoder.cpp  
-	   ./decoders/drm-decoder/basics.cpp 
-	   ./decoders/drm-decoder/input/reader.cpp 
-	   ./decoders/drm-decoder/timesync.cpp 
-	   ./decoders/drm-decoder/word-collector.cpp 
-	   ./decoders/drm-decoder/freqsyncer.cpp 
-	   ./decoders/drm-decoder/frame-processor.cpp 
-	   ./decoders/drm-decoder/signal-handling/referenceframe.cpp 
-	   ./decoders/drm-decoder/signal-handling/equalizer-base.cpp 
-	   ./decoders/drm-decoder/signal-handling/matrix2.cpp 
-	   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.cpp 
-	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.cpp 
-	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.cpp 
-	   ./decoders/drm-decoder/utilities/viterbi-drm.cpp 
-	   ./decoders/drm-decoder/utilities/mapper.cpp 
-	   ./decoders/drm-decoder/utilities/prbs.cpp 
-	   ./decoders/drm-decoder/utilities/checkcrc.cpp 
-	   ./decoders/drm-decoder/utilities/qam64-metrics.cpp 
-	   ./decoders/drm-decoder/utilities/qam16-metrics.cpp 
-	   ./decoders/drm-decoder/utilities/qam4-metrics.cpp 
-	   ./decoders/drm-decoder/utilities/deinterleaver.cpp 
-	   ./decoders/drm-decoder/parameters/msc-config.cpp 
-	   ./decoders/drm-decoder/parameters/fac-data.cpp 
-	   ./decoders/drm-decoder/parameters/channelparameters.cpp 
-	   ./decoders/drm-decoder/parameters/serviceparameters.cpp 
-	   ./decoders/drm-decoder/parameters/puncture-tables.cpp 
-	   ./decoders/drm-decoder/fac/fac-processor.cpp 
-	   ./decoders/drm-decoder/sdc/sdc-streamer.cpp 
-	   ./decoders/drm-decoder/sdc/sdc-processor.cpp 
-	   ./decoders/drm-decoder/msc/msc-processor.cpp 
-	   ./decoders/drm-decoder/msc/msc-handler-qam16.cpp 
-	   ./decoders/drm-decoder/msc/msc-handler-qam64.cpp 
-	   ./decoders/drm-decoder/msc/msc-streamer.cpp 
-	   ./decoders/drm-decoder/msc/msc-handler.cpp 
-	   ./decoders/drm-decoder/data/data-processor.cpp 
-	   ./decoders/drm-decoder/data/fec-handler.cpp 
-	   ./decoders/drm-decoder/data/galois.cpp 
-	   ./decoders/drm-decoder/data/reed-solomon.cpp 
-	   ./decoders/drm-decoder/data/message-processor.cpp 
-	   ./decoders/drm-decoder/data/packet-assembler.cpp 
-	   ./decoders/drm-decoder/data/virtual-datahandler.cpp 
-	   ./decoders/drm-decoder/data/mot-data.cpp 
-	   ./decoders/drm-decoder/data/drm-aacdecoder.cpp
 	)
 
 	set (${objectName}_MOCS
@@ -338,7 +239,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
            ./scopes-qwt6/waterfall-scope.h 
            ./scopes-qwt6/spectrum-scope.h 
            ./scopes-qwt6/fft-scope.h 
-	   ./devices/virtual-input.h
+	   ./devices/device-input.h
 	   ./devices/sdrplay-handler/sdrplay-handler.h 
 	   ./devices/sdrplay-handler/sdrplayselect.h 
            ./decoders/virtual-decoder.h 
@@ -355,19 +256,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-image.h 
 	   ./decoders/fax-decoder/fax-scroller.h 
 	   ./decoders/fax-decoder/fax-filenames.h 
-	   ./decoders/drm-decoder/drm-decoder.h  
-	   ./decoders/drm-decoder/input/reader.h 
-	   ./decoders/drm-decoder/frame-processor.h 
-	   ./decoders/drm-decoder/parameters/fac-data.h
-	   ./decoders/drm-decoder/freqsyncer.h
-	   ./decoders/drm-decoder/word-collector.h
-	   ./decoders/drm-decoder/signal-handling/equalizer-base.h
-           ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h
-           ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h
-           ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h
-	   ./decoders/drm-decoder/data/mot-data.h
-	   ./decoders/drm-decoder/data/data-processor.h
-	   ./decoders/drm-decoder/data/message-processor.h
 	)
 
 	set (${objectName}_UIS
@@ -382,23 +270,162 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/psk-decoder/psk-decoder.ui
 	   ./decoders/rtty-decoder/rtty-decoder.ui
 	   ./decoders/fax-decoder/fax-decoder.ui
-	   ./decoders/drm-decoder/drmdecoder.ui
 	)
 
-	QT4_WRAP_UI (UIS ${${objectName}_UIS})
+	if (DRM)
+	   add_definitions (-DHAVE_DRM_DECODER)
+	   add_definitions (-DESTIMATOR_1)
+           find_package(Faad)
+           if (NOT FAAD_FOUND )
+               message(FATAL_ERROR "please install libfaad")
+           endif ()
 
-	include_directories (
-	          ${SDRPLAY_INCLUDES}
-	          ${QT5Widgets_INCLUDES}
-	          ${QT_QTCORE_INCLUDE_DIR}
-	          ${QT_QTGUI_INCLUDE_DIR}
-	          ${FFTW_INCLUDE_DIRS}
-	          ${PORTAUDIO_INCLUDE_DIRS}
-	          ${FAAD_INCLUDE_DIRS}
-	          ${SNDFILES_INCLUDE_DIRS}
-	)
+	   include_directories (
+	         ./decoders/drm-decoder 
+	         ./decoders/drm-decoder/ 
+	         ./decoders/drm-decoder/signal-handling 
+	         ./decoders/drm-decoder/signal-handling/eq-1 
+	         ./decoders/drm-decoder/utilities 
+	         ./decoders/drm-decoder/parameters 
+	         ./decoders/drm-decoder/msc 
+	         ./decoders/drm-decoder/sdc 
+	         ./decoders/drm-decoder/fac 
+	         ./decoders/drm-decoder/data 
+	         ./decoders/drm-decoder/input
+	   )
 
-	QT4_WRAP_CPP (MOCS ${${objectName}_MOCS})
+	   set (${objectName}_HDRS
+	        ${$objectName}_HDRS}
+	      ./decoders/drm-decoder/drm-decoder.h  
+	      ./decoders/drm-decoder/basics.h 
+	      ./decoders/drm-decoder/input/reader.h 
+	      ./decoders/drm-decoder/timesync.h 
+	      ./decoders/drm-decoder/freqsyncer.h 
+	      ./decoders/drm-decoder/word-collector.h 
+	      ./decoders/drm-decoder/frame-processor.h 
+	      ./decoders/drm-decoder/signal-handling/referenceframe.h 
+	      ./decoders/drm-decoder/signal-handling/equalizer-base.h 
+	      ./decoders/drm-decoder/signal-handling/matrix2.h 
+	      ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h 
+	      ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h 
+	      ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h 
+	      ./decoders/drm-decoder/utilities/viterbi-drm.h 
+	      ./decoders/drm-decoder/utilities/mapper.h 
+	      ./decoders/drm-decoder/utilities/prbs.h 
+	      ./decoders/drm-decoder/utilities/checkcrc.h 
+	      ./decoders/drm-decoder/utilities/qam64-metrics.h 
+	      ./decoders/drm-decoder/utilities/qam16-metrics.h 
+	      ./decoders/drm-decoder/utilities/qam4-metrics.h 
+	      ./decoders/drm-decoder/utilities/deinterleaver.h 
+	      ./decoders/drm-decoder/parameters/msc-config.h 
+	      ./decoders/drm-decoder/parameters/fac-data.h 
+	      ./decoders/drm-decoder/parameters/channelparameters.h 
+	      ./decoders/drm-decoder/parameters/serviceparameters.h 
+	      ./decoders/drm-decoder/parameters/puncture-tables.h 
+	      ./decoders/drm-decoder/fac/fac-processor.h 
+	      ./decoders/drm-decoder/sdc/sdc-streamer.h 
+	      ./decoders/drm-decoder/sdc/sdc-processor.h 
+	      ./decoders/drm-decoder/msc/msc-processor.h 
+	      ./decoders/drm-decoder/msc/msc-handler-qam16.h 
+	      ./decoders/drm-decoder/msc/msc-handler-qam64.h 
+	      ./decoders/drm-decoder/msc/msc-streamer.h 
+	      ./decoders/drm-decoder/msc/msc-handler.h 
+	      ./decoders/drm-decoder/data/data-processor.h 
+	      ./decoders/drm-decoder/data/fec-handler.h 
+	      ./decoders/drm-decoder/data/galois.h 
+	      ./decoders/drm-decoder/data/reed-solomon.h 
+	      ./decoders/drm-decoder/data/message-processor.h 
+	      ./decoders/drm-decoder/data/packet-assembler.h 
+	      ./decoders/drm-decoder/data/virtual-datahandler.h 
+	      ./decoders/drm-decoder/data/mot-data.h 
+	      ./decoders/drm-decoder/data/drm-aacdecoder.h 
+	      ./decoders/drm-decoder/data/neaacdec_dll.h
+	   )
+
+	   set (${objectName}_SRCS
+	        ${${objectName}_SRCS}
+	      ./decoders/drm-decoder/drm-decoder.cpp  
+	      ./decoders/drm-decoder/basics.cpp 
+	      ./decoders/drm-decoder/input/reader.cpp 
+	      ./decoders/drm-decoder/timesync.cpp 
+	      ./decoders/drm-decoder/word-collector.cpp 
+	      ./decoders/drm-decoder/freqsyncer.cpp 
+	      ./decoders/drm-decoder/frame-processor.cpp 
+	      ./decoders/drm-decoder/signal-handling/referenceframe.cpp 
+	      ./decoders/drm-decoder/signal-handling/equalizer-base.cpp 
+	      ./decoders/drm-decoder/signal-handling/matrix2.cpp 
+	      ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.cpp 
+	      ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.cpp 
+	      ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.cpp 
+	      ./decoders/drm-decoder/utilities/viterbi-drm.cpp 
+	      ./decoders/drm-decoder/utilities/mapper.cpp 
+	      ./decoders/drm-decoder/utilities/prbs.cpp 
+	      ./decoders/drm-decoder/utilities/checkcrc.cpp 
+	      ./decoders/drm-decoder/utilities/qam64-metrics.cpp 
+	      ./decoders/drm-decoder/utilities/qam16-metrics.cpp 
+	      ./decoders/drm-decoder/utilities/qam4-metrics.cpp 
+	      ./decoders/drm-decoder/utilities/deinterleaver.cpp 
+	      ./decoders/drm-decoder/parameters/msc-config.cpp 
+	      ./decoders/drm-decoder/parameters/fac-data.cpp 
+	      ./decoders/drm-decoder/parameters/channelparameters.cpp 
+	      ./decoders/drm-decoder/parameters/serviceparameters.cpp 
+	      ./decoders/drm-decoder/parameters/puncture-tables.cpp 
+	      ./decoders/drm-decoder/fac/fac-processor.cpp 
+	      ./decoders/drm-decoder/sdc/sdc-streamer.cpp 
+	      ./decoders/drm-decoder/sdc/sdc-processor.cpp 
+	      ./decoders/drm-decoder/msc/msc-processor.cpp 
+	      ./decoders/drm-decoder/msc/msc-handler-qam16.cpp 
+	      ./decoders/drm-decoder/msc/msc-handler-qam64.cpp 
+	      ./decoders/drm-decoder/msc/msc-streamer.cpp 
+	      ./decoders/drm-decoder/msc/msc-handler.cpp 
+	      ./decoders/drm-decoder/data/data-processor.cpp 
+	      ./decoders/drm-decoder/data/fec-handler.cpp 
+	      ./decoders/drm-decoder/data/galois.cpp 
+	      ./decoders/drm-decoder/data/reed-solomon.cpp 
+	      ./decoders/drm-decoder/data/message-processor.cpp 
+	      ./decoders/drm-decoder/data/packet-assembler.cpp 
+	      ./decoders/drm-decoder/data/virtual-datahandler.cpp 
+	      ./decoders/drm-decoder/data/mot-data.cpp 
+	      ./decoders/drm-decoder/data/drm-aacdecoder.cpp
+	   )
+
+	   set (${objectName}_MOCS
+	      ${${objectName}_MOCS}
+	      ./decoders/drm-decoder/drm-decoder.h  
+	      ./decoders/drm-decoder/input/reader.h 
+	      ./decoders/drm-decoder/frame-processor.h 
+	      ./decoders/drm-decoder/parameters/fac-data.h
+	      ./decoders/drm-decoder/freqsyncer.h
+	      ./decoders/drm-decoder/word-collector.h
+	      ./decoders/drm-decoder/signal-handling/equalizer-base.h
+	      ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h
+	      ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h
+	      ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h
+	      ./decoders/drm-decoder/data/mot-data.h
+	      ./decoders/drm-decoder/data/data-processor.h
+	      ./decoders/drm-decoder/data/message-processor.h
+	   )
+
+	   set (${objectName}_UIS
+	        ${${objectName}_UIS}
+	      ./decoders/drm-decoder/drmdecoder.ui
+	   )
+	endif (DRM)
+
+        QT5_WRAP_UI (UIS ${${objectName}_UIS})
+
+        include_directories (
+                  ${SDRPLAY_INCLUDES}
+                  ${QT5Widgets_INCLUDES}
+                  ${QT_QTCORE_INCLUDE_DIR}
+                  ${QT_QTGUI_INCLUDE_DIR}
+                  ${FFTW_INCLUDE_DIRS}
+                  ${PORTAUDIO_INCLUDE_DIRS}
+                  ${FAAD_INCLUDE_DIRS}
+                  ${SNDFILES_INCLUDE_DIRS}
+        )
+
+        QT5_WRAP_CPP (MOCS ${${objectName}_MOCS})
 
 	add_executable (${objectName}
 	                ${${objectName}_SRCS}
@@ -409,14 +436,13 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	)
 
 	target_link_libraries (${objectName}
-	                       Qt4::QtGui
-	                       Qt4::QtNetwork
-	                       ${RTLTCP_lib}
-	                       ${FFTW3F_LIBRARIES}
-	                       ${extraLibs}
-	                       ${FAAD_LIBRARIES}
-	                       ${CMAKE_DL_LIBS}
-	)
+                               Qt5::Widgets
+                               ${FFTW3F_LIBRARIES}
+                               ${extraLibs}
+                               ${FAAD_LIBRARIES}
+                               ${CMAKE_DL_LIBS}
+        )
+
 
 	INSTALL (TARGETS ${objectName} DESTINATION  ${CMAKE_INSTALL_PREFIX})
 #	INSTALL (TARGETS ${objectName} DESTINATION ./linux-bin)
