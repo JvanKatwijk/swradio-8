@@ -20,6 +20,21 @@ static uint32_t fix_byte_order_32(uint32_t src)
     return (uint32_t)result;
 }
 
+static uint16_t fix_byte_order_16(uint16_t src)
+{
+    uint16_t result;
+    uint16_t a, b;
+    int8_t data[2];
+    
+    memcpy(data,&src,sizeof(src));
+    a = (uint8_t)data[0];
+    b = (uint8_t)data[1];
+
+    result = (a<<8) | b;
+    return (uint16_t)result;
+}
+
+
 typedef struct
 {
 	void * data;
@@ -127,8 +142,8 @@ unsigned membuffer_transfer_from_file(membuffer * buf,mp4ff_t * src,unsigned byt
 
 	bufptr = membuffer_get_ptr(buf);
 	if (bufptr==0) return 0;
-
-	if ((unsigned)mp4ff_read_data(src,(uint8_t*)bufptr + oldsize,bytes)!=bytes)
+	
+	if ((unsigned)mp4ff_read_data(src,(char*)bufptr + oldsize,bytes)!=bytes)
 	{
 		membuffer_set_error(buf);
 		return 0;
@@ -394,7 +409,7 @@ static uint32_t find_atom(mp4ff_t * f,uint64_t base,uint32_t size,const char * n
 	uint64_t atom_offset = base;
 	for(;;)
 	{
-		uint8_t atom_name[4];
+		char atom_name[4];
 		uint32_t atom_size;
 
 		mp4ff_set_position(f,atom_offset);
@@ -614,22 +629,22 @@ int32_t mp4ff_meta_update(mp4ff_callback_t *f,const mp4ff_metadata_t * data)
     /* copy moov atom to end of the file */
     if (ff->last_atom != ATOM_MOOV)
     {
-        uint8_t *free_data = (uint8_t *)"free";
+        char *free_data = "free";
 
         /* rename old moov to free */
         mp4ff_set_position(ff, ff->moov_offset + 4);
         mp4ff_write_data(ff, free_data, 4);
-
+	
         mp4ff_set_position(ff, ff->file_size);
 		mp4ff_write_int32(ff,new_moov_size + 8);
-		mp4ff_write_data(ff,(uint8_t *)"moov",4);
+		mp4ff_write_data(ff,"moov",4);
 		mp4ff_write_data(ff, new_moov_data, new_moov_size);
     }
 	else
 	{
         mp4ff_set_position(ff, ff->moov_offset);
 		mp4ff_write_int32(ff,new_moov_size + 8);
-		mp4ff_write_data(ff,(uint8_t *)"moov",4);
+		mp4ff_write_data(ff,"moov",4);
 		mp4ff_write_data(ff, new_moov_data, new_moov_size);
 	}
 

@@ -107,7 +107,7 @@ CONFIG		+= psk-decoder
 CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
 CONFIG		+= mfsk-decoder
-#CONFIG		+= drm-decoder
+CONFIG		+= drm-decoder
 #CONFIG		+= test-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
@@ -276,7 +276,7 @@ fax-decoder {
 drm-decoder {
 	DEFINES		+= HAVE_DRM_DECODER
 	DEFINES		+= ESTIMATOR_1
-	LIBS		+= -lfaad
+	LIBS		+= -lfaad_drm
 #	LIBS		+= -lfaad -larmadillo
 	DEPENDPATH	+= ./decoders/drm-decoder/ \
 	                   ./decoders/drm-decoder/signal-handling \

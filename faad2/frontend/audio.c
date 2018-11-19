@@ -25,7 +25,7 @@
 ** Commercial non-GPL licensing of this software is possible.
 ** For more info contact Nero AG through Mpeg4AAClicense@nero.com.
 **
-** $Id: audio.c,v 1.29 2008/09/19 22:50:17 menno Exp $
+** $Id: audio.c,v 1.30 2015/01/22 09:40:52 knik Exp $
 **/
 
 #ifdef _WIN32
@@ -36,6 +36,9 @@
 #include <fcntl.h>
 #include <math.h>
 #include <neaacdec.h>
+#include <stdint.h>
+
+#include "unicode_support.h"
 #include "audio.h"
 
 
@@ -72,13 +75,13 @@ audio_file *open_audio_file(char *infile, int samplerate, int channels,
     if(infile[0] == '-')
     {
 #ifdef _WIN32
-        setmode(fileno(stdout), O_BINARY);
+        _setmode(_fileno(stdout), O_BINARY);
 #endif
         aufile->sndfile = stdout;
         aufile->toStdio = 1;
     } else {
         aufile->toStdio = 0;
-        aufile->sndfile = fopen(infile, "wb");
+        aufile->sndfile = faad_fopen(infile, "wb");
     }
 
     if (aufile->sndfile == NULL)
@@ -347,7 +350,7 @@ static int write_audio_24bit(audio_file *aufile, void *sample_buffer,
 {
     int ret;
     unsigned int i;
-    long *sample_buffer24 = (long*)sample_buffer;
+    int32_t *sample_buffer24 = (int32_t*)sample_buffer;
     char *data = malloc(samples*aufile->bits_per_sample*sizeof(char)/8);
 
     aufile->total_samples += samples;
@@ -391,7 +394,7 @@ static int write_audio_32bit(audio_file *aufile, void *sample_buffer,
 {
     int ret;
     unsigned int i;
-    long *sample_buffer32 = (long*)sample_buffer;
+    int32_t *sample_buffer32 = (int32_t*)sample_buffer;
     char *data = malloc(samples*aufile->bits_per_sample*sizeof(char)/8);
 
     aufile->total_samples += samples;

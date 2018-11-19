@@ -165,9 +165,18 @@ const char * mp4ff_meta_index_to_genre(uint32_t idx)
 	}
 }
 
+
+static int32_t TrackToString(char** str, const uint16_t track, const uint16_t totalTracks)
+{
+	char temp[32];
+    sprintf(temp, "%.5u of %.5u", track, totalTracks);
+	*str = strdup(temp);
+    return 0;
+}
+
 static int32_t mp4ff_set_metadata_name(mp4ff_t *f, const uint8_t atom_type, char **name)
 {
-    static const char *tag_names[] = {
+    static char *tag_names[] = {
         "unknown", "title", "artist", "writer", "album",
         "date", "tool", "comment", "genre", "track",
         "disc", "compilation", "genre", "tempo", "cover",
@@ -231,7 +240,7 @@ static int32_t mp4ff_parse_tag(mp4ff_t *f, const uint8_t parent_atom_type, const
     uint32_t len = 0;
 
 
-    while (sumsize < size)
+    while (sumsize < size && !f->stream->read_error) /* CVE-2017-9222 */
     {
 		uint64_t destpos;
         subsize = mp4ff_atom_read_header(f, &atom_type, &header_size);
@@ -356,13 +365,8 @@ static int32_t mp4ff_meta_find_by_name(const mp4ff_t *f, const char *item, char 
     {
         if (!stricmp(f->tags.tags[i].item, item))
         {
-	        uint32_t len = f->tags.tags[i].len;
-
-             if (len > 0) {
-                 *value = malloc(len+1);
-                 memcpy(*value, f->tags.tags[i].value, len+1);
-                 return len;
-             }
+			*value = strdup(f->tags.tags[i].value);
+            return 1;
         }
     }
 

@@ -25,7 +25,7 @@
 ** Commercial non-GPL licensing of this software is possible.
 ** For more info contact Nero AG through Mpeg4AAClicense@nero.com.
 **
-** $Id: decoder.c,v 1.117 2009/02/05 00:51:03 menno Exp $
+** $Id: decoder.c,v 1.119 2015/01/24 14:21:05 knik Exp $
 **/
 
 #include "common.h"
@@ -53,6 +53,10 @@
 uint16_t dbg_count;
 #endif
 
+#if defined WIN32 || defined _WIN32 || defined WIN64 || defined _WIN64
+#include "win32_ver.h"
+#endif
+
 /* static function declarations */
 static void* aac_frame_decode(NeAACDecStruct *hDecoder,
                               NeAACDecFrameInfo *hInfo,
@@ -64,14 +68,32 @@ static void create_channel_config(NeAACDecStruct *hDecoder,
                                   NeAACDecFrameInfo *hInfo);
 
 
-char* NEAACDECAPI NeAACDecGetErrorMessage(unsigned char errcode)
+int NeAACDecGetVersion(char **faad_id_string,
+                                   char **faad_copyright_string)
+{
+    static char *libfaadName = PACKAGE_VERSION;
+    static char *libCopyright =
+        " Copyright 2002-2004: Ahead Software AG\n"
+	" http://www.audiocoding.com\n"
+	" bug tracking: https://sourceforge.net/p/faac/bugs/\n";
+
+    if (faad_id_string)
+        *faad_id_string = libfaadName;
+
+    if (faad_copyright_string)
+        *faad_copyright_string = libCopyright;
+
+    return 0;
+}
+
+char* NeAACDecGetErrorMessage(unsigned char errcode)
 {
     if (errcode >= NUM_ERROR_MESSAGES)
         return NULL;
     return err_msg[errcode];
 }
 
-unsigned long NEAACDECAPI NeAACDecGetCapabilities(void)
+unsigned long NeAACDecGetCapabilities(void)
 {
     uint32_t cap = 0;
 
@@ -98,7 +120,7 @@ unsigned long NEAACDECAPI NeAACDecGetCapabilities(void)
 }
 
 const unsigned char mes[] = { 0x67,0x20,0x61,0x20,0x20,0x20,0x6f,0x20,0x72,0x20,0x65,0x20,0x6e,0x20,0x20,0x20,0x74,0x20,0x68,0x20,0x67,0x20,0x69,0x20,0x72,0x20,0x79,0x20,0x70,0x20,0x6f,0x20,0x63 };
-NeAACDecHandle NEAACDECAPI NeAACDecOpen(void)
+NeAACDecHandle NeAACDecOpen(void)
 {
     uint8_t i;
     NeAACDecStruct *hDecoder = NULL;
@@ -115,7 +137,7 @@ NeAACDecHandle NEAACDECAPI NeAACDecOpen(void)
     hDecoder->config.downMatrix = 0;
     hDecoder->adts_header_present = 0;
     hDecoder->adif_header_present = 0;
-	hDecoder->latm_header_present = 0;
+    hDecoder->latm_header_present = 0;
 #ifdef ERROR_RESILIENCE
     hDecoder->aacSectionDataResilienceFlag = 0;
     hDecoder->aacScalefactorDataResilienceFlag = 0;
@@ -159,7 +181,7 @@ NeAACDecHandle NEAACDECAPI NeAACDecOpen(void)
     return hDecoder;
 }
 
-NeAACDecConfigurationPtr NEAACDECAPI NeAACDecGetCurrentConfiguration(NeAACDecHandle hpDecoder)
+NeAACDecConfigurationPtr NeAACDecGetCurrentConfiguration(NeAACDecHandle hpDecoder)
 {
     NeAACDecStruct* hDecoder = (NeAACDecStruct*)hpDecoder;
     if (hDecoder)
@@ -172,7 +194,7 @@ NeAACDecConfigurationPtr NEAACDECAPI NeAACDecGetCurrentConfiguration(NeAACDecHan
     return NULL;
 }
 
-unsigned char NEAACDECAPI NeAACDecSetConfiguration(NeAACDecHandle hpDecoder,
+unsigned char NeAACDecSetConfiguration(NeAACDecHandle hpDecoder,
                                                    NeAACDecConfigurationPtr config)
 {
     NeAACDecStruct* hDecoder = (NeAACDecStruct*)hpDecoder;
@@ -235,7 +257,7 @@ static int latmCheck(latm_header *latm, bitfile *ld)
 }
 
 
-long NEAACDECAPI NeAACDecInit(NeAACDecHandle hpDecoder,
+long NeAACDecInit(NeAACDecHandle hpDecoder,
                               unsigned char *buffer,
                               unsigned long buffer_size,
                               unsigned long *samplerate,
@@ -283,8 +305,8 @@ long NEAACDECAPI NeAACDecInit(NeAACDecHandle hpDecoder,
 #endif
         /* Check if an ADIF header is present */
         if ((buffer[0] == 'A') && (buffer[1] == 'D') &&
-			(buffer[2] == 'I') && (buffer[3] == 'F'))
-		{
+            (buffer[2] == 'I') && (buffer[3] == 'F'))
+        {
             hDecoder->adif_header_present = 1;
 
             get_adif_header(&adif, &ld);
@@ -323,6 +345,9 @@ long NEAACDECAPI NeAACDecInit(NeAACDecHandle hpDecoder,
         }
         faad_endbits(&ld);
     }
+
+    if (!*samplerate)
+        return -1;
 
 #if (defined(PS_DEC) || defined(DRM_PS))
     /* check if we have a mono file */
@@ -366,7 +391,7 @@ long NEAACDECAPI NeAACDecInit(NeAACDecHandle hpDecoder,
 }
 
 /* Init the library using a DecoderSpecificInfo */
-char NEAACDECAPI NeAACDecInit2(NeAACDecHandle hpDecoder,
+char NeAACDecInit2(NeAACDecHandle hpDecoder,
                                unsigned char *pBuffer,
                                unsigned long SizeOfDecoderSpecificInfo,
                                unsigned long *samplerate,
@@ -460,7 +485,7 @@ char NEAACDECAPI NeAACDecInit2(NeAACDecHandle hpDecoder,
 }
 
 #ifdef DRM
-char NEAACDECAPI NeAACDecInitDRM(NeAACDecHandle *hpDecoder,
+char NeAACDecInitDRM(NeAACDecHandle *hpDecoder,
                                  unsigned long samplerate,
                                  unsigned char channels)
 {
@@ -503,7 +528,7 @@ char NEAACDECAPI NeAACDecInitDRM(NeAACDecHandle *hpDecoder,
 }
 #endif
 
-void NEAACDECAPI NeAACDecClose(NeAACDecHandle hpDecoder)
+void NeAACDecClose(NeAACDecHandle hpDecoder)
 {
     uint8_t i;
     NeAACDecStruct* hDecoder = (NeAACDecStruct*)hpDecoder;
@@ -557,7 +582,7 @@ void NEAACDECAPI NeAACDecClose(NeAACDecHandle hpDecoder)
     if (hDecoder) faad_free(hDecoder);
 }
 
-void NEAACDECAPI NeAACDecPostSeekReset(NeAACDecHandle hpDecoder, long frame)
+void NeAACDecPostSeekReset(NeAACDecHandle hpDecoder, long frame)
 {
     NeAACDecStruct* hDecoder = (NeAACDecStruct*)hpDecoder;
     if (hDecoder)
@@ -787,7 +812,7 @@ static void create_channel_config(NeAACDecStruct *hDecoder, NeAACDecFrameInfo *h
     }
 }
 
-void* NEAACDECAPI NeAACDecDecode(NeAACDecHandle hpDecoder,
+void* NeAACDecDecode(NeAACDecHandle hpDecoder,
                                  NeAACDecFrameInfo *hInfo,
                                  unsigned char *buffer,
                                  unsigned long buffer_size)
@@ -796,7 +821,7 @@ void* NEAACDECAPI NeAACDecDecode(NeAACDecHandle hpDecoder,
     return aac_frame_decode(hDecoder, hInfo, buffer, buffer_size, NULL, 0);
 }
 
-void* NEAACDECAPI NeAACDecDecode2(NeAACDecHandle hpDecoder,
+void* NeAACDecDecode2(NeAACDecHandle hpDecoder,
                                   NeAACDecFrameInfo *hInfo,
                                   unsigned char *buffer,
                                   unsigned long buffer_size,
