@@ -84,11 +84,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
         endif ()
         list(APPEND extraLibs ${PORTAUDIO_LIBRARIES})
 
-        find_package(Faad)
-        if (NOT FAAD_FOUND )
-            message(FATAL_ERROR "please install libfaad")
-        endif ()
-	list (APPEND extraLibs ${FAAD_LIBRARIES})
 
         find_package(zlib)
 	if (NOT ZLIB_FOUND)
@@ -115,6 +110,12 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   set (extraLibs ${extraLibs} ${PTHREADS})
 	endif (NOT(PTHREADS))
 
+
+        find_package(Faad)
+        if (NOT FAAD_FOUND )
+            message(FATAL_ERROR "please install libfaad")
+        endif ()
+        list(APPEND extraLibs ${LIBFAAD_drm_LIBRARY})
 
 
 #######################################################################

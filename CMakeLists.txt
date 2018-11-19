@@ -37,8 +37,8 @@ endif ()
 	add_definitions (-DHAVE_CW_DECODER)
 	add_definitions (-DHAVE_AMTOR_DECODER)
 	add_definitions (-DHAVE_PSK_DECODER)
-	add_definitions (-DHAVE_PSK_DECODER)
 	add_definitions (-DHAVE_FAX_DECODER)
+	add_definitions (-DHAVE_MFSK_DECODER)
 	
 ########################################################################
 # select the release build type by default to get optimization flags
@@ -104,13 +104,12 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
         endif ()
         list(APPEND extraLibs ${LIBSAMPLERATE_LIBRARY})
 
-	find_library (PTHREADS pthread)
-	if (NOT(PTHREADS))
-	   message (FATAL_ERROR "please install libpthread")
-	else (NOT(PTHREADS))
-	   set (extraLibs ${extraLibs} ${PTHREADS})
-	endif (NOT(PTHREADS))
-
+        find_library (PTHREADS pthread)
+        if (NOT(PTHREADS))
+           message (FATAL_ERROR "please install libpthread")
+        else (NOT(PTHREADS))
+           set (extraLibs ${extraLibs} ${PTHREADS})
+        endif (NOT(PTHREADS))
 
 
 #######################################################################
@@ -140,6 +139,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	           decoders/rtty-decoder 
 	           decoders/amtor-decoder 
 	           decoders/fax-decoder 
+	           decoders/mfsk-decoder
 	)
 
 	set (${objectName}_HDRS
@@ -185,6 +185,10 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-image.h 
 	   ./decoders/fax-decoder/fax-scroller.h 
 	   ./decoders/fax-decoder/fax-filenames.h
+	   ./decoders/mfsk-decoder/mfsk-decoder.h 
+	   ./decoders/mfsk-decoder/goertzel-filter.h 
+	   ./decoders/mfsk-decoder/slidingfft.h 
+	   ./decoders/mfsk-decoder/interleave.h
 	)
 
 	set (${objectName}_SRCS
@@ -227,6 +231,10 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-image.cpp 
 	   ./decoders/fax-decoder/fax-scroller.cpp 
 	   ./decoders/fax-decoder/fax-filenames.cpp
+	   ./decoders/mfsk-decoder/mfsk-decoder.cpp 
+	   ./decoders/mfsk-decoder/goertzel-filter.cpp 
+	   ./decoders/mfsk-decoder/slidingfft.cpp 
+	   ./decoders/mfsk-decoder/interleave.cpp
 	)
 
 	set (${objectName}_MOCS
@@ -256,6 +264,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-image.h 
 	   ./decoders/fax-decoder/fax-scroller.h 
 	   ./decoders/fax-decoder/fax-filenames.h 
+	   ./decoders/mfsk-decoder/mfsk-decoder.h 
 	)
 
 	set (${objectName}_UIS
@@ -270,6 +279,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/psk-decoder/psk-decoder.ui
 	   ./decoders/rtty-decoder/rtty-decoder.ui
 	   ./decoders/fax-decoder/fax-decoder.ui
+	   ./decoders/mfsk-decoder/mfsk-decoder.ui
 	)
 
 	if (DRM)
@@ -279,6 +289,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
            if (NOT FAAD_FOUND )
                message(FATAL_ERROR "please install libfaad")
            endif ()
+	   list(APPEND extraLibs ${LIBFAAD_DRM_LIBRARY})
 
 	   include_directories (
 	         ./decoders/drm-decoder 
@@ -295,7 +306,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   )
 
 	   set (${objectName}_HDRS
-	        ${$objectName}_HDRS}
+	        ${${objectName}_HDRS}
 	      ./decoders/drm-decoder/drm-decoder.h  
 	      ./decoders/drm-decoder/basics.h 
 	      ./decoders/drm-decoder/input/reader.h 
@@ -402,6 +413,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h
 	      ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h
 	      ./decoders/drm-decoder/data/mot-data.h
+	      ./decoders/drm-decoder/data/drm-aacdecoder.h 
 	      ./decoders/drm-decoder/data/data-processor.h
 	      ./decoders/drm-decoder/data/message-processor.h
 	   )
@@ -439,6 +451,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
                                Qt5::Widgets
                                ${FFTW3F_LIBRARIES}
                                ${extraLibs}
+	                       -lfaad_drm
                                ${FAAD_LIBRARIES}
                                ${CMAKE_DL_LIBS}
         )
