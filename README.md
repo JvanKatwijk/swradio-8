@@ -33,9 +33,9 @@ you have to provide the hackrf lib and put it into "/usr/local/lib"
 **Preferred frequencies**
 can be stored, together with a user defined label (a program name).
 A list of preferred frequencies (programs) is
-maintained, the list is kept between program invocations.
+maintained between program invocations.
 A selected frequency can be stored by pressing the save frequency button.
-If touched one is asked to specify a name to be used to label that frequency.
+If touched, one is asked to specify a name to be used to label that frequency.
 The pair (name, frequency) then is added to the list.
 
 Selecting such a "preferred program" is just by clicking the mouse on 
@@ -44,10 +44,10 @@ the programname or the associated field with the frequency.
 **Frequency selection**
 is with a keypad, separated from the main widget,
 that will appear when touching the Frequency select key.
-Specification  of a frequency is in kHz or mHz.
+Specification  of a frequency is either in kHz or mHz.
 Fine frequency selection - up to an accuracy of 1 Hz - is with the
 mousewheel (when the main widget is activated).
-The stepsize can be set from the main widget, default is 5 Hz
+(The stepsize for the frequency changes can be set from the main widget, default is 5 Hz).
 
 Of course clicking the mouse on one of the two spectra will also select the
 selected frequency pointed to.
@@ -62,7 +62,7 @@ to waterfall display (or vice-versa).
 **Decoders** are:
 * am
 * ssb, with selection for usb or lsb;
-* psk, with selection of a variety of modes and settings and a tuning aid,
+* psk, with selection of a variety of modes and settings and with a tuning aid,
 * mfsk, with a tuning aid,
 * rtty, with selection of a variety of modes and settings;
 * cw, with (almost) automatic selection of speed;
