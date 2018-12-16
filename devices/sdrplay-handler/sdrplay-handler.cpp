@@ -577,7 +577,7 @@ int	cnt	= 0;
 	for (i = 0; i < (int)numSamples; i ++) {
 	   std::complex<float> temp = 
 	                    std::complex<float> (float (xi [i]) / denominator,
-	                                          float (xq [i]) / denominator);
+	                                         float (xq [i]) / denominator);
 	   temp	= temp * p -> oscillatorTable [p -> oscillatorPhase];
 	   p -> oscillatorPhase += p -> localShift;
 	   if (p -> oscillatorPhase < 0)
@@ -871,7 +871,6 @@ void	sdrplayHandler::agcControl_toggled (int agcMode) {
 	   ifgainSlider         -> hide ();
 	   gainsliderLabel      -> hide ();
 	}
-
 }
 
 void    sdrplayHandler::debugControl_toggled (int debugMode) {

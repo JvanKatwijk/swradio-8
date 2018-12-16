@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>532</width>
-    <height>112</height>
+    <height>220</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>10</x>
      <y>0</y>
      <width>521</width>
-     <height>101</height>
+     <height>201</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -117,8 +117,8 @@
    <widget class="QLCDNumber" name="actualWPM">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>30</y>
+      <x>90</x>
+      <y>50</y>
       <width>64</width>
       <height>20</height>
      </rect>
@@ -134,7 +134,7 @@
     <property name="geometry">
      <rect>
       <x>90</x>
-      <y>60</y>
+      <y>90</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -146,8 +146,8 @@
    <widget class="QLCDNumber" name="noiseLeveldisplay">
     <property name="geometry">
      <rect>
-      <x>380</x>
-      <y>30</y>
+      <x>10</x>
+      <y>140</y>
       <width>64</width>
       <height>23</height>
      </rect>
@@ -162,8 +162,8 @@
    <widget class="QLCDNumber" name="agcPeakdisplay">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>30</y>
+      <x>10</x>
+      <y>160</y>
       <width>64</width>
       <height>23</height>
      </rect>
@@ -178,8 +178,8 @@
    <widget class="QLCDNumber" name="spaceLengthdisplay">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>30</y>
+      <x>10</x>
+      <y>90</y>
       <width>64</width>
       <height>23</height>
      </rect>
@@ -194,8 +194,8 @@
    <widget class="QLCDNumber" name="dotLengthdisplay">
     <property name="geometry">
      <rect>
-      <x>250</x>
-      <y>30</y>
+      <x>10</x>
+      <y>110</y>
       <width>64</width>
       <height>23</height>
      </rect>
@@ -207,8 +207,41 @@
      <enum>QLCDNumber::Flat</enum>
     </property>
    </widget>
+   <widget class="QwtPlot" name="cwScope">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>60</y>
+      <width>301</width>
+      <height>131</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QSlider" name="amplitudeSlider">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>60</y>
+      <width>24</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <property name="value">
+     <number>50</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QwtPlot</class>
+   <extends>QFrame</extends>
+   <header>qwt_plot.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

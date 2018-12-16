@@ -32,6 +32,7 @@
 #include	"downconverter.h"
 #include	"fir-filters.h"
 #include	"ui_cw-decoder.h"
+#include	"fft-scope.h"
 
 class	Oscillator;
 class	average;
@@ -65,8 +66,11 @@ private slots:
 	void		cw_setFilterDegree	(int);
 	void		cw_setSquelchValue	(int);
 	void		cw_adjustFrequency	(int);
+	void		handle_amplitude        (int);
+	void		handleClick             (int);
 
 private:
+	fftScope	*cwViewer;
 	int32_t		theRate;
 	QFrame		*myFrame;
 	RingBuffer<std::complex<float>> inputBuffer;

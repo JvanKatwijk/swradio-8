@@ -346,6 +346,7 @@ deviceHandler *res	= NULL;
 	   } catch (int e) {}
 	}
 #endif
+
 	if (res == NULL) {
 	   try {
 	      res	= new fileReader (this, inputRate, hfBuffer, settings);
@@ -396,6 +397,8 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	if (s == "cw decoder") {
 	   theDecoder	= new cwDecoder (decoderRate,
 	                                  audioData, settings);
+	   connect (theDecoder, SIGNAL (adjustFrequency (int)),
+	            this, SLOT (adjustFrequency_hz (int)));
 	}
 	else
 #endif

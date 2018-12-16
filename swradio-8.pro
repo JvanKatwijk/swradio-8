@@ -144,7 +144,7 @@ LIBS    += -lusb-1.0
 LIBS    += -lsndfile
 LIBS    += -lsamplerate
 LIBS    += -lole32
-#LIBS	+= -lfaad
+LIBS	+= -lfaad_drm
 LIBS    += -lwinmm
 }
 
