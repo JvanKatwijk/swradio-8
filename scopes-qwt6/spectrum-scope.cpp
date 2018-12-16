@@ -26,7 +26,7 @@
 	spectrumScope::spectrumScope (QwtPlot *plot, int16_t displaySize):
 	                                      virtualScope (plot, displaySize) {
 
-	plotgrid	-> setCanvasBackground (Qt::black);
+	plotgrid	-> setCanvasBackground (Qt::blue);
 	grid		= new QwtPlotGrid;
 #if defined QWT_VERSION && ((QWT_VERSION >> 8) < 0x0601)
 	grid		-> setMajPen (QPen(Qt::white, 0, Qt::DotLine));

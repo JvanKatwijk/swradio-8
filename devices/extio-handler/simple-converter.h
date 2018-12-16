@@ -1,6 +1,6 @@
 #
 /*
- *    Copyright (C) 2008, 2009, 2010
+ *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Programming
  *
@@ -23,50 +23,33 @@
  *    along with SDR-J; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#ifndef	__RATE_CONVERTER__
+#define	__RATE_CONVERTER__
 
-#ifndef __FILEREADER__
-#define	__FILEREADER__
+#include	<swradio-constants.h>
+#include	<ringbuffer.h>
+#include	"samplerate.h"
 
-#include	<QWidget>
-#include	<QFrame>
-#include	<QString>
-#include	"device-handler.h"
-#include	"ui_filereader-widget.h"
-#include	"ringbuffer.h"
-
-class	QLabel;
-class	QSettings;
-class	fileHulp;
-class	RadioInterface;
-/*
- */
-class	fileReader: public deviceHandler, public Ui_filereader {
-Q_OBJECT
+//	Very simple converter, the basic idea is that the
+//	different (high speed) usb readers put their data
+//	in, and the converter fills the outputbuffer with
+//	data with the right (i.e. lower for the sw receiver)
+//	samplerate
+class converter {
 public:
-		fileReader		(RadioInterface *,
-	                                 int32_t, 
-	                                 RingBuffer<std::complex<float>> *,
-	                                 QSettings *);
-		~fileReader		(void);
-	int32_t	getRate			(void);
-
-	bool	restartReader		(void);
-	void	stopReader		(void);
-	int16_t	bitDepth		(void);
-	void	exit			(void);
-	bool	isOK			(void);
-protected:
-	int32_t		setup_Device	(void);
-	QFrame		*myFrame;
-	fileHulp	*myReader;
-	QLabel		*indicator;
-	QLabel		*fileDisplay;
-	int32_t		lastFrequency;
-	int32_t		theRate;
-private slots:
-	void		reset		(void);
-	void		handle_progressBar (int);
-	void		set_progressBar	(int);
+		converter	(int32_t,
+	                         int32_t,
+	                         RingBuffer<DSPCOMPLEX> *);
+		~converter	(void);
+	int32_t	convert		(DSPCOMPLEX *, int32_t);
+private:
+	int32_t	rateIn;
+	int32_t	rateOut;
+	RingBuffer<DSPCOMPLEX> *resultBuffer;
+	SRC_STATE*	rabbit;
+	SRC_DATA	rabbit_data;
 };
+
 #endif
+
 

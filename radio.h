@@ -43,13 +43,14 @@
 #include	"s-meter.h"
 #include        "agchandler.h"
 
-class		deviceInput;
+class		deviceHandler;
 class           virtualDecoder;
 class           downConverter;
 class           upConverter;
 class           QSettings;
 class           fftScope;
 class           fft_scope;
+class		audioScope;
 class           audioSink;
 class           keyPad;
 class           programList;
@@ -83,12 +84,13 @@ private:
         double          *displayBuffer;
         audioSink       *audioHandler;
         int16_t         *outTable;
-        deviceInput	*theDevice;
+        deviceHandler	*theDevice;
         virtualDecoder	*theDecoder;
         RingBuffer<std::complex<float> > *inputData;
         RingBuffer<std::complex<float> > *audioData;
         fftScope        *hfScope;
 	fftScope	*lfScope;
+	audioScope	*showAudio;
 	shifter		hfShifter;
 	agcHandler	agc;
 	fftFilter	hfFilter;
@@ -111,8 +113,8 @@ private:
         void            adjust          (int32_t);
 	
 private slots:
-        deviceInput	*setDevice		(const QString &,
-	                                     RingBuffer<std::complex<float>> *);
+        deviceHandler	*setDevice		(
+	                                      RingBuffer<std::complex<float>> *);
         void            adjustFrequency_hz	(int);
         void            adjustFrequency_khz	(int);
         void            handle_myLine		(void);

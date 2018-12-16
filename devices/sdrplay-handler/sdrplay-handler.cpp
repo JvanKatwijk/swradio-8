@@ -114,7 +114,7 @@ int16_t	bank_rsp1 (int32_t freq) {
 	                                 int32_t	outputRate,
 	                                 RingBuffer<DSPCOMPLEX> *r,
 	                                 QSettings	*s):
-	                                              deviceInput (mr) {
+	                                              deviceHandler (mr) {
 mir_sdr_ErrT err;
 float	ver;
 mir_sdr_DeviceT devDesc [4];

@@ -30,7 +30,7 @@
 #include	"radio-constants.h"
 #include	"ringbuffer.h"
 #include	"fir-filters.h"
-#include	"device-input.h"
+#include	"device-handler.h"
 #include	"ui_hackrf-widget.h"
 #include	"libhackrf/hackrf.h"
 
@@ -65,7 +65,7 @@ typedef	const char	*(*pfn_hackrf_usb_board_id_name) (enum hackrf_usb_board_id);
 
 
 ///////////////////////////////////////////////////////////////////////////
-class	hackrfHandler: public deviceInput, public Ui_hackrfWidget {
+class	hackrfHandler: public deviceHandler, public Ui_hackrfWidget {
 Q_OBJECT
 public:
 			hackrfHandler	(RadioInterface *mr,

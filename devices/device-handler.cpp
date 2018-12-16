@@ -22,49 +22,40 @@
  *    You should have received a copy of the GNU General Public License
  *    along with SDR-J; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *	We have to create a simple virtual class here, since we
- *	want the interface with different devices (including  filehandling)
- *	to be transparent
  */
-#ifndef	__DEVICE_INPUT__
-#define	__DEVICE_INPUT__
+#include	"device-handler.h"
+#include	"radio.h"
 
-#include	<stdint.h>
-#include	"radio-constants.h"
-#include	<QObject>
-#include	<QThread>
-#include	<QDialog>
+	deviceHandler::deviceHandler	(RadioInterface *radio) {
+	lastFrequency	= Mhz (100);
+}
 
+	deviceHandler::~deviceHandler	(void) {
+}
 
-/**
-  *	\class virtualInput
-  *	base class for devices for the fm software
-  *	The class is not completely virtual, since it is
-  *	used as a default in case selecting a "real" class did not work out
-  */
+int32_t	deviceHandler::getRate		(void) {
+	return 192000;
+}
 
-#include	<stdint.h>
+void	deviceHandler::setVFOFrequency	(quint64 f) {
+	lastFrequency	= f;
+}
 
-class	RadioInterface;
-class	deviceInput: public QThread {
-Q_OBJECT
-public:
-			deviceInput 	(RadioInterface *);
-virtual			~deviceInput 	(void);
-virtual		int32_t	getRate		(void);
-virtual		void	setVFOFrequency	(quint64);
-virtual		quint64	getVFOFrequency	(void);
-virtual		bool	restartReader	(void);
-virtual		void	stopReader	(void);
-virtual		void	resetBuffer	(void);
-virtual		int16_t	bitDepth	(void);
-	        int32_t	vfoOffset;
-//
-protected:
-		uint64_t	lastFrequency;
-signals:
-		void	dataAvailable	(int);
-};
-#endif
+quint64	deviceHandler::getVFOFrequency	(void) {
+	return lastFrequency;
+}
+
+bool	deviceHandler::restartReader	(void) {
+	return true;
+}
+
+void	deviceHandler::stopReader	(void) {
+}
+
+void	deviceHandler::resetBuffer	(void) {
+}
+
+int16_t	deviceHandler::bitDepth		(void) {
+	return 10;
+}
 

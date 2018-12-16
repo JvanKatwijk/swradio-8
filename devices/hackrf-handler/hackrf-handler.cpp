@@ -32,7 +32,7 @@
                                          int32_t        outputRate,
                                          RingBuffer<DSPCOMPLEX> *r,
                                          QSettings      *s):
-                                                      deviceInput (mr) {
+                                                      deviceHandler (mr) {
 int	err;
 int	res;
 

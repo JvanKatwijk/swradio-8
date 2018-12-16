@@ -27,10 +27,12 @@
 #include	<QDateTime>
 #include	<QObject>
 #include	<QDir>
+#include	<QColor>
 #include	<QMessageBox>
 #include	<QFileDialog>
 #include	"radio.h"
 #include	"fft-scope.h"
+#include	"audio-scope.h"
 #include	"upconverter.h"
 #include        "audiosink.h"
 #include        "decimator.h"
@@ -39,10 +41,17 @@
 #include        "program-list.h"
 //
 //      devices
-#include        "device-input.h"
+#include        "device-handler.h"
 #include        "filereader.h"
+#ifdef	HAVE_SDRPLAY
 #include        "sdrplay-handler.h"
-//#include	"hackrf-handler.h"
+#endif
+#ifdef	HAVE_HACKRF
+#include	"hackrf-handler.h"
+#endif
+#ifdef	HAVE_PMSDR
+#include	"pmsdr-handler.h"
+#endif
 //
 //	decoders
 #include	"virtual-decoder.h"
@@ -113,6 +122,9 @@ QString	FrequencytoString (quint64 freq) {
 	this	-> inputRate	= inputRate;
 	this	-> decoderRate	= decoderRate;
 	setupUi (this);
+	QPalette *p = new QPalette;
+	p -> setColor (QPalette::WindowText, Qt::white);
+	frequencyDisplay -> setPalette (*p);
 //      and some buffers
 //	in comes:
         inputData       = new RingBuffer<std::complex<float> > (1024 * 1024);
@@ -204,6 +216,10 @@ QString	FrequencytoString (quint64 freq) {
         connect (lfScopeSlider, SIGNAL (valueChanged (int)),
                  this, SLOT (set_lfscopeLevel (int)));
 
+//	audio scope
+	showAudio	= new audioScope (audioSpectrum,
+	                                  256,
+	                                  48000);
 //	output device
         audioHandler            = new audioSink (this -> audioRate, 16384);
         outTable                = new int16_t
@@ -266,7 +282,7 @@ QString	FrequencytoString (quint64 freq) {
                  this, SLOT (updateTime (void)));
         secondsTimer. start (1000);
 
-	theDevice	= setDevice (" ", inputData);
+	theDevice	= setDevice (inputData);
 	if (theDevice == NULL) {
 	   QMessageBox::warning (this, tr ("sdr"),
 	                               tr ("No Device\n"));
@@ -308,21 +324,28 @@ void	RadioInterface::handle_quitButton	(void) {
 
 
 
-deviceInput	*RadioInterface::setDevice (const QString &s,
-	                                       RingBuffer<std::complex<float>> *hfBuffer) {
+deviceHandler	*RadioInterface::setDevice (RingBuffer<std::complex<float>> *hfBuffer) {
 
-deviceInput *res	= NULL;
-	(void)s;
+deviceHandler *res	= NULL;
+#ifdef	HAVE_SDRPLAY
 	try {
 	   res  = new sdrplayHandler (this, inputRate, hfBuffer, settings);
 	} catch (int e) {}
-
-//	if (res == NULL) {
-//	   try {
-//	      res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
-//	   } catch (int e) {}
-//	}
-
+#endif
+#ifdef	HAVE_HACKRF
+	if (res == NULL) {
+	   try {
+	      res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
+	   } catch (int e) {}
+	}
+#endif
+#ifdef	HAVE_PMSDR
+	if (res == NULL) {
+	   try {
+	      res = new pmsdrHandler (this, inputRate, hfBuffer, settings);
+	   } catch (int e) {}
+	}
+#endif
 	if (res == NULL) {
 	   try {
 	      res	= new fileReader (this, inputRate, hfBuffer, settings);
@@ -642,6 +665,8 @@ DSPCOMPLEX buffer [rate / 10];
 	      theUpConverter    -> handle (buffer, rate / 10);
 	   else
 	      audioHandler      -> putSamples (buffer, rate / 10);
+	   for (int i = 0; i < rate / 10; i ++)
+	      showAudio -> addElement (buffer [i]);
         }
 }
 

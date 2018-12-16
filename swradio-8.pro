@@ -58,7 +58,8 @@ HEADERS += ./radio-constants.h \
 	   ./scopes-qwt6/spectrum-scope.h \
            ./scopes-qwt6/scope.h \
            ./scopes-qwt6/fft-scope.h \
-	   ./devices/device-input.h \
+	   ./scopes-qwt6/audio-scope.h \
+	   ./devices/device-handler.h \
            ./devices/filereader/filereader.h \
            ./devices/filereader/filehulp.h \
            ./decoders/virtual-decoder.h 
@@ -88,8 +89,9 @@ SOURCES += ./main.cpp \
 	   ./scopes-qwt6/spectrum-scope.cpp \
            ./scopes-qwt6/scope.cpp \
            ./scopes-qwt6/fft-scope.cpp \
+	   ./scopes-qwt6/audio-scope.cpp \
 	   ./decimators/decimator.cpp \
-	   ./devices/device-input.cpp \
+	   ./devices/device-handler.cpp \
            ./devices/filereader/filereader.cpp \
            ./devices/filereader/filehulp.cpp \
            ./decoders/virtual-decoder.cpp 
@@ -97,7 +99,8 @@ SOURCES += ./main.cpp \
 unix {
 DESTDIR		= ./linux-bin
 CONFIG		+= sdrplay
-#CONFIG		+= hackrf
+CONFIG		+= hackrf
+#CONFIG		+= pmsdr
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
@@ -119,6 +122,7 @@ win32 {
 DESTDIR		= ../../windows-bin
 CONFIG		+= sdrplay
 CONFIG		+= hackrf
+#CONFIG		+= pmsdr
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
@@ -166,7 +170,24 @@ hackrf	{
         HEADERS         += ./devices/hackrf-handler/hackrf-handler.h 
         SOURCES         += ./devices/hackrf-handler/hackrf-handler.cpp 
 }
-	
+
+pmsdr	{
+	DEFINES		+= HAVE_PMSDR
+	FORMS		+= ./devices/pmsdr-handler/pmsdr-widget.ui
+	DEPENDPATH	+= ./devices/pmsdr-handler
+        INCLUDEPATH     += ./devices/pmsdr-handler
+        HEADERS         += ./devices/pmsdr-handler/pmsdr-handler.h \
+			   ./devices/pmsdr-handler/pmsdr_comm.h \
+	                   ./devices/pmsdr-handler/pmsdr_usb.h \
+	                   ./devices/pmsdr-handler/si570-handler.h \
+	                   ./devices/pmsdr-handler/pa-reader.h
+        SOURCES         += ./devices/pmsdr-handler/pmsdr-handler.cpp \
+			   ./devices/pmsdr-handler/pmsdr_comm.cpp \
+	                   ./devices/pmsdr-handler/pmsdr_usb.cpp \
+	                   ./devices/pmsdr-handler/si570-handler.cpp \
+	                   ./devices/pmsdr-handler/pa-reader.cpp
+}
+
 test-decoder {
         DEFINES         += HAVE_TEST_DECODER
         INCLUDEPATH     += ./decoders/test-decoder

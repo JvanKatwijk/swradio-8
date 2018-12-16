@@ -32,7 +32,7 @@
 	                         int32_t rate,
 	                         RingBuffer<std::complex<float>> *b,
 	                         QSettings *s):
-	                              deviceInput (mr) {
+	                              deviceHandler (mr) {
 	theRate		= rate;
 	this	-> myFrame	= new QFrame;
 	(void)s;

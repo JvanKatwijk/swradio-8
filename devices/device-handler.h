@@ -23,42 +23,48 @@
  *    along with SDR-J; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * 	Default (void) implementation of
- * 	virtual input class
+ *	We have to create a simple virtual class here, since we
+ *	want the interface with different devices (including  filehandling)
+ *	to be transparent
  */
-#include	"device-input.h"
-#include	"radio.h"
+#ifndef	__DEVICE_HANDLER__
+#define	__DEVICE_HANDLER__
 
-	deviceInput::deviceInput	(RadioInterface *radio) {
-	lastFrequency	= Mhz (100);
-}
+#include	<stdint.h>
+#include	"radio-constants.h"
+#include	<QObject>
+#include	<QThread>
+#include	<QDialog>
 
-	deviceInput::~deviceInput	(void) {
-}
 
-int32_t	deviceInput::getRate		(void) {
-	return 192000;
-}
+/**
+  *	\class deviceHandler
+  *	base class for devices for the fm software
+  *	The class is not completely virtual, since it is
+  *	used as a default in case selecting a "real" class did not work out
+  */
 
-void	deviceInput::setVFOFrequency	(quint64 f) {
-	lastFrequency	= f;
-}
+#include	<stdint.h>
 
-quint64	deviceInput::getVFOFrequency	(void) {
-	return lastFrequency;
-}
-
-bool	deviceInput::restartReader	(void) {
-	return true;
-}
-
-void	deviceInput::stopReader	(void) {
-}
-
-void	deviceInput::resetBuffer	(void) {
-}
-
-int16_t	deviceInput::bitDepth		(void) {
-	return 10;
-}
+class	RadioInterface;
+class	deviceHandler: public QThread {
+Q_OBJECT
+public:
+			deviceHandler 	(RadioInterface *);
+virtual			~deviceHandler 	(void);
+virtual		int32_t	getRate		(void);
+virtual		void	setVFOFrequency	(quint64);
+virtual		quint64	getVFOFrequency	(void);
+virtual		bool	restartReader	(void);
+virtual		void	stopReader	(void);
+virtual		void	resetBuffer	(void);
+virtual		int16_t	bitDepth	(void);
+	        int32_t	vfoOffset;
+//
+protected:
+		uint64_t	lastFrequency;
+signals:
+		void	dataAvailable	(int);
+};
+#endif
 

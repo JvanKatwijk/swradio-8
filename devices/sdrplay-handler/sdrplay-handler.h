@@ -29,7 +29,7 @@
 #include	"radio-constants.h"
 #include	"ringbuffer.h"
 #include	"fir-filters.h"
-#include	"device-input.h"
+#include	"device-handler.h"
 #include	"ui_sdrplay-widget.h"
 #include	"mirsdrapi-rsp.h"
 
@@ -91,7 +91,7 @@ typedef mir_sdr_ErrT (*pfn_mir_sdr_ReleaseDeviceIdx) (unsigned int);
 
 class	RadioInterface;
 ///////////////////////////////////////////////////////////////////////////
-class	sdrplayHandler: public deviceInput, public Ui_sdrplayWidget {
+class	sdrplayHandler: public deviceHandler, public Ui_sdrplayWidget {
 Q_OBJECT
 public:
 		sdrplayHandler		(RadioInterface *,

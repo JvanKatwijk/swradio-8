@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>689</width>
-    <height>438</height>
+    <width>772</width>
+    <height>464</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,9 +18,9 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>50</y>
-      <width>631</width>
-      <height>181</height>
+      <y>30</y>
+      <width>711</width>
+      <height>201</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -31,9 +31,9 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>50</y>
+      <y>40</y>
       <width>24</width>
-      <height>161</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="orientation">
@@ -43,20 +43,20 @@
    <widget class="QwtPlot" name="lfSpectrum">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>290</x>
       <y>240</y>
-      <width>521</width>
-      <height>171</height>
+      <width>471</width>
+      <height>161</height>
      </rect>
     </property>
    </widget>
    <widget class="QSlider" name="lfScopeSlider">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>260</x>
       <y>240</y>
-      <width>24</width>
-      <height>171</height>
+      <width>21</width>
+      <height>161</height>
      </rect>
     </property>
     <property name="orientation">
@@ -66,10 +66,10 @@
    <widget class="QComboBox" name="decoderTable">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>270</y>
-      <width>111</width>
-      <height>21</height>
+      <x>160</x>
+      <y>0</y>
+      <width>141</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -84,14 +84,22 @@
    <widget class="QLCDNumber" name="frequencyDisplay">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>0</y>
-      <width>211</width>
-      <height>51</height>
+      <x>100</x>
+      <y>40</y>
+      <width>241</width>
+      <height>61</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
     </property>
     <property name="frameShape">
      <enum>QFrame::NoFrame</enum>
+    </property>
+    <property name="lineWidth">
+     <number>4</number>
     </property>
     <property name="digitCount">
      <number>11</number>
@@ -104,7 +112,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>310</y>
+      <y>410</y>
       <width>111</width>
       <height>21</height>
      </rect>
@@ -119,10 +127,10 @@
    <widget class="QComboBox" name="bandSelector">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>350</y>
+      <x>300</x>
+      <y>0</y>
       <width>111</width>
-      <height>21</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -152,10 +160,10 @@
    <widget class="QComboBox" name="streamOutSelector">
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>620</x>
       <y>0</y>
       <width>151</width>
-      <height>21</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -165,8 +173,8 @@
    <widget class="QPushButton" name="freqSave">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>330</y>
+      <x>230</x>
+      <y>410</y>
       <width>111</width>
       <height>21</height>
      </rect>
@@ -181,8 +189,8 @@
    <widget class="QPushButton" name="middleButton">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>290</y>
+      <x>120</x>
+      <y>410</y>
       <width>111</width>
       <height>21</height>
      </rect>
@@ -197,10 +205,10 @@
    <widget class="QSpinBox" name="mouse_Inc">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>250</y>
-      <width>111</width>
-      <height>21</height>
+      <x>520</x>
+      <y>0</y>
+      <width>101</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -213,9 +221,9 @@
    <widget class="QComboBox" name="AGC_select">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>0</y>
-      <width>141</width>
+      <x>340</x>
+      <y>410</y>
+      <width>121</width>
       <height>21</height>
      </rect>
     </property>
@@ -241,8 +249,8 @@
    <widget class="QSpinBox" name="agc_thresholdSlider">
     <property name="geometry">
      <rect>
-      <x>400</x>
-      <y>0</y>
+      <x>460</x>
+      <y>410</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -260,10 +268,10 @@
    <widget class="QLabel" name="timeDisplay">
     <property name="geometry">
      <rect>
-      <x>520</x>
-      <y>20</y>
-      <width>141</width>
-      <height>16</height>
+      <x>580</x>
+      <y>410</y>
+      <width>161</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="text">
@@ -273,8 +281,8 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>10</y>
+      <x>30</x>
+      <y>0</y>
       <width>21</width>
       <height>21</height>
      </rect>
@@ -297,10 +305,10 @@
    <widget class="QPushButton" name="dumpButton">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>370</y>
+      <x>410</x>
+      <y>0</y>
       <width>111</width>
-      <height>41</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="toolTip">
@@ -310,6 +318,34 @@
      <string>dump</string>
     </property>
    </widget>
+   <widget class="QwtPlot" name="audioSpectrum">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>240</y>
+      <width>211</width>
+      <height>161</height>
+     </rect>
+    </property>
+   </widget>
+   <zorder>hfSpectrum</zorder>
+   <zorder>hfScopeSlider</zorder>
+   <zorder>lfSpectrum</zorder>
+   <zorder>lfScopeSlider</zorder>
+   <zorder>decoderTable</zorder>
+   <zorder>freqButton</zorder>
+   <zorder>bandSelector</zorder>
+   <zorder>streamOutSelector</zorder>
+   <zorder>freqSave</zorder>
+   <zorder>middleButton</zorder>
+   <zorder>mouse_Inc</zorder>
+   <zorder>AGC_select</zorder>
+   <zorder>agc_thresholdSlider</zorder>
+   <zorder>timeDisplay</zorder>
+   <zorder>label_2</zorder>
+   <zorder>dumpButton</zorder>
+   <zorder>frequencyDisplay</zorder>
+   <zorder>audioSpectrum</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
