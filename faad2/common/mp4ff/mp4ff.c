@@ -42,6 +42,12 @@ mp4ff_t *mp4ff_open_read(mp4ff_callback_t *f)
 
     parse_atoms(ff,0);
 
+    if (ff->error)
+    {
+        free(ff);
+        ff = NULL;
+    }
+
     return ff;
 }
 
@@ -54,6 +60,12 @@ mp4ff_t *mp4ff_open_read_metaonly(mp4ff_callback_t *f)
     ff->stream = f;
 
     parse_atoms(ff,1);
+
+    if (ff->error)
+    {
+        free(ff);
+        ff = NULL;
+    }
 
     return ff;
 }
@@ -101,9 +113,16 @@ void mp4ff_close(mp4ff_t *ff)
     if (ff) free(ff);
 }
 
-void mp4ff_track_add(mp4ff_t *f)
+static void mp4ff_track_add(mp4ff_t *f)
 {
     f->total_tracks++;
+
+    if (f->total_tracks > MAX_TRACKS)
+    {
+        f->total_tracks = 0;
+        f->error++;
+        return;
+    }
 
     f->track[f->total_tracks - 1] = malloc(sizeof(mp4ff_track_t));
 
@@ -185,6 +204,7 @@ int32_t parse_atoms(mp4ff_t *f,int meta_only)
     uint8_t header_size = 0;
 
     f->file_size = 0;
+    f->stream->read_error = 0;
 
     while ((size = mp4ff_atom_read_header(f, &atom_type, &header_size)) != 0)
     {
@@ -304,43 +324,12 @@ int32_t mp4ff_num_samples(const mp4ff_t *f, const int32_t track)
     return total;
 }
 
-static uint32_t mp4ff_normalize_flawed_sample_rate (uint16_t samplerate)
-{
-       /* A list of common rates can be found at
-        * http://en.wikipedia.org/wiki/Sampling_rate */
-       uint32_t rates[] = {
-	       8000, 11025, 16000, 22050, 32000, 44056, 44100,
-	       47250, 48000, 50000, 50400, 88200, 96000, 176400,
-	       192000, 352800, 384000, 0
-       };
-       uint32_t *rate;
 
-       /* First check standard rates. */
-       for (rate = rates; *rate; rate++)
-       {
-               if (*rate == samplerate)
-               {
-                       return *rate;
-               }
-       }
 
-       /* No standard rates matching - check if sample rate got truncated when
-        * added to MP4 container */
-       for (rate = rates; *rate; rate++)
-       {
-               if ((*rate & 0x0000FFFF) == samplerate)
-               {
-                       return *rate;
-               }
-       }
-
-       /* Failed to find a standard rate - we give up returning the original rate */
-       return samplerate;
-}
 
 uint32_t mp4ff_get_sample_rate(const mp4ff_t *f, const int32_t track)
 {
-	return mp4ff_normalize_flawed_sample_rate (f->track[track]->sampleRate);
+	return f->track[track]->sampleRate;
 }
 
 uint32_t mp4ff_get_channel_count(const mp4ff_t * f,const int32_t track)

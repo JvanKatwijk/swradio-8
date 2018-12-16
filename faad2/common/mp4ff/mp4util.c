@@ -31,11 +31,14 @@
 #include "mp4ffint.h"
 #include <stdlib.h>
 
-int32_t mp4ff_read_data(mp4ff_t *f, uint8_t *data, uint32_t size)
+int32_t mp4ff_read_data(mp4ff_t *f, int8_t *data, uint32_t size)
 {
     int32_t result = 1;
 
     result = f->stream->read(f->stream->user_data, data, size);
+
+    if (result < size)
+        f->stream->read_error++;
 
     f->current_position += size;
 
@@ -47,7 +50,7 @@ int32_t mp4ff_truncate(mp4ff_t * f)
 	return f->stream->truncate(f->stream->user_data);
 }
 
-int32_t mp4ff_write_data(mp4ff_t *f, uint8_t *data, uint32_t size)
+int32_t mp4ff_write_data(mp4ff_t *f, int8_t *data, uint32_t size)
 {
     int32_t result = 1;
 
@@ -92,7 +95,7 @@ uint64_t mp4ff_read_int64(mp4ff_t *f)
 {
     uint8_t data[8];
     uint64_t result = 0;
-    uint8_t i;
+    int8_t i;
 
     mp4ff_read_data(f, data, 8);
 
@@ -108,13 +111,13 @@ uint32_t mp4ff_read_int32(mp4ff_t *f)
 {
     uint32_t result;
     uint32_t a, b, c, d;
-    uint8_t data[4];
-
+    int8_t data[4];
+    
     mp4ff_read_data(f, data, 4);
-    a = data[0];
-    b = data[1];
-    c = data[2];
-    d = data[3];
+    a = (uint8_t)data[0];
+    b = (uint8_t)data[1];
+    c = (uint8_t)data[2];
+    d = (uint8_t)data[3];
 
     result = (a<<24) | (b<<16) | (c<<8) | d;
     return (uint32_t)result;
@@ -124,12 +127,12 @@ uint32_t mp4ff_read_int24(mp4ff_t *f)
 {
     uint32_t result;
     uint32_t a, b, c;
-    uint8_t data[4];
-
+    int8_t data[4];
+    
     mp4ff_read_data(f, data, 3);
-    a = data[0];
-    b = data[1];
-    c = data[2];
+    a = (uint8_t)data[0];
+    b = (uint8_t)data[1];
+    c = (uint8_t)data[2];
 
     result = (a<<16) | (b<<8) | c;
     return (uint32_t)result;
@@ -139,11 +142,11 @@ uint16_t mp4ff_read_int16(mp4ff_t *f)
 {
     uint32_t result;
     uint32_t a, b;
-    uint8_t data[2];
-
+    int8_t data[2];
+    
     mp4ff_read_data(f, data, 2);
-    a = data[0];
-    b = data[1];
+    a = (uint8_t)data[0];
+    b = (uint8_t)data[1];
 
     result = (a<<8) | b;
     return (uint16_t)result;
@@ -154,7 +157,7 @@ char * mp4ff_read_string(mp4ff_t * f,uint32_t length)
 	char * str = (char*)malloc(length + 1);
 	if (str!=0)
 	{
-		if ((uint32_t)mp4ff_read_data(f,(uint8_t *)str,length)!=length)
+		if ((uint32_t)mp4ff_read_data(f,str,length)!=length)
 		{
 			free(str);
 			str = 0;

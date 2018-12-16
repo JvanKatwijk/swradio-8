@@ -1,12 +1,10 @@
 bin_PROGRAMS = faad
-man1_MANS = faad.man
+dist_man1_MANS = faad.man
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/common/faad \
-	   -I$(top_srcdir)/common/mp4ff
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
-faad_LDADD = $(top_builddir)/libfaad/libfaad.la \
-	     $(top_builddir)/common/mp4ff/libmp4ff.a
+faad_LDADD = $(top_builddir)/libfaad/libfaad.la
 
-faad_SOURCES = main.c \
-	       audio.c audio.h \
-	       $(top_srcdir)/common/faad/getopt.c
+faad_SOURCES = mp4read.c audio.c main.c audio.h mp4read.h unicode_support.c unicode_support.h
+
+EXTRA_faad_SOURCES =  getopt.c
