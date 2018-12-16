@@ -97,7 +97,7 @@ SOURCES += ./main.cpp \
 unix {
 DESTDIR		= ./linux-bin
 CONFIG		+= sdrplay
-#CONFIG		+= hackrf
+CONFIG		+= hackrf
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
@@ -107,7 +107,7 @@ CONFIG		+= psk-decoder
 CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
 CONFIG		+= mfsk-decoder
-#CONFIG		+= drm-decoder
+CONFIG		+= drm-decoder
 #CONFIG		+= test-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
@@ -140,7 +140,7 @@ LIBS    += -lusb-1.0
 LIBS    += -lsndfile
 LIBS    += -lsamplerate
 LIBS    += -lole32
-#LIBS	+= -lfaad
+LIBS	+= -lfaad_drm
 LIBS    += -lwinmm
 }
 
@@ -276,7 +276,7 @@ fax-decoder {
 drm-decoder {
 	DEFINES		+= HAVE_DRM_DECODER
 	DEFINES		+= ESTIMATOR_1
-	LIBS		+= -lfaad
+	LIBS		+= -lfaad_drm
 #	LIBS		+= -lfaad -larmadillo
 	DEPENDPATH	+= ./decoders/drm-decoder/ \
 	                   ./decoders/drm-decoder/signal-handling \

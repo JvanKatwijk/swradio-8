@@ -59,6 +59,19 @@ extern const char *const codetable [];
 	myFrame         -> show (); //
 	workingRate     = 2000;
 	setup_cwDecoder (workingRate);
+	cwViewer	= new fftScope (cwScope,
+	                                128,
+	                                  1,
+	                                512,
+	                                 50,
+	                                  8);
+	cwViewer	-> setScope (0, 0);
+	cwViewer	-> switch_viewMode ();
+	handle_amplitude (amplitudeSlider -> value ());
+	connect (amplitudeSlider, SIGNAL (valueChanged (int)),
+                 this, SLOT (handle_amplitude (int)));
+	connect (cwViewer, SIGNAL (clickedwithLeft (int)),
+	         this, SLOT (handleClick (int)));
 }
 
 	cwDecoder::~cwDecoder			(void) {
@@ -234,10 +247,12 @@ int32_t	t;
 char	buffer [4];
 std::complex<float>	s;
 
+static int xx_counter	= 0;
 	s	= cw_BandPassFilter	-> Pass (s);
 	s	= localShifter. do_shift (z, cw_IF * 10);
 	value	=  abs (s);
 
+	cwViewer -> addElements (&s, 1);
 	if (value > agc_peak)
 	   agc_peak = decayingAverage (agc_peak, value, 50.0);
 	else
@@ -532,6 +547,14 @@ void    cwDecoder::cw_adjustFrequency (int f) {
 	   cw_IF = -workingRate / 2 + workingRate / 20;
 	setDetectorMarker (cw_IF);
 	
+}
+
+void    cwDecoder::handle_amplitude   (int a) {
+        cwViewer       -> setLevel (a);
+}
+
+void    cwDecoder::handleClick (int a) {
+        adjustFrequency (4 * a);
 }
 
 

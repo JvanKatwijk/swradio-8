@@ -42,7 +42,7 @@
 #include        "device-input.h"
 #include        "filereader.h"
 #include        "sdrplay-handler.h"
-//#include	"hackrf-handler.h"
+#include	"hackrf-handler.h"
 //
 //	decoders
 #include	"virtual-decoder.h"
@@ -317,11 +317,11 @@ deviceInput *res	= NULL;
 	   res  = new sdrplayHandler (this, inputRate, hfBuffer, settings);
 	} catch (int e) {}
 
-//	if (res == NULL) {
-//	   try {
-//	      res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
-//	   } catch (int e) {}
-//	}
+	if (res == NULL) {
+	   try {
+	      res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
+	   } catch (int e) {}
+	}
 
 	if (res == NULL) {
 	   try {
@@ -373,6 +373,8 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	if (s == "cw decoder") {
 	   theDecoder	= new cwDecoder (decoderRate,
 	                                  audioData, settings);
+	   connect (theDecoder, SIGNAL (adjustFrequency (int)),
+	            this, SLOT (adjustFrequency_hz (int)));
 	}
 	else
 #endif

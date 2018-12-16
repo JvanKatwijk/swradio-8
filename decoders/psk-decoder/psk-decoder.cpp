@@ -616,6 +616,7 @@ void    pskDecoder::handle_amplitude   (int a) {
 }
 
 void	pskDecoder::handleClick	(int a) {
+	fprintf (stderr, "adjust %d\n", a);
 	adjustFrequency (a);
 }
 
