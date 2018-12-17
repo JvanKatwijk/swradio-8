@@ -40,7 +40,7 @@
 #include	"ringbuffer.h"
 
 class		QSettings;
-class		Reader_base;
+class		cardReader;
 //	create type defs for the functions
 #ifdef	__MINGW32__
 #define	STDCALL	__stdcall
@@ -182,12 +182,6 @@ typedef enum {
 } extHw_ModeRxTxT;
 
 class	ExtioHandler:public rigInterface, public Ui_extioWidget {
-Q_OBJECT
-if QT_VERSION >= 0x050000
-Q_PLUGIN_METADATA (IID "ExtioHandler")
-endif
-Q_INTERFACES (rigInterface)
-
 public:
 	bool		createPluginWindow	(int32_t, QFrame *, QSettings *);
 			~ExtioHandler		(void);
@@ -200,7 +194,8 @@ public:
 	bool		restartReader		(void);
 	void		stopReader		(void);
 	int32_t		Samples			(void);
-	int32_t		getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
+	int32_t		getSamples		(std::complex<float> *,
+	                                                    int32_t, uint8_t);
 	int16_t		bitDepth		(void);
 	void		exit			(void);
 	bool		isOK			(void);
@@ -209,7 +204,6 @@ public:
 	pfnGetHWLO	GetHWLO;	// should be available
 	long		GetHWSR		(void); // may be a noop
 
-	void		set_Changed_SampleRate (int32_t);
 	void		set_Changed_LO	(int32_t);
 	void		set_Lock_LO	(void);
 	void		set_Unlock_LO	(void);
@@ -222,10 +216,10 @@ public:
 	uint8_t		GetMode		(void);
 //
 //	The call back need access to
-	Reader_base	*theReader;
+	cardReader	*theReader;
 	bool		isStarted;
 
-	RingBuffer<DSPCOMPLEX>	*theBuffer;
+	RingBuffer<std::complex<float>>	*theBuffer;
 private:
 	QFrame		*myFrame;
 	void		run		(void);
@@ -233,9 +227,6 @@ private:
 	QQueue<int>	commandQueue;
 	QWaitCondition	commandHandler;
 	QMutex		helper;
-	int32_t		base_16;
-	int32_t		base_24;
-	int32_t		base_32;
 	int32_t		inputRate;
 	int32_t		outputRate;
 	int32_t		lastFrequency;

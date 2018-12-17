@@ -206,8 +206,8 @@ int32_t	paReader::Samples () {
 	return _I_Buffer -> GetRingBufferReadAvailable () / 2;
 }
 
-int32_t	paReader::getSamples	(DSPCOMPLEX *V,
-	                         int32_t n, int8_t Mode) {
+int32_t	paReader::getSamples	(std::complex<float> *V,
+	                         int32_t n, uint8_t Mode) {
 float	*buf = (float *)alloca (2 * n * sizeof (float));
 int32_t	i, realAmount;
 
@@ -222,24 +222,14 @@ int32_t	i, realAmount;
 	realAmount = _I_Buffer	-> getDataFromBuffer (buf, 2 * n);
 
 	for (i = 0; i < realAmount / 2; i ++) {
-	   switch (Mode) {
-	      default:
-	      case IandQ:
-	         V [i] = DSPCOMPLEX (buf [2 * i], buf [2 * i + 1]);
-	         break;
-
-	      case QandI:
-	         V [i] = DSPCOMPLEX (buf [2 * i + 1], buf [2 * i]);
-	         break;
-
-	      case I_Only:
-	         V [i]= DSPCOMPLEX (buf [2 * i], 0.0);
-	         break;
-
-	      case Q_Only:
-	         V [i]	= DSPCOMPLEX (buf [2 * i + 1], 0.0);
-	         break;
-	   }
+	    switch (Mode) {
+	       case IandQ:
+	          V [i] = std::complex<float> (buf [2 * i], buf [2 * i + 1]);
+	          break;
+	       case QandI:
+	          V [i] = std::complex<float>(buf [2 * i + 1], buf [2 * i]);
+	          break;
+	    }
 	}
 	return realAmount / 2;
 }

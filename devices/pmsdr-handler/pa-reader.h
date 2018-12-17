@@ -34,6 +34,9 @@
 
 class	QComboBox;
 
+#define	IandQ	0100
+#define	QandI	0101
+
 class  paReader: public QObject {
 Q_OBJECT
 public:
@@ -49,7 +52,8 @@ public:
 	bool		restartReader		(void);
 	void		stopReader		(void);
 	int32_t		Samples			(void);
-	int32_t		getSamples		(DSPCOMPLEX *, int32_t, int8_t);
+	int32_t		getSamples		(std::complex <float> *,
+	                                         int32_t, uint8_t);
 	bool		set_StreamSelector	(int);
 	bool		isRunning		(void);
 	int32_t		inputRate;

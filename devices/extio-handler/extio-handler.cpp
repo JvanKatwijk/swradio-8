@@ -29,21 +29,11 @@
 #include	<QMessageBox>
 #include	"extio-handler.h"
 #include	"reader-base.h"
-#include	"common-readers.h"
 #include	"card-reader.h"
 
-#ifndef	__MINGW32__
-#include	"dlfcn.h"
-#endif
 using namespace std;
-
-#ifdef __MINGW32__
 #define	GETPROCADDRESS	GetProcAddress
 #define	FREELIBRARY	FreeLibrary
-#else
-#define	GETPROCADDRESS	dlsym
-#define	FREELIBRARY	dlclose
-#endif
 //
 
 //	Interface routines
@@ -102,12 +92,9 @@ wchar_t	*windowsName;
 int16_t	wchars_num;
 #endif
 	(void)rate;			// not used here
-	inputRate	= 192000;	// default, until proven differently
+	inputRate	= 96000;	// default, until proven differently
 	outputRate	= s	-> value ("extioRate", 96000). toInt ();
 	lastFrequency	= Khz (25000);
-	base_16		= s -> value ("base_16", 32767). toInt ();
-	base_24		= s -> value ("base_24", 32767 * 256). toInt ();
-	base_32		= s -> value ("base_32", 32767 * 32768). toInt ();
 	isStarted	= false;
 	theReader	= NULL;
 	this -> myFrame		= myFrame;
@@ -123,11 +110,7 @@ int16_t	wchars_num;
 	           getOpenFileName (NULL,
 	                            tr ("load file .."),
 	                            QDir::currentPath (),
-#ifdef	__MINGW32__
 	                            tr ("libs (Extio*.dll)"));
-#else
-	                            tr ("libs (*.so)"));
-#endif
 	dll_file	= QDir::toNativeSeparators (dll_file);
 	if (dll_file == QString ("")) {
 	   QMessageBox::warning (NULL, tr ("sdr"),
@@ -136,7 +119,6 @@ int16_t	wchars_num;
 	   return false;
 	}
 
-#ifdef	__MINGW32__
 	wchars_num = MultiByteToWideChar (CP_UTF8, 0,
 	                              dll_file. toLatin1 (). data (),
 	                              -1, NULL, 0);
@@ -147,9 +129,6 @@ int16_t	wchars_num;
 	wcstombs (temp, windowsName, 128);
 	Handle		= LoadLibrary (windowsName);
 //	fprintf (stderr, "Last error = %ld\n", GetLastError ());
-#else
-	Handle		= dlopen (dll_file. toLatin1 (). data (), RTLD_NOW);
-#endif
 	if (Handle == NULL) {
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("loading dll failed\n"));
@@ -179,12 +158,11 @@ int16_t	wchars_num;
 
 	theBuffer	= new RingBuffer<DSPCOMPLEX>(1024 * 1024);
 	fprintf (stderr, "hardware type = %d\n", hardwareType);
+//
+//	for the sw receiver, we only support card reader-based
+//	devices
 //	theSelector	-> hide ();
 	switch (hardwareType) {
-	   case exthwNone:
-	   case exthwSDRX:
-	   case exthwHPSDR:
-	   case exthwSDR14:
 	   default:
 	      QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("device not supported\n"));
@@ -205,21 +183,6 @@ int16_t	wchars_num;
 	               this, SLOT (set_streamSelector (int)));
 	      break;
 
-	   case exthwUSBdata16:
-	      theReader	= new reader_16 (this, base_16, outputRate);
-	      break;
-
-	   case exthwUSBdata24:
-	      theReader	= new reader_24 (this, base_24, outputRate);
-	      break;
-
-	   case exthwUSBdata32:
-	      theReader	= new reader_32 (this, base_32, outputRate);
-	      break;
-
-	   case exthwUSBfloat32:
-	      theReader	= new reader_float (this, outputRate);
-	      break;
 	}
 
 	SetCallback (extioCallback);
@@ -353,7 +316,7 @@ bool	ExtioHandler::legalFrequency	(int32_t f) {
 }
 
 int32_t	ExtioHandler::defaultFrequency	(void) {
-	return Khz (24700);
+	return Khz (14070);
 }
 //
 //	envelopes for functions that might or might not
@@ -444,11 +407,6 @@ int32_t	amount, i;
 //
 //	Signalling the main program:
 void	ExtioHandler::set_Changed_SampleRate (int32_t newRate) {
-//
-//	Serious business. In this preliminary version we interpret it
-//	as changing the inputrate of the device, NOT the outputrate of
-//	the extio handler
-	emit set_changeRate (newRate);
 	return;
 }
 //
@@ -512,12 +470,10 @@ void	ExtioHandler::run	(void) {
 	         case extHw_RUNNING:
 	         case extHw_ERROR:
 	         case extHw_OVERLOAD:
+	         case extHw_Changed_SampleRate:	// 100
 	                   ;			// for now
 	            break;
 
-	         case extHw_Changed_SampleRate:	// 100
-	            set_Changed_SampleRate (GetHWSR ());
-	            break;
 	         case extHw_Changed_LO:		// 101
 	            set_Changed_LO (GetHWLO ()); 
 	            break;
@@ -589,10 +545,4 @@ bool	ExtioHandler::isOK		(void) {
 int32_t	ExtioHandler::getRate		(void) {
 	return outputRate;
 }
-
-#if QT_VERSION < 0x050000
-QT_BEGIN_NAMESPACE
-Q_EXPORT_PLUGIN2(device_ExtioHandler, ExtioHandler)
-QT_END_NAMESPACE
-#endif
 

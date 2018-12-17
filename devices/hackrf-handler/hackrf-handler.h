@@ -95,6 +95,7 @@ public:
         int32_t         oscillatorPhase;
         std::complex<float> *oscillatorTable;
 	hackrf_device	*theDevice;
+	int		decimationFactor;
 private:
 
 	bool			load_hackrfFunctions	(void);

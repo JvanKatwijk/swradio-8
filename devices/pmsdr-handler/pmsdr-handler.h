@@ -74,6 +74,7 @@ const static QsdBiasFilterIfGain qsdBfigDefault = {
 };
 
 class	pmsdrHandler: public deviceHandler, public Ui_pmsdr {
+Q_OBJECT
 public:
 			pmsdrHandler	(RadioInterface *,
 	                                 int32_t	,
@@ -81,7 +82,7 @@ public:
 	                                 QSettings *);
 			~pmsdrHandler		(void);
 	int32_t		getRate			(void);
-	void		setVFOFrequency		(int32_t);
+	void		setVFOFrequency		(quint64);
 	quint64		getVFOFrequency		(void);
 	bool		legalFrequency		(int32_t);
 	bool		restartReader		(void);
@@ -99,10 +100,14 @@ private slots:
 	void		set_button_5		(void);
 	void		set_offset_KHz		(int);
 	void		set_Streamselector	(int);
-	void		set_rateSelector	(const QString &);
+	void		set_modeSelector	(const QString &);
+public slots:
+	void		samplesAvailable	(int);
 private:
+	RingBuffer<std::complex<float>> *dataBuffer;
 	int16_t		gainValue;
 	int32_t		inputRate;
+	uint8_t		Mode;
 	QSettings	*pmsdrSettings;
 	si570Handler	*mySI570;
 	void		setFilter		(int16_t);

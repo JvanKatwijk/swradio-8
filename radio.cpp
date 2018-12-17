@@ -218,7 +218,7 @@ QString	FrequencytoString (quint64 freq) {
 
 //	audio scope
 	showAudio	= new audioScope (audioSpectrum,
-	                                  256,
+	                                  128,
 	                                  48000);
 //	output device
         audioHandler            = new audioSink (this -> audioRate, 16384);
@@ -289,6 +289,8 @@ QString	FrequencytoString (quint64 freq) {
 	   exit (22);
 	}
 
+	hfScope		-> set_bitDepth (theDevice -> bitDepth ());
+	lfScope		-> set_bitDepth (theDevice -> bitDepth ());
 	agc. set_bitDepth (theDevice -> bitDepth ());
 	agc_thresholdSlider -> setMinimum (get_db (0,
 	                                   twoPower (theDevice -> bitDepth ())));
@@ -668,6 +670,7 @@ DSPCOMPLEX buffer [rate / 10];
 	      theUpConverter    -> handle (buffer, rate / 10);
 	   else
 	      audioHandler      -> putSamples (buffer, rate / 10);
+	   showAudio -> setRate (rate);
 	   for (int i = 0; i < rate / 10; i ++)
 	      showAudio -> addElement (buffer [i]);
         }

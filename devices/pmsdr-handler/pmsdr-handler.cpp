@@ -52,6 +52,7 @@
 	this	-> myFrame	= new QFrame (NULL);
 	setupUi (this -> myFrame);
 	this	-> myFrame -> show ();
+	this	-> dataBuffer	= r;
 	this	-> pmsdrSettings	= s;
 	myReader		= NULL;
 	defaultFreq		= -1;	// definitely illegal
@@ -64,7 +65,7 @@
 	connect (cardSelector, SIGNAL (activated (int)),
 	         this, SLOT (set_Streamselector (int)));
 	connect (myReader, SIGNAL (samplesAvailable (int)),
-	         this, SIGNAL (dataAvailable (int)));
+	         this, SLOT (samplesAvailable (int)));
 
 	setup_device ();
 	if (pmsdrDevice == NULL) {	// something failed
@@ -77,7 +78,8 @@
 	pmsdrDevice -> set_qsd_bias (&qsdBfig, 0);
 	set_gainValue	(gainSlider	-> value ());
 	setBias		(biasSlider	-> value ());
-//
+
+	Mode		= IandQ;
 //	and the connects
 	pmsdrSettings	-> beginGroup ("pmsdr");
 	vfoOffset	= pmsdrSettings -> value ("pmsdr-vfoOffset",
@@ -102,6 +104,8 @@
 	         this, SLOT (set_gainValue (int)));
 	connect (biasSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (setBias (int)));
+	connect (modeSelector, SIGNAL (activated (const QString &)),
+	         this, SLOT (set_modeSelector (const QString &)));
 	connect (offset_KHz, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_offset_KHz (int)));
 	statusLabel	-> setText ("pmsdr ready");
@@ -119,6 +123,7 @@
 	   delete myReader;
 	myReader	= NULL;
 	readerOwner. unlock ();
+	delete	myFrame;
 	pmsdrSettings	-> beginGroup ("pmsdr");
 	pmsdrSettings	-> setValue ("pmsdr-vfoOffset", vfoOffset);
 	pmsdrSettings	-> endGroup ();
@@ -128,7 +133,7 @@ int32_t	pmsdrHandler::getRate		(void) {
 	return inputRate;
 }
 
-void	pmsdrHandler::setVFOFrequency (int32_t VFO_freq) {
+void	pmsdrHandler::setVFOFrequency (quint64 VFO_freq) {
 int32_t	realFrequency	= VFO_freq + vfoOffset;
 
 	if (!radioOK)
@@ -140,6 +145,7 @@ int32_t	realFrequency	= VFO_freq + vfoOffset;
 //	Let the SI570 do the work
 	LOfreq	= mySI570 -> setVFOfrequency (realFrequency);
 
+	fprintf (stderr, "LOfreq = %d\n", LOfreq);
 	if (automaticFiltering)
 	   setFilterAutomatic (realFrequency);
 }
@@ -161,6 +167,7 @@ bool b;
 	readerOwner. lock ();
 	b = myReader	-> restartReader ();
 	readerOwner. unlock ();
+	fprintf (stderr, "restart geeft %d\n", b);
 	return b;
 }
 
@@ -179,6 +186,7 @@ void	pmsdrHandler::set_Streamselector (int idx) {
 	   QMessageBox::warning (myFrame, tr ("sdr"),
 	                               tr ("Selecting  input stream failed"));
 	readerOwner. unlock ();
+	restartReader ();
 }
 ///////////////////////////////////////////////////////////////////////
 void	pmsdrHandler::setup_device	(void) {
@@ -244,6 +252,13 @@ bool	fFound;
 }
 //
 //	Local settings and interactions
+
+void	pmsdrHandler::set_modeSelector	(const QString &s) {
+	if (s == "IandQ")
+	   Mode = IandQ;
+	else
+	   Mode = QandI;
+}
 
 void	pmsdrHandler::set_button_1	(void) {
 	if (automaticFiltering) 
@@ -373,6 +388,22 @@ int16_t	pmsdrHandler::bitDepth		(void) {
 	return 16;
 }
 
+void	pmsdrHandler::samplesAvailable	(int n) {
+std::complex<float> b [512];
+int16_t	i;
+
+	(void)n;
+	while (myReader -> Samples () > 512) {
+	   myReader -> getSamples (b, 512, Mode);
+	   for (i = 0; i < 512; i ++)
+	      b [i] = cmul (b [i], gainValue / 10.0);
+	   dataBuffer -> putDataIntoBuffer (b, 512);
+	}
+
+	if (dataBuffer -> GetRingBufferReadAvailable () > 1024)
+	   dataAvailable (1024);
+}
+	   
 //	Two functions for writing and reading (back) data
 //	into and from the EEPROM.
 bool	pmsdrHandler::store_hwlo (int32_t newFreq) {

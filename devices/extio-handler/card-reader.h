@@ -29,12 +29,11 @@
 
 #include	<QObject>
 #include	<portaudio.h>
-#include	"reader-base.h"
 
 class	QComboBox;
 class	ExtioHandler;
 
-class  cardReader: public QObject, public Reader_base {
+class  cardReader: public QObject {
 Q_OBJECT
 public:
 	 		cardReader	(RingBuffer<DSPCOMPLEX> *,

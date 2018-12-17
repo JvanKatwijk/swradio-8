@@ -30,7 +30,7 @@
 
 	hackrfHandler::hackrfHandler	(RadioInterface *mr,
                                          int32_t        outputRate,
-                                         RingBuffer<DSPCOMPLEX> *r,
+                                         RingBuffer<std::complex<float>> *r,
                                          QSettings      *s):
                                                       deviceHandler (mr) {
 int	err;
@@ -42,6 +42,7 @@ int	res;
 	setupUi (this -> myFrame);
 	this	-> myFrame	-> show ();
 	this	-> inputRate		= Khz (2112);
+	this	-> decimationFactor	= inputRate / outputRate;
 	_I_Buffer			= r;
 
 #ifdef  __MINGW32__
@@ -221,17 +222,13 @@ int	res;
 	}
 }
 //
-//	we use a static large buffer, rather than trying to allocate
-//	a buffer on the stack
-static std::complex<float>buffer [32 * 32768];
 static
 int	callback (hackrf_transfer *transfer) {
 hackrfHandler *ctx = static_cast <hackrfHandler *>(transfer -> rx_ctx);
 uint8_t *p	= transfer -> buffer;
 int	i;
 RingBuffer<std::complex<float> > * q = ctx -> _I_Buffer;
-std::complex<float> *localBuf =
-                 (DSPCOMPLEX *)alloca (transfer -> valid_length / 2 * sizeof (DSPCOMPLEX));
+std::complex<float> localBuf [transfer -> valid_length / (2 * ctx -> decimationFactor)];
 int	cnt	= 0;
 
       for (i = 0; i < transfer -> valid_length / 2; i ++) {
@@ -246,7 +243,7 @@ int	cnt	= 0;
            if (ctx -> oscillatorPhase >= ctx -> inputRate)
               ctx -> oscillatorPhase -= ctx -> inputRate;
 
-           if (ctx -> filter -> Pass (temp, &localBuf [cnt]))
+           if (ctx -> filter -> Pass (temp, &(localBuf [cnt])))
               if (localBuf [cnt] == localBuf [cnt])
                  cnt ++;
         }

@@ -1,6 +1,6 @@
 # swradio-8 [![Build Status](https://travis-ci.org/JvanKatwijk/swradio-8.svg?branch=master)](https://travis-ci.org/JvanKatwijk/swradio-8)
 
-swradio is  Software for Linux for listening to short wave radio.
+swradio is  Software for Linux and windows for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
 
 ![swradio-8 with SDRplay as device](/swradio-cw.png?raw=true)
@@ -17,18 +17,19 @@ often used by radio amateurs, such as psk, cw and rtty.
 swradio-8 is the result of rewriting and simplifying the set
 of sdr-j-sw programs.
 
-The program uses the SDRplay as input device, and is able to
+The program can be configured to use the SDRplay,
+the HACKrf or the - sound card based - pmsdr as input device, and is able to
 * dump the (decimated) input onto a file in PCM format;
 * use such a file as input.
 
-If an SDRplay device is connected to the computer where the program runs,
+If a configured device is connected to the computer where the program runs,
 the device will be connected and opened. If no device is connected,
 it is assumed that file input is requested (Note: this currently
 only applies to the Gnu/Linux version, the Windows version still
 has a device selector).
 
-As an experiment, a driver for the hackrf device is included. Note that
-you have to provide the hackrf lib and put it into "/usr/local/lib"
+Note that for use with the Hackrf device,
+have to provide the hackrf lib.
 
 **Preferred frequencies**
 can be stored, together with a user defined label (a program name).
@@ -70,8 +71,9 @@ to waterfall display (or vice-versa).
 * amtor, with selection of options;
 * weatherfax decoder, with selection of a variety of settings.
 
-As can be seen from the pictures, the main widget has two displays, one with a
-width of 96k (this width can be changed in the settings)
+As can be seen from the pictures, the main widget has two main displays,
+and one smaller display to show the audio output.
+The top display has a width of 96k (this width can be changed in the settings)
 showing the spectrum of the incoming data,
 the bottom one width a width of 12k -
 showing the spectrum of the data sent to the decoder, i.e. after being
@@ -85,16 +87,15 @@ One may select among a number of different filterings:
 
 The input can be written to a file, that file can be processed later on.
 
-**SDRplay and frequencies**
+** Frequencies**
 
-The frequency to which the SDRplay oscillator will be set will be
+The frequency to which the oscillator of the selected device will be set will be
 the one in the middle of the "large" display. Any offset of a selected
 frequency to this oscillator frequency will be handled in software.
 
-The SDRplay supports samplerates of 2M and up. Therefore, for selecting
-a frequency below 1 Mhz, the SDRplay oscillator will run on (slightly above)
-1 Mhz, and the device handler will use a software oscillator/mixer to tune to
-the selected frequency.
+The SDRplay and HACKrf devices support samplerates of 2M and up.
+These rates are decimated to 96k. The soundcard, used for the pmSDR
+device will be set to 96k.
 
 The function of each button and slider in the widget(s) is described in the
 tooltip for that button (slider)
@@ -114,8 +115,17 @@ To build a version, adapt the swradio-8.pro file.
 Note that for DRM decoding a special version of the faad library,
 obviously incompatible with the regular one, has to be created.
 
-Select - or deselect - decoders:
+Select the device
 
+* CONFIG	+= sdrplay
+* CONFIG	+= hackrf
+* CONFIG	+= pmsdr
+
+It is possible to select more than one device, in which case the
+software will try to open configured devices, until one found, otherwise
+file input will be selected.
+
+Select - or deselect - decoders:
 * CONFIG          += am-decoder
 * CONFIG          += ssb-decoder
 * CONFIG          += cw-decoder

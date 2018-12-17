@@ -46,11 +46,13 @@ double	temp;
 	   Window [i] = 0.42 - 0.5 * cos ((2.0 * M_PI * i) / (spectrumSize - 1)) +
 	                      0.08 * cos ((4.0 * M_PI * i) / (spectrumSize - 1));
 
-	temp	= (double)sampleRate / 2 / displaySize;
+	temp	= (double)sampleRate / 200 / displaySize;
 	for (i = 0; i < displaySize / 2; i ++)
 	   X_axis [i] =
 	        (double)((i) * (double) temp);
 
+	for (i = 0; i < displaySize / 2; i ++)
+	   averageBuffer [i] = 0;
 	plotGrid        -> setCanvasBackground (Qt::black);
         grid            = new QwtPlotGrid;
 #if defined QWT_VERSION && ((QWT_VERSION >> 8) < 0x0601)
@@ -85,6 +87,20 @@ double	temp;
 	delete[]	this	-> X_axis;
 	delete[]	this	-> Window;
 	delete		this	-> spectrum_fft;
+}
+
+void	audioScope::setRate (int newRate) {
+double temp;
+int16_t	i;
+
+	if (sampleRate == newRate)
+	   return;
+
+	sampleRate = newRate;
+	temp	= (double)sampleRate / 200 / displaySize;
+	for (i = 0; i < displaySize / 2; i ++)
+	   X_axis [i] =
+	        (double)((i) * (double) temp);
 }
 
 void	audioScope::addElement (std::complex<float> x) {

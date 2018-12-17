@@ -41,6 +41,7 @@ public:
 	                        );
 		~audioScope	(void);
 	void		addElement	(std::complex<float>);
+	void		setRate		(int);
 private:
 	QwtPlot		*plotGrid;
 	QwtPlotGrid	*grid;
