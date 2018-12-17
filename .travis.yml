@@ -16,7 +16,7 @@ install:
   -  sudo apt-get install libtool
   -  sudo apt-get install autoconf
   -  cd faad2
-  - ./configure --with-drm
+  - ./configure 
   -  make
   -  sudo make install
   -  sudo ldconfig
