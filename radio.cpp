@@ -43,14 +43,20 @@
 //      devices
 #include        "device-handler.h"
 #include        "filereader.h"
+#ifdef	HAVE_EXTIO
+#include	"extio-handler.h"
+#elif	HAVE_PMSDR
+#include	"pmsdr-handler.h"
+#else
 #ifdef	HAVE_SDRPLAY
 #include        "sdrplay-handler.h"
 #endif
 #ifdef	HAVE_HACKRF
 #include	"hackrf-handler.h"
 #endif
-#ifdef	HAVE_PMSDR
-#include	"pmsdr-handler.h"
+#ifdef	HAVE_RTLSDR
+#include	"rtlsdr-handler.h"
+#endif
 #endif
 //
 //	decoders
@@ -218,7 +224,7 @@ QString	FrequencytoString (quint64 freq) {
 
 //	audio scope
 	showAudio	= new audioScope (audioSpectrum,
-	                                  128,
+	                                  256,
 	                                  48000);
 //	output device
         audioHandler            = new audioSink (this -> audioRate, 16384);
@@ -237,6 +243,26 @@ QString	FrequencytoString (quint64 freq) {
 	}
 	audioHandler -> selectDefaultDevice ();
 
+#ifdef	__MINGW32__
+//	communication from the dll to the main program is through signals
+#ifdef	HAVE_EXTIO
+//	The following signals originate from the Winrad Extio interface
+	   connect (myRig, SIGNAL (set_ExtFrequency (int)),
+	            this, SLOT (set_ExtFrequency (int)));
+	   connect (myRig, SIGNAL (set_ExtLO (int)),
+	            this, SLOT (set_ExtLO (int)));
+	   connect (myRig, SIGNAL (set_lockLO (void)),
+	            this, SLOT (set_lockLO (void)));
+	   connect (myRig, SIGNAL (set_unlockLO (void)),
+	            this, SLOT (set_unlockLO (void)));
+	   connect (myRig, SIGNAL (set_stopHW (void)),
+	            this, SLOT (set_stopHW (void)));
+	   connect (myRig, SIGNAL (set_startHW (void)),
+	            this, SLOT (set_startHW (void)));
+	}
+	
+#endif
+#endif
         connect (decoderTable, SIGNAL (activated (const QString &)),
                  this, SLOT (selectDecoder (const QString &)));
 
@@ -324,11 +350,23 @@ void	RadioInterface::handle_quitButton	(void) {
 	delete	theDecoder;
 }
 
-
-
 deviceHandler	*RadioInterface::setDevice (RingBuffer<std::complex<float>> *hfBuffer) {
 
 deviceHandler *res	= NULL;
+#ifdef	HAVE_EXTIO
+	if (res == NULL) {
+	   try {
+	      res = new extioHandler (this, inputRate, hfBuffer, settings);
+	   } catch (int e) {}
+	}
+
+#elif	HAVE_PMSDR
+	if (res == NULL) {
+	   try {
+	      res = new pmsdrHandler (this, inputRate, hfBuffer, settings);
+	   } catch (int e) {}
+	}
+#else
 #ifdef	HAVE_SDRPLAY
 	try {
 	   res  = new sdrplayHandler (this, inputRate, hfBuffer, settings);
@@ -341,14 +379,15 @@ deviceHandler *res	= NULL;
 	   } catch (int e) {}
 	}
 #endif
-#ifdef	HAVE_PMSDR
+#ifdef	HAVE_RTLSDR
 	if (res == NULL) {
 	   try {
-	      res = new pmsdrHandler (this, inputRate, hfBuffer, settings);
+	      res  = new rtlsdrHandler (this, inputRate, hfBuffer, settings);
 	   } catch (int e) {}
 	}
 #endif
-
+	
+#endif
 	if (res == NULL) {
 	   try {
 	      res	= new fileReader (this, inputRate, hfBuffer, settings);
@@ -524,6 +563,45 @@ void    RadioInterface::set_freqSave    (void) {
         connect (myLine, SIGNAL (returnPressed (void)),
                  this, SLOT (handle_myLine (void)));
 }
+
+#ifdef	HAVE_EXTIO
+//	The following signals originate from the Winrad Extio interface
+//
+//	Note: the extio interface provides two signals
+//	one ExtLO signals that the external LO is set
+//	to a different value,
+//	the other one, ExtFreq, requests the client program
+//	to adapt its (local) tuning settings to a new frequency
+void	RadioInterface::set_ExtFrequency (int f) {
+int32_t	vfo	= theDevice	-> getVFOFrequency ();
+	Display (currentFreq);
+	setFrequency (vfo);
+}
+//
+//	From our perspective, the external device only provides us
+//	with a vfo
+void	RadioInterface::set_ExtLO	(int f) {
+	set_ExtFrequency (f);
+}
+
+void	RadioInterface::set_lockLO	(void) {
+//	fprintf (stderr, "ExtioLock is true\n");
+	ExtioLock	= true;
+}
+
+void	RadioInterface::set_unlockLO	(void) {
+//	fprintf (stderr, "ExtioLock is false\n");
+	ExtioLock	= false;
+}
+
+void	RadioInterface::set_stopHW	(void) {
+	theDevice	-> stopReader ();
+}
+
+void	RadioInterface::set_startHW	(void) {
+	theDevice -> restartReader ();
+}
+#endif
 
 void    RadioInterface::handle_myLine (void) {
 int32_t freq    = theDevice -> getVFOFrequency () + theBand. currentOffset;

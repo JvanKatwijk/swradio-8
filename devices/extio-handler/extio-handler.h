@@ -27,7 +27,6 @@
 #ifndef __EXTIO_HANDLER__
 #define	__EXTIO_HANDLER__
 
-#include	"rig-interface.h"
 #include	<QWidget>
 #include	<QFrame>
 #include	<QThread>
@@ -36,6 +35,7 @@
 #include	<QQueue>
 #include	<QWaitCondition>
 #include	<QMutex>
+#include	"deviceHandler.h"
 #include	"ui_extio-widget.h"
 #include	"ringbuffer.h"
 
@@ -181,24 +181,20 @@ typedef enum {
   , extHw_modeTX  = 1
 } extHw_ModeRxTxT;
 
-class	ExtioHandler:public rigInterface, public Ui_extioWidget {
+class	extioHandler:public deviceHandler, public Ui_extioWidget {
 public:
-	bool		createPluginWindow	(int32_t, QFrame *, QSettings *);
+			extioHandler		(RadioInterface *,
+	                                         int32_t outputRate,
+	                                         RingBuffer<std::complex<float>> *,
+	                                         QSettings *);
 			~ExtioHandler		(void);
 	int32_t		getRate			(void);
 	void		setVFOFrequency		(int32_t);
 	int32_t		getVFOFrequency		(void);
-	bool		legalFrequency		(int32_t);
-	int32_t		defaultFrequency	(void);
-
 	bool		restartReader		(void);
 	void		stopReader		(void);
-	int32_t		Samples			(void);
-	int32_t		getSamples		(std::complex<float> *,
-	                                                    int32_t, uint8_t);
+	void		resetBuffer		(void);
 	int16_t		bitDepth		(void);
-	void		exit			(void);
-	bool		isOK			(void);
 
 	void		putonQueue		(int);
 	pfnGetHWLO	GetHWLO;	// should be available

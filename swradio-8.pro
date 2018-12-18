@@ -100,6 +100,7 @@ unix {
 DESTDIR		= ./linux-bin
 CONFIG		+= sdrplay
 CONFIG		+= hackrf
+CONFIG		+= rtlsdr
 #CONFIG		+= pmsdr
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
@@ -120,9 +121,10 @@ LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -l
 
 win32 {
 DESTDIR		= ../../windows-bin
-CONFIG		+= sdrplay
-CONFIG		+= hackrf
+#CONFIG		+= sdrplay
+#CONFIG		+= hackrf
 #CONFIG		+= pmsdr
+CONFIG		+= extio
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
@@ -171,8 +173,20 @@ hackrf	{
         SOURCES         += ./devices/hackrf-handler/hackrf-handler.cpp 
 }
 
+rtlsdr	{
+	DEFINES		+= HAVE_RTLSDR
+        FORMS           += ./devices/rtlsdr-handler/rtlsdr-widget.ui
+        DEPENDPATH	+= ./devices/rtlsdr-handler
+        INCLUDEPATH	+= ./devices/rtlsdr-handler
+        HEADERS         += ./devices/rtlsdr-handler/rtlsdr-handler.h  \
+	                   ./devices/rtlsdr-handler/dongleselect.h
+        SOURCES         += ./devices/rtlsdr-handler/rtlsdr-handler.cpp \
+	                   ./devices/rtlsdr-handler/dongleselect.cpp
+}
+
 pmsdr	{
 	DEFINES		+= HAVE_PMSDR
+	TARGET		= swradio-pmsdr
 	FORMS		+= ./devices/pmsdr-handler/pmsdr-widget.ui
 	DEPENDPATH	+= ./devices/pmsdr-handler
         INCLUDEPATH     += ./devices/pmsdr-handler
@@ -180,12 +194,24 @@ pmsdr	{
 			   ./devices/pmsdr-handler/pmsdr_comm.h \
 	                   ./devices/pmsdr-handler/pmsdr_usb.h \
 	                   ./devices/pmsdr-handler/si570-handler.h \
-	                   ./devices/pmsdr-handler/pa-reader.h
+	                   ./devices/pa-reader.h
         SOURCES         += ./devices/pmsdr-handler/pmsdr-handler.cpp \
 			   ./devices/pmsdr-handler/pmsdr_comm.cpp \
 	                   ./devices/pmsdr-handler/pmsdr_usb.cpp \
 	                   ./devices/pmsdr-handler/si570-handler.cpp \
-	                   ./devices/pmsdr-handler/pa-reader.cpp
+	                   ./devices/pa-reader.cpp
+}
+
+extio	{
+	DEFINES		+= HAVE_EXTIO
+	TARGET		= swradio-extio
+	FORMS		+= ./devices/extio-handler/extio-widget.ui
+	DEPENDPATH	+= ./devices/extio-handler
+        INCLUDEPATH     += ./devices/extio-handler
+        HEADERS         += ./devices/extio-handler/extio-handler.h \
+	                   ./devices//pa-reader.h
+        SOURCES         += ./devices/extio-handler/extio-handler.cpp \
+	                   ./devices/pa-reader.cpp
 }
 
 test-decoder {

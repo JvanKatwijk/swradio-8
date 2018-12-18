@@ -83,17 +83,19 @@ int	extioCallback (int cnt, int status, float IQoffs, void *IQData) {
 //	We assume that if there are settings possible, they
 //	are dealt with by the producer of the extio, so here 
 //	no frame whatsoever.
-	bool  ExtioHandler::createPluginWindow (int32_t rate,
-	                                        QFrame * myFrame,
-	                                        QSettings *s) {
-#ifdef	__MINGW32__
+	extioHandler::extioHandler (RadioInterface *theRadio,
+                                    int32_t outputRate,
+                                    RingBuffer<std::complex<float>> *data,
+                                    QSettings *s);
+
 char	temp [256];
 wchar_t	*windowsName;
 int16_t	wchars_num;
-#endif
-	(void)rate;			// not used here
-	inputRate	= 96000;	// default, until proven differently
-	outputRate	= s	-> value ("extioRate", 96000). toInt ();
+	(void)theRadio;
+	this	-> outputRate	= outputRate;
+	this	-> theBuffer	= data;
+	this	-> settings	= s;
+
 	lastFrequency	= Khz (25000);
 	isStarted	= false;
 	theReader	= NULL;
@@ -133,14 +135,14 @@ int16_t	wchars_num;
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("loading dll failed\n"));
 	   status	-> setText ("incorrect dll?");
-	   return false;
+	   throw (21);
 	}
 
 	if (!loadFunctions ()) {
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("loading functions failed\n"));
 	   status	-> setText ("could not load all functions");
-	   return false;
+	   throw (22);
 	}
 
 //	apparently, the library is open, so record that
@@ -156,7 +158,6 @@ int16_t	wchars_num;
 	   return false;
 	}
 
-	theBuffer	= new RingBuffer<DSPCOMPLEX>(1024 * 1024);
 	fprintf (stderr, "hardware type = %d\n", hardwareType);
 //
 //	for the sw receiver, we only support card reader-based
@@ -171,18 +172,12 @@ int16_t	wchars_num;
 
 	   case exthwSCdata:
 	      theSelector -> show ();
-	      theReader	= new cardReader (theBuffer,
-	                                  theSelector, this, outputRate);
-	      if (!((cardReader *)theReader) -> worksFine ()) {
-	         QMessageBox::warning (NULL, tr ("sdr"),
-	                                     tr ("cannot handle soundcard"));
-	         status	-> setText ("soundcard problem");
-	         return false;
-	      }
+	      theReader	= new paReader (inputRate, theSelector);
 	      connect (theSelector, SIGNAL (activated (int)),
 	               this, SLOT (set_streamSelector (int)));
+	      connect (theReader, SIGNAL (samplesAvailable (int)),
+	               this, SLOT (samplesAvailable (int)));
 	      break;
-
 	}
 
 	SetCallback (extioCallback);
@@ -368,49 +363,7 @@ void	ExtioHandler::stopReader	(void) {
 	}
 }
 
-int32_t	ExtioHandler::Samples		(void) {
-int32_t	x = theBuffer -> GetRingBufferReadAvailable ();
-	if (x < 0)
-	   fprintf (stderr, "toch een fout in ringbuffer\n");
-	return x;
-}
-
-int32_t	ExtioHandler::getSamples		(DSPCOMPLEX *buffer,
-	                                         int32_t number,
-	                                         uint8_t mode) {
-int32_t	amount, i;
-
-	if (mode == IandQ) {
-	   amount	= theBuffer -> getDataFromBuffer (buffer, number);
-	   return amount;
-	}
-
-	DSPCOMPLEX temp [number];
-	amount = theBuffer -> getDataFromBuffer (temp, number);
-	for (i = 0; i < amount; i ++)
-	   switch (mode) {
-	      default:
-	      case QandI:
-	         buffer [i] = DSPCOMPLEX (imag (temp [i]), real (temp [i]));
-	         break;
-
-	      case I_Only:
-	         buffer [i] = DSPCOMPLEX (real (temp [i]), 0);
-	         break;
-
-	      case Q_Only:
-	         buffer [i] = DSPCOMPLEX (imag (temp [i]), 0);
-	         break;
-	   }
-	return amount;
-}
 //
-//	Signalling the main program:
-void	ExtioHandler::set_Changed_SampleRate (int32_t newRate) {
-	return;
-}
-//
-//	signals TO the GUI
 void	ExtioHandler::set_Changed_LO	(int32_t newFreq) {
 	emit set_ExtLO (newFreq);
 }
@@ -438,6 +391,23 @@ void	ExtioHandler::set_StopHW		(void) {
 int16_t	ExtioHandler::bitDepth		(void) {
 	return	theReader	-> bitDepth ();
 }
+
+void	ExtioHandler::samplesAvailable  (int n) {
+std::complex<float> b [512];
+int16_t i;
+
+        (void)n;
+        while (theReader -> Samples () > 512) {
+           myReader -> getSamples (b, 512, Mode);
+           for (i = 0; i < 512; i ++)
+              b [i] = cmul (b [i], gainValue / 10.0);
+           theBuffer -> putDataIntoBuffer (b, 512);
+        }
+
+        if (theBuffer -> GetRingBufferReadAvailable () > 1024)
+           dataAvailable (1024);
+}
+
 
 void	ExtioHandler::set_streamSelector (int idx) {
 	fprintf (stderr, "Setting stream %d\n", idx);

@@ -142,6 +142,15 @@ public slots:
         void            processAudio		(int, int);
 	void		setDetectorMarker	(int);
 
+#ifdef	HAVE_EXTIO
+//      and for the extio handling
+        void    set_ExtFrequency        (int);
+        void    set_ExtLO               (int);
+        void    set_lockLO              (void);
+        void    set_unlockLO            (void);
+        void    set_stopHW              (void);
+        void    set_startHW             (void);
+#endif
 };
 
 #endif

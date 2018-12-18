@@ -96,11 +96,12 @@ int16_t	i;
 	if (sampleRate == newRate)
 	   return;
 
+	fprintf (stderr, "audiorate set to %d\n", newRate);
 	sampleRate = newRate;
 	temp	= (double)sampleRate / 200 / displaySize;
 	for (i = 0; i < displaySize / 2; i ++)
 	   X_axis [i] =
-	        (double)((i) * (double) temp);
+	        (double)((i) * (double) sampleRate / displaySize);
 }
 
 void	audioScope::addElement (std::complex<float> x) {
@@ -126,15 +127,14 @@ int32_t	i, j;
 	}
 
 #define	FREQ 3
-	for (i = 0; i < displaySize / 2; i ++) {
-	   if (displayBuffer [i] != displayBuffer [i])
-	      displayBuffer [i] = 0;
-	   averageBuffer [i] = 
-	      ((double)(FREQ - 1)) / (FREQ) * averageBuffer [i] +
-	                1.0f / (FREQ) * displayBuffer [i];
-	   displayBuffer [i] = averageBuffer [i];
-
-	}
+//	for (i = 0; i < displaySize / 2; i ++) {
+//	   if (displayBuffer [i] != displayBuffer [i])
+//	      displayBuffer [i] = 0;
+//	   averageBuffer [i] = 
+//	      ((double)(FREQ - 1)) / (FREQ) * averageBuffer [i] +
+//	                1.0f / (FREQ) * displayBuffer [i];
+//	   displayBuffer [i] = averageBuffer [i];
+//	}
 
 	if (averageCounter < 5) {
 	   averageCounter ++;

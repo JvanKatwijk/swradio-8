@@ -10,6 +10,9 @@ Example of use of the cw decoder.
 Introduction
 ------------------------------------------------------------------
 
+-----------------------------------------
+OLD PICTURES
+----------------------------------------
 **swradio-8** is software (both Linux and Windows) for
 listening to short waves and amateur radio.
 The software supports a number of decoders,
@@ -18,15 +21,18 @@ swradio-8 is the result of rewriting and simplifying the set
 of sdr-j-sw programs.
 
 The program can be configured to use the SDRplay,
-the HACKrf or the - sound card based - pmsdr as input device, and is able to
+the HACKrf, RTLSDR-based dabsticks or the - soundcard based - pmsdr
+as input device, and is able to
 * dump the (decimated) input onto a file in PCM format;
 * use such a file as input.
 
 If a configured device is connected to the computer where the program runs,
 the device will be connected and opened. If no device is connected,
-it is assumed that file input is requested (Note: this currently
-only applies to the Gnu/Linux version, the Windows version still
-has a device selector).
+it is assumed that file input is requested
+
+To keep things simple, configuring the radio is with either one or more
+of the "high-speed" set (SDRplay, HACKrf or RTLSDR stick) or the "low speed"
+(read: sound card) singleton set, with the pmSDR as element.
 
 Note that for use with the Hackrf device,
 have to provide the hackrf lib.
