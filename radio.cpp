@@ -345,6 +345,7 @@ void	RadioInterface::handle_quitButton	(void) {
 	               this, SLOT (sampleHandler (int)));
 	   delete  theDevice;
 	}
+	sleep (1);
 	myList          -> saveTable ();
 	myList		-> hide ();
 	delete	theDecoder;
@@ -654,6 +655,7 @@ std::complex<float> ifBuffer [theDecimator. outSize ()];
 float dumpBuffer [2 * 512];
 int	i, j;
 
+	(void)amount;
 	while (inputData -> GetRingBufferReadAvailable () > 512) {
 	   inputData	-> getDataFromBuffer (buffer, 512);
 	   hfScope	-> addElements (buffer, 512);

@@ -40,7 +40,6 @@
 	                              uint8_t	Spectrum,
 	                              drmDecoder *mr):
 	                                 theShifter (100 * sampleRate) {
-int16_t	i;
 	this	-> buffer	= b;
 	this	-> sampleRate	= sampleRate;
 	this	-> Mode		= Mode;
@@ -76,7 +75,6 @@ int16_t	i;
 }
 
 		wordCollector::~wordCollector (void) {
-int16_t	i;
 	fftwf_free (fft_vector);
 	fftwf_destroy_plan (hetPlan);
 }
@@ -88,7 +86,6 @@ void	wordCollector::getWord (DSPCOMPLEX	*out,
 	                        int32_t		initialFreq,
 	                        float		offsetFractional) {
 DSPCOMPLEX	temp [Ts];
-DSPCOMPLEX	v    [Tu];
 int16_t		i;
 DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
 float		offset	= 0;

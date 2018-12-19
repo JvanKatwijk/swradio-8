@@ -160,7 +160,6 @@ uint8_t	newSDCmode	= getSDCmode ();
 
 //	actual processing of a SDC block. 
 bool	sdcProcessor::processSDC (theSignal *v) {
-int32_t	i;
 
 	checkConfig ();
 	if (qammode == mscConfig::QAM4) 

@@ -63,7 +63,7 @@ float	list_gammaRelative 	[]	= {0.0, 0.0, 0.0, 0.0};
 float	list_epsilon		[]	= {0.0, 0.0, 0.0, 0.0};
 int16_t	list_Offsets 		[]	= {0,   0,   0,   0};
 int16_t mode;
-int32_t i, j;
+int32_t i;
 int16_t b [nSymbols];
 int16_t	averageOffset;
 int16_t	theMode;
@@ -114,8 +114,7 @@ int16_t	theMode;
 
 	averageOffset = list_Offsets [theMode - 1];
 //
-        compute_b_vector (theMode,
-                          b, averageOffset);
+        compute_b_vector (theMode, b, averageOffset);
 //
 //	Now least squares to 0...symbols_to_check and b [0] .. */
 	float	sumx	= 0.0;
@@ -157,7 +156,6 @@ int16_t Tg		= Ts - Tu;
 DSPCOMPLEX gamma	[Ts];	// large enough
 float	squareTerm	[Ts];
 int32_t i, j, k, theOffset;
-int16_t	b [nSymbols];
 
 	memset (gamma,	0, Ts * sizeof (DSPCOMPLEX));
 	memset (squareTerm, 0, Ts * sizeof (float));

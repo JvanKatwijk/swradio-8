@@ -31,6 +31,7 @@
 	                      QSettings		*settings) :
 	                           virtualDecoder (inRate, buffer) {
 	this	-> inRate	= inRate;
+	(void)settings;
 	audioOut		= buffer;
 	myFrame			= new QFrame;
 	setupUi (myFrame);
@@ -80,7 +81,6 @@ void	amDecoder::set_adaptiveFiltersize (int d) {
 
 void	amDecoder::processBuffer	(DSPCOMPLEX *buffer, int32_t amount) {
 int32_t	i;
-DSPCOMPLEX lbuf	[amount];
 
 	for (i = 0; i < amount; i ++)
 	   process (buffer [i]);

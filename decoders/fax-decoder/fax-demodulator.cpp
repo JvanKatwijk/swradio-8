@@ -28,7 +28,6 @@
 	faxDemodulator::faxDemodulator	(int8_t	mode,
 	                                 int32_t rate,
 	                                 int32_t dev) {
-int16_t	i;
 
 	this	-> mode	= mode;
 	this	-> Rate	= rate;

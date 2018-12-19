@@ -10,9 +10,6 @@ Example of use of the cw decoder.
 Introduction
 ------------------------------------------------------------------
 
------------------------------------------
-OLD PICTURES
-----------------------------------------
 **swradio-8** is software (both Linux and Windows) for
 listening to short waves and amateur radio.
 The software supports a number of decoders,
@@ -36,6 +33,41 @@ of the "high-speed" set (SDRplay, HACKrf or RTLSDR stick) or the "low speed"
 
 Note that for use with the Hackrf device,
 have to provide the hackrf lib.
+
+--------------------------------------------------------------------------
+Current development
+--------------------------------------------------------------------------
+
+The current development is to widen the scope of the radio, so that
+it also can be used with other devices than the SDRplay.  
+Furthermore, there are  some differences in the GUI,
+most pictures need updating.
+
+Furthermore, while these changes are being made, the CMakeLists.txt
+files are outdated and no AppImage is made.
+
+For the rtlsdr based devices, use was made of a special version of the
+library, sources are part of the source tree. 
+In a next version an entry will be made for the "direct sampling" option
+for rtlsdr based devices.
+
+![swradio-8](/swradio-rtlsdr-drm.png?raw=true)
+
+I dusted off the "old" pmsdr device, unfortunately my current laptop does
+not have a "line in" port, the old laptop has one, however while the
+sampling rate is 96k (or 192k), some studid internal filtering  limits
+the effective bandwidth to app 60k. However, as the picture shows.the
+DRM program from kuwait can be received and decoded.
+
+![swradio-8](/swradio-pmsdr-drm.png?raw=true)
+
+While the HACKrf seems to work well, I did not manage yet to
+decode DRM programs with samples coming from it.
+
+The SDRplay provides the full band and makes it easy to receive short wave
+programs.
+
+![swradio-8](/swradio-drm.png?raw=true)
 
 **Preferred frequencies**
 can be stored, together with a user defined label (a program name).
@@ -109,8 +141,6 @@ tooltip for that button (slider)
 ------------------------------------------------------------------
 Linux
 ------------------------------------------------------------------
-![swradio-8](/swradio-drm.png?raw=true)
-Example of use of the drm decoder.
 
 The current version is developed under Linux (Fedora). A cross compiled version
 for Windows (no garantees) is available in the releases section.

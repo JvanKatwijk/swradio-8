@@ -92,9 +92,9 @@ private:
 	fftScope	*lfScope;
 	audioScope	*showAudio;
 	shifter		hfShifter;
-	agcHandler	agc;
 	fftFilter	hfFilter;
 	fftFilter	lfFilter;
+	agcHandler	agc;
 	decimator	theDecimator;
 	upConverter	*theUpConverter;
 	int16_t		mouseIncrement;

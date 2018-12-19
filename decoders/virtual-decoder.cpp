@@ -4,6 +4,7 @@
 	virtualDecoder::virtualDecoder	(int32_t workingRate,
 	                                 RingBuffer<DSPCOMPLEX> *audioOut) {
 //	this	-> workingRate	= workingRate;
+	(void)workingRate;
 	this	-> audioOut	= audioOut;
 }
 

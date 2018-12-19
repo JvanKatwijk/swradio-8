@@ -60,23 +60,7 @@
 
 
 static 
-float convTable [] = {
- -128 / 128.0 , -127 / 128.0 , -126 / 128.0 , -125 / 128.0 , -124 / 128.0 , -123 / 128.0 , -122 / 128.0 , -121 / 128.0 , -120 / 128.0 , -119 / 128.0 , -118 / 128.0 , -117 / 128.0 , -116 / 128.0 , -115 / 128.0 , -114 / 128.0 , -113 / 128.0 
-, -112 / 128.0 , -111 / 128.0 , -110 / 128.0 , -109 / 128.0 , -108 / 128.0 , -107 / 128.0 , -106 / 128.0 , -105 / 128.0 , -104 / 128.0 , -103 / 128.0 , -102 / 128.0 , -101 / 128.0 , -100 / 128.0 , -99 / 128.0 , -98 / 128.0 , -97 / 128.0 
-, -96 / 128.0 , -95 / 128.0 , -94 / 128.0 , -93 / 128.0 , -92 / 128.0 , -91 / 128.0 , -90 / 128.0 , -89 / 128.0 , -88 / 128.0 , -87 / 128.0 , -86 / 128.0 , -85 / 128.0 , -84 / 128.0 , -83 / 128.0 , -82 / 128.0 , -81 / 128.0 
-, -80 / 128.0 , -79 / 128.0 , -78 / 128.0 , -77 / 128.0 , -76 / 128.0 , -75 / 128.0 , -74 / 128.0 , -73 / 128.0 , -72 / 128.0 , -71 / 128.0 , -70 / 128.0 , -69 / 128.0 , -68 / 128.0 , -67 / 128.0 , -66 / 128.0 , -65 / 128.0 
-, -64 / 128.0 , -63 / 128.0 , -62 / 128.0 , -61 / 128.0 , -60 / 128.0 , -59 / 128.0 , -58 / 128.0 , -57 / 128.0 , -56 / 128.0 , -55 / 128.0 , -54 / 128.0 , -53 / 128.0 , -52 / 128.0 , -51 / 128.0 , -50 / 128.0 , -49 / 128.0 
-, -48 / 128.0 , -47 / 128.0 , -46 / 128.0 , -45 / 128.0 , -44 / 128.0 , -43 / 128.0 , -42 / 128.0 , -41 / 128.0 , -40 / 128.0 , -39 / 128.0 , -38 / 128.0 , -37 / 128.0 , -36 / 128.0 , -35 / 128.0 , -34 / 128.0 , -33 / 128.0 
-, -32 / 128.0 , -31 / 128.0 , -30 / 128.0 , -29 / 128.0 , -28 / 128.0 , -27 / 128.0 , -26 / 128.0 , -25 / 128.0 , -24 / 128.0 , -23 / 128.0 , -22 / 128.0 , -21 / 128.0 , -20 / 128.0 , -19 / 128.0 , -18 / 128.0 , -17 / 128.0 
-, -16 / 128.0 , -15 / 128.0 , -14 / 128.0 , -13 / 128.0 , -12 / 128.0 , -11 / 128.0 , -10 / 128.0 , -9 / 128.0 , -8 / 128.0 , -7 / 128.0 , -6 / 128.0 , -5 / 128.0 , -4 / 128.0 , -3 / 128.0 , -2 / 128.0 , -1 / 128.0 
-, 0 / 128.0 , 1 / 128.0 , 2 / 128.0 , 3 / 128.0 , 4 / 128.0 , 5 / 128.0 , 6 / 128.0 , 7 / 128.0 , 8 / 128.0 , 9 / 128.0 , 10 / 128.0 , 11 / 128.0 , 12 / 128.0 , 13 / 128.0 , 14 / 128.0 , 15 / 128.0 
-, 16 / 128.0 , 17 / 128.0 , 18 / 128.0 , 19 / 128.0 , 20 / 128.0 , 21 / 128.0 , 22 / 128.0 , 23 / 128.0 , 24 / 128.0 , 25 / 128.0 , 26 / 128.0 , 27 / 128.0 , 28 / 128.0 , 29 / 128.0 , 30 / 128.0 , 31 / 128.0 
-, 32 / 128.0 , 33 / 128.0 , 34 / 128.0 , 35 / 128.0 , 36 / 128.0 , 37 / 128.0 , 38 / 128.0 , 39 / 128.0 , 40 / 128.0 , 41 / 128.0 , 42 / 128.0 , 43 / 128.0 , 44 / 128.0 , 45 / 128.0 , 46 / 128.0 , 47 / 128.0 
-, 48 / 128.0 , 49 / 128.0 , 50 / 128.0 , 51 / 128.0 , 52 / 128.0 , 53 / 128.0 , 54 / 128.0 , 55 / 128.0 , 56 / 128.0 , 57 / 128.0 , 58 / 128.0 , 59 / 128.0 , 60 / 128.0 , 61 / 128.0 , 62 / 128.0 , 63 / 128.0 
-, 64 / 128.0 , 65 / 128.0 , 66 / 128.0 , 67 / 128.0 , 68 / 128.0 , 69 / 128.0 , 70 / 128.0 , 71 / 128.0 , 72 / 128.0 , 73 / 128.0 , 74 / 128.0 , 75 / 128.0 , 76 / 128.0 , 77 / 128.0 , 78 / 128.0 , 79 / 128.0 
-, 80 / 128.0 , 81 / 128.0 , 82 / 128.0 , 83 / 128.0 , 84 / 128.0 , 85 / 128.0 , 86 / 128.0 , 87 / 128.0 , 88 / 128.0 , 89 / 128.0 , 90 / 128.0 , 91 / 128.0 , 92 / 128.0 , 93 / 128.0 , 94 / 128.0 , 95 / 128.0 
-, 96 / 128.0 , 97 / 128.0 , 98 / 128.0 , 99 / 128.0 , 100 / 128.0 , 101 / 128.0 , 102 / 128.0 , 103 / 128.0 , 104 / 128.0 , 105 / 128.0 , 106 / 128.0 , 107 / 128.0 , 108 / 128.0 , 109 / 128.0 , 110 / 128.0 , 111 / 128.0 
-, 112 / 128.0 , 113 / 128.0 , 114 / 128.0 , 115 / 128.0 , 116 / 128.0 , 117 / 128.0 , 118 / 128.0 , 119 / 128.0 , 120 / 128.0 , 121 / 128.0 , 122 / 128.0 , 123 / 128.0 , 124 / 128.0 , 125 / 128.0 , 126 / 128.0 , 127 / 128.0 };
+float convTable [256];
 
 static
 std::complex<float> ibuf [READLEN_DEFAULT / 2];
@@ -89,7 +73,7 @@ rtlsdrHandler	*theStick = (rtlsdrHandler *)ctx;
 
 	if ((len != READLEN_DEFAULT) || (theStick == NULL))
 	   return;
-//	Note that our "context"  is the stick
+
 	for (int i = 0; i < READLEN_DEFAULT / 2; i ++) {
 	   std::complex<float> tmp =
 	               std::complex<float> (convTable [buf [2 * i]],
@@ -102,7 +86,7 @@ rtlsdrHandler	*theStick = (rtlsdrHandler *)ctx;
 	      cnt ++;
 
 	theStick -> _I_Buffer -> putDataIntoBuffer (ibuf, cnt);
-	if (theStick -> _I_Buffer -> GetRingBufferReadAvailable () >
+	if ((int)(theStick -> _I_Buffer -> GetRingBufferReadAvailable ()) >
 	   theStick -> outputRate / 10)
 	   theStick -> newdataAvailable (theStick -> outputRate / 10);
 }
@@ -126,18 +110,30 @@ void	dll_driver::run (void) {
 int	res;
 int16_t	deviceIndex;
 int16_t	i;
+int	inputRate;
+
 	this	-> myFrame	= new QFrame (NULL);
 	setupUi (this -> myFrame);
         this    -> myFrame -> show ();
         this    -> _I_Buffer   = r;
-        this    -> dabSettings        = s;
-
-	inputRate		= getInputRate (outputRate);
-	gains			= NULL;
+        this    -> rtlsdrSettings        = s;
+//
+//	The mapping from 8 bit samples  to floats is done, using a
+//	simple mapping table, after all, only 256 entries are needed
+	for (i = 0; i < 256; i ++)
+	   convTable [i] = (i - 128.0) / 128.0;
+//
+//	for the rtlsdr based device, we take the first multiple
+//	of the outputrate that is > 1000000 as inputrate
+	inputRate	= outputRate;
+	while (inputRate < Khz (1000))
+	   inputRate += outputRate;
 	libraryLoaded	= false;
 	workerHandle	= NULL;
 	d_filter	= NULL;
+	workerHandle	= NULL;
 	open		= false;
+	gains		= NULL;
 
 	statusLabel	-> setText ("setting up");
 #ifdef	__MINGW32__
@@ -190,6 +186,8 @@ int16_t	i;
 	   goto err;
 	}
 
+	deviceName	-> setText (rtlsdr_get_device_name (deviceIndex));
+
 	open	= true;
 	res	= (this -> rtlsdr_set_sample_rate) (device, inputRate);
 	if (res < 0) {
@@ -199,8 +197,8 @@ int16_t	i;
 	}
 
 	gainsCount = rtlsdr_get_tuner_gains (device, NULL);
+	gains	= new int [gainsCount];
 	fprintf(stderr, "Supported gain values (%d): ", gainsCount);
-	gains		= new int [gainsCount];
 	gainsCount = rtlsdr_get_tuner_gains (device, gains);
 	for (i = 0; i < gainsCount; i++)
 	   fprintf(stderr, "%.1f ", gains [i] / 10.0);
@@ -208,7 +206,6 @@ int16_t	i;
 	rtlsdr_set_tuner_gain (device, gains [gainsCount / 2]);
 	gainSlider	-> setMaximum (gainsCount);
 	gainSlider	-> setValue (gainsCount / 2);
-	workerHandle	= NULL;
 
 	d_filter	= new decimatingFIR (inputRate / outputRate * 5 - 1,
 	                                     - outputRate / 2,
@@ -221,14 +218,19 @@ int16_t	i;
 	         this, SLOT (setCorrection (int)));
 	connect (checkAgc, SIGNAL (stateChanged (int)),
 	         this, SLOT (setAgc (int)));
-	if (dabSettings != NULL) {
-	   dabSettings	-> beginGroup ("Stick");
-	   int	k	= dabSettings	-> value ("dab_externalGain", 24). toInt ();
+//
+//	since the connections are made, the settings will trigger
+//	the functions associated with the control
+	if (rtlsdrSettings != NULL) {
+	   rtlsdrSettings	-> beginGroup ("Stick");
+	   int	k	= rtlsdrSettings	-> value ("dab_externalGain", 24). toInt ();
 	   gainSlider	-> setValue (k);
-	   k		= dabSettings	-> value ("dab_correction", 0). toInt ();
-	   dabSettings	-> endGroup ();
+	   k		= rtlsdrSettings	-> value ("dab_correction", 0). toInt ();
+	   f_correction		-> setValue (k);
+
+	   rtlsdrSettings	-> endGroup ();
 	}
-	fprintf (stderr, "Loaded, d_filter = %X\n", (uint64_t)d_filter);
+
 	statusLabel	-> setText ("Loaded");
 	return;
 err:
@@ -241,17 +243,22 @@ err:
 #endif
 	libraryLoaded	= false;
 	open		= false;
+	if (d_filter != NULL)
+	   delete d_filter;
+	if (gains != NULL)
+	   delete [] gains;
+	delete	myFrame;
 	throw (22);
 }
 
 	rtlsdrHandler::~rtlsdrHandler	(void) {
-	if (open && libraryLoaded && dabSettings != NULL) {
-	   dabSettings	-> beginGroup ("Stick");
-	   dabSettings	-> setValue ("rtlsdr_externalGain",
+	if (open && libraryLoaded && rtlsdrSettings != NULL) {
+	   rtlsdrSettings	-> beginGroup ("Stick");
+	   rtlsdrSettings	-> setValue ("rtlsdr_externalGain",
 	                                             gainSlider -> value ());
-	   dabSettings	-> setValue ("rtlsdr_correction",
+	   rtlsdrSettings	-> setValue ("rtlsdr_correction",
 	                                             f_correction -> value ());
-	   dabSettings	-> endGroup ();
+	   rtlsdrSettings	-> endGroup ();
 	}
 
 	if (open && libraryLoaded) 
@@ -265,11 +272,9 @@ err:
 #else
 	   dlclose (Handle);
 #endif
-	if (d_filter != NULL)
-	   delete d_filter;
-	d_filter	= NULL;
-	if (gains != NULL)
-	   delete gains;
+	delete d_filter;
+	delete[] gains;
+	delete	myFrame;
 }
 
 int32_t	rtlsdrHandler::getRate	(void) {
@@ -280,18 +285,16 @@ int32_t	rtlsdrHandler::getRate	(void) {
 quint64	rtlsdrHandler::getVFOFrequency	(void) {
 	if (!open || !libraryLoaded)
 	   return KHz (14070);
-	return (int32_t)rtlsdr_get_center_freq (device) - vfoOffset;
+	return (quint64)rtlsdr_get_center_freq (device);
 }
 //
-//	The external world sets a virtual VFO frequency
-//	The real VFO frequency can be influences by an externally
-//	set vfoOffset
+//
 void	rtlsdrHandler::setVFOFrequency	(quint64 f) {
 	if (!open || !libraryLoaded)
 	   return;
 
 	vfoFrequency	= f;
-	(void)rtlsdr_set_center_freq (device, f + vfoOffset);
+	(void)rtlsdr_set_center_freq (device, f);
 }
 
 bool	rtlsdrHandler::legalFrequency	(int32_t f) {
@@ -314,7 +317,7 @@ int32_t	r;
 	if (r < 0)
 	   return false;
 
-	rtlsdr_set_center_freq (device, vfoFrequency + vfoOffset);
+	rtlsdr_set_center_freq (device, vfoFrequency);
 	workerHandle	= new dll_driver (this);
 	return true;
 }
@@ -487,15 +490,6 @@ bool	rtlsdrHandler::load_rtlFunctions (void) {
 
 	fprintf (stderr, "OK, functions seem to be loaded\n");
 	return true;
-}
-
-int32_t	rtlsdrHandler::getInputRate	(int32_t rate) {
-int32_t temp 	= rate;
-
-	while (temp < 960000)
-	   temp += rate;
-
-	return temp;
 }
 
 int16_t	rtlsdrHandler::bitDepth	(void) {

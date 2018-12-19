@@ -135,7 +135,8 @@ int	res;
 	                           sin ((float) i * 2 * M_PI / inputRate));
 	localShift      = 0;
 	oscillatorPhase = 0;
-	filter          = new decimatingFIR (inputRate / outputRate * 32 + 1,
+	filter          = new decimatingFIR (inputRate / outputRate * 5 + 1,
+	                                     - outputRate / 2,
 	                                     + outputRate / 2,
 	                                     inputRate,
 	                                     inputRate / outputRate);
@@ -228,7 +229,7 @@ hackrfHandler *ctx = static_cast <hackrfHandler *>(transfer -> rx_ctx);
 uint8_t *p	= transfer -> buffer;
 int	i;
 RingBuffer<std::complex<float> > * q = ctx -> _I_Buffer;
-std::complex<float> localBuf [transfer -> valid_length / (2 * ctx -> decimationFactor)];
+std::complex<float> localBuf [transfer -> valid_length / (2 * ctx -> decimationFactor) + 10];
 int	cnt	= 0;
 
       for (i = 0; i < transfer -> valid_length / 2; i ++) {
@@ -236,12 +237,12 @@ int	cnt	= 0;
 	   float im     = (((int8_t *)p) [2 * i + 1]) / 128.0;
 	   std::complex<float> temp  = std::complex<float> (re, im);
 
-           temp = temp * ctx -> oscillatorTable [ctx -> oscillatorPhase];
-           ctx -> oscillatorPhase += ctx -> localShift;
-           if (ctx -> oscillatorPhase < 0)
-              ctx -> oscillatorPhase += ctx -> inputRate;
-           if (ctx -> oscillatorPhase >= ctx -> inputRate)
-              ctx -> oscillatorPhase -= ctx -> inputRate;
+//           temp = temp * ctx -> oscillatorTable [ctx -> oscillatorPhase];
+//           ctx -> oscillatorPhase += ctx -> localShift;
+//           if (ctx -> oscillatorPhase < 0)
+//              ctx -> oscillatorPhase += ctx -> inputRate;
+//           if (ctx -> oscillatorPhase >= ctx -> inputRate)
+//              ctx -> oscillatorPhase -= ctx -> inputRate;
 
            if (ctx -> filter -> Pass (temp, &(localBuf [cnt])))
               if (localBuf [cnt] == localBuf [cnt])

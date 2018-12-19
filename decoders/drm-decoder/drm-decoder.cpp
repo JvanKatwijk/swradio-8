@@ -41,6 +41,7 @@
 QString	temp;
 int16_t	symbs;
 
+	(void)s;
         myFrame                 = new QFrame;
         setupUi (myFrame);
         myFrame			-> show ();

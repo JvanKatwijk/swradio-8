@@ -29,6 +29,7 @@
 	faxImage::faxImage (int w, int h, QWidget *p) {
 int	i, j;
 
+	(void)p;
 	image	= QImage (w, h, QImage::Format_RGB32);
 	for (i = 0; i < w; i ++)
 	   for (j = 0; j < h; j ++)

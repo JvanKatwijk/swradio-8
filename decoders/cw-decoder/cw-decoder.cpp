@@ -54,6 +54,7 @@ extern const char *const codetable [];
 	                           inputConverter (inRate, 2000),
 	                           localShifter   (10 * 2000) {
 	theRate		= inRate;
+	(void)s;
 	myFrame         = new QFrame;
 	setupUi (myFrame);
 	myFrame         -> show (); //
@@ -82,7 +83,6 @@ extern const char *const codetable [];
 }
 
 void	cwDecoder::setup_cwDecoder (int32_t rate) {
-int16_t	temp;
 
 	CycleCount		= rate / 10;
 	cw_IF			= CW_IF;
@@ -229,7 +229,7 @@ std::complex<float>	outBuffer	[outSize];
 int32_t	i;
 
 	inputBuffer. putDataIntoBuffer (buffer, amount);
-	while (inputBuffer. GetRingBufferReadAvailable () > inSize) {
+	while ((int32_t)(inputBuffer. GetRingBufferReadAvailable ()) > inSize) {
 	   inputBuffer. getDataFromBuffer (inBuffer, inSize);
 	   inputConverter. convert_in (inBuffer);
 	   amount = inputConverter. hasData ();
@@ -247,7 +247,6 @@ int32_t	t;
 char	buffer [4];
 std::complex<float>	s;
 
-static int xx_counter	= 0;
 	s	= cw_BandPassFilter	-> Pass (s);
 	s	= localShifter. do_shift (z, cw_IF * 10);
 	value	=  abs (s);

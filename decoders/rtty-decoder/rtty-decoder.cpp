@@ -72,7 +72,6 @@
 
 void	rttyDecoder::setup_rttyDecoder (void) {
 QString	temp;
-int16_t	k;
 
 	rttyPrevsample		= 0;
 	rttyCycleCount		= 0;

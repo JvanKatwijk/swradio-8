@@ -33,6 +33,7 @@
 	                           virtualDecoder (inRate, buffer),
 	                                SSB_Filter (31, 0.25, inRate) {
 	this	-> inRate	= inRate;
+	(void)settings;
 	myFrame			= new QFrame;
 	setupUi (myFrame);
 	myFrame	-> show ();
@@ -83,7 +84,6 @@ void	ssbDecoder::set_adaptiveFiltersize (int d) {
 
 void	ssbDecoder::processBuffer	(DSPCOMPLEX *buffer, int32_t amount) {
 int32_t	i;
-DSPCOMPLEX lbuf	[amount];
 
 	for (i = 0; i < amount; i ++) 
 	   process (buffer [i]);

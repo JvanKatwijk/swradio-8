@@ -135,7 +135,9 @@ void	pskDecoder::setup_pskDecoder	(int32_t rate) {
 	pskReverse	= false;
 
 	pskBuffer	= new std::complex<float> [16];
-	memset (pskBuffer, 0, 16 * sizeof (std::complex<float>));
+	for (int i = 0; i < 16; i ++)
+	   pskBuffer [i] = std::complex<float> (0, 0);
+
 	pskBitclk	= 0;
 	pskDecimatorCount	= 0;
 	BPM_Filter	= new bandpassFIR (2 * pskFilterDegree + 1,
@@ -553,7 +555,7 @@ int16_t	i;
 
 	theTable. resize (outRate / 100);
 	inTable.  resize (inRate / 100 + 1);
-	for (i = 0; i < theTable. size (); i ++)
+	for (i = 0; i < (int16_t)(theTable. size ()); i ++)
 	   theTable [i] = i * (float)inRate / outRate;
 	tablePointer	= 0;
 }
@@ -563,10 +565,10 @@ int	pskDecoder::resample		(std::complex<float> in,
 int16_t i;
 
 	inTable [tablePointer ++] = in;
-	if (tablePointer < inTable. size ())
+	if (tablePointer < (int16_t)(inTable. size ()))
 	   return -1;
 
-	for (i = 0; i < theTable. size (); i ++) {
+	for (i = 0; i < (int16_t)(theTable. size ()); i ++) {
 	   int16_t p = floor (theTable [i]);
 	   float   q = theTable [i];
 	   out [i] = cmul (inTable [p + 1], q - p) +
