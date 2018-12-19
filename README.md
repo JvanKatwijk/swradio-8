@@ -55,7 +55,7 @@ for rtlsdr based devices.
 
 I dusted off the "old" pmsdr device, unfortunately my current laptop does
 not have a "line in" port, the old laptop has one, however while the
-sampling rate is 96k (or 192k), some studid internal filtering  limits
+sampling rate is 96k (or 192k), some stupid internal filtering  limits
 the effective bandwidth to app 60k. However, as the picture shows.the
 DRM program from kuwait can be received and decoded.
 
