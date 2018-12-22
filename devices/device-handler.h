@@ -65,6 +65,14 @@ protected:
 		uint64_t	lastFrequency;
 signals:
 		void	dataAvailable	(int);
+//	The following signals originate from the Winrad Extio interface
+//	and are only used by the extio handler
+	void	set_ExtFrequency	(int);
+	void	set_ExtLO		(int);
+	void	set_lockLO		(void);
+	void	set_unlockLO		(void);
+	void	set_stopHW		(void);
+	void	set_startHW		(void);
 };
 #endif
 

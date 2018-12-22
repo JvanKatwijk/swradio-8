@@ -350,7 +350,7 @@ float	sum	= 0.0;
 	   if (i == filterSize / 2)
 	      tmp [i] = 2 * M_PI * f;
 	   else 
-	      tmp [i] = sin (2 * M_PI * f * (i - filterSize/2))/ (i - filterSize/2);
+	      tmp [i] = sin (2 * M_PI * f * (i - filterSize/2))/ (i - filterSize/ 2);
 
 	   tmp [i]  *= (0.42 -
 		    0.5 * cos (2 * M_PI * (float)i / (float)filterSize) +

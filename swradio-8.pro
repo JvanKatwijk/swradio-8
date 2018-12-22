@@ -98,10 +98,10 @@ SOURCES += ./main.cpp \
 
 unix {
 DESTDIR		= ./linux-bin
-CONFIG		+= sdrplay
-CONFIG		+= hackrf
-CONFIG		+= rtlsdr
-#CONFIG		+= pmsdr
+#CONFIG		+= sdrplay
+#CONFIG		+= hackrf
+#CONFIG		+= rtlsdr
+CONFIG		+= pmsdr
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
@@ -121,10 +121,12 @@ LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -l
 
 win32 {
 DESTDIR		= ../../windows-bin
-#CONFIG		+= sdrplay
-#CONFIG		+= hackrf
+CONFIG		+= sdrplay
+CONFIG		+= hackrf
+CONFIG		+= rtlsdr
 #CONFIG		+= pmsdr
-CONFIG		+= extio
+#CONFIG		+= extio
+#CONFIG		+= cardreader
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
@@ -193,13 +195,12 @@ pmsdr	{
         HEADERS         += ./devices/pmsdr-handler/pmsdr-handler.h \
 			   ./devices/pmsdr-handler/pmsdr_comm.h \
 	                   ./devices/pmsdr-handler/pmsdr_usb.h \
-	                   ./devices/pmsdr-handler/si570-handler.h \
-	                   ./devices/pa-reader.h
+	                   ./devices/pmsdr-handler/si570-handler.h 
         SOURCES         += ./devices/pmsdr-handler/pmsdr-handler.cpp \
 			   ./devices/pmsdr-handler/pmsdr_comm.cpp \
 	                   ./devices/pmsdr-handler/pmsdr_usb.cpp \
-	                   ./devices/pmsdr-handler/si570-handler.cpp \
-	                   ./devices/pa-reader.cpp
+	                   ./devices/pmsdr-handler/si570-handler.cpp 
+	CONFIG		+= cardreader
 }
 
 extio	{
@@ -208,10 +209,17 @@ extio	{
 	FORMS		+= ./devices/extio-handler/extio-widget.ui
 	DEPENDPATH	+= ./devices/extio-handler
         INCLUDEPATH     += ./devices/extio-handler
-        HEADERS         += ./devices/extio-handler/extio-handler.h \
-	                   ./devices//pa-reader.h
-        SOURCES         += ./devices/extio-handler/extio-handler.cpp \
-	                   ./devices/pa-reader.cpp
+        HEADERS         += ./devices/extio-handler/extio-handler.h 
+        SOURCES         += ./devices/extio-handler/extio-handler.cpp 
+	CONFIG		+= cardreader
+}
+
+cardreader {
+	DEFINES		+= CARDREADER
+	DEPENDPATH	+= ./devices
+	INCLUDEPATH	+= ./devices
+	HEADERS		+= ./devices/pa-reader.h
+	SOURCES		+= ./devices/pa-reader.cpp
 }
 
 test-decoder {

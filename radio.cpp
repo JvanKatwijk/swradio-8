@@ -243,26 +243,6 @@ QString	FrequencytoString (quint64 freq) {
 	}
 	audioHandler -> selectDefaultDevice ();
 
-#ifdef	__MINGW32__
-//	communication from the dll to the main program is through signals
-#ifdef	HAVE_EXTIO
-//	The following signals originate from the Winrad Extio interface
-	   connect (myRig, SIGNAL (set_ExtFrequency (int)),
-	            this, SLOT (set_ExtFrequency (int)));
-	   connect (myRig, SIGNAL (set_ExtLO (int)),
-	            this, SLOT (set_ExtLO (int)));
-	   connect (myRig, SIGNAL (set_lockLO (void)),
-	            this, SLOT (set_lockLO (void)));
-	   connect (myRig, SIGNAL (set_unlockLO (void)),
-	            this, SLOT (set_unlockLO (void)));
-	   connect (myRig, SIGNAL (set_stopHW (void)),
-	            this, SLOT (set_stopHW (void)));
-	   connect (myRig, SIGNAL (set_startHW (void)),
-	            this, SLOT (set_startHW (void)));
-	}
-	
-#endif
-#endif
         connect (decoderTable, SIGNAL (activated (const QString &)),
                  this, SLOT (selectDecoder (const QString &)));
 
@@ -315,6 +295,24 @@ QString	FrequencytoString (quint64 freq) {
 	   exit (22);
 	}
 
+#ifdef	__MINGW32__
+//	communication from the dll to the main program is through signals
+#ifdef	HAVE_EXTIO
+//	The following signals originate from the Winrad Extio interface
+	   connect (theDevice, SIGNAL (set_ExtFrequency (int)),
+	            this, SLOT (set_ExtFrequency (int)));
+	   connect (theDevice, SIGNAL (set_ExtLO (int)),
+	            this, SLOT (set_ExtLO (int)));
+	   connect (theDevice, SIGNAL (set_lockLO (void)),
+	            this, SLOT (set_lockLO (void)));
+	   connect (theDevice, SIGNAL (set_unlockLO (void)),
+	            this, SLOT (set_unlockLO (void)));
+	   connect (theDevice, SIGNAL (set_stopHW (void)),
+	            this, SLOT (set_stopHW (void)));
+	   connect (theDevice, SIGNAL (set_startHW (void)),
+	            this, SLOT (set_startHW (void)));
+#endif
+#endif
 	hfScope		-> set_bitDepth (theDevice -> bitDepth ());
 	lfScope		-> set_bitDepth (theDevice -> bitDepth ());
 	agc. set_bitDepth (theDevice -> bitDepth ());
@@ -575,7 +573,6 @@ void    RadioInterface::set_freqSave    (void) {
 //	to adapt its (local) tuning settings to a new frequency
 void	RadioInterface::set_ExtFrequency (int f) {
 int32_t	vfo	= theDevice	-> getVFOFrequency ();
-	Display (currentFreq);
 	setFrequency (vfo);
 }
 //
@@ -587,12 +584,12 @@ void	RadioInterface::set_ExtLO	(int f) {
 
 void	RadioInterface::set_lockLO	(void) {
 //	fprintf (stderr, "ExtioLock is true\n");
-	ExtioLock	= true;
+//	ExtioLock	= true;
 }
 
 void	RadioInterface::set_unlockLO	(void) {
 //	fprintf (stderr, "ExtioLock is false\n");
-	ExtioLock	= false;
+//	ExtioLock	= false;
 }
 
 void	RadioInterface::set_stopHW	(void) {

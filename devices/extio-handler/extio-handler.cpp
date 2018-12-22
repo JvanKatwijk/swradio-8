@@ -28,8 +28,7 @@
 #include	<QSettings>
 #include	<QMessageBox>
 #include	"extio-handler.h"
-#include	"reader-base.h"
-#include	"card-reader.h"
+#include	"pa-reader.h"
 
 using namespace std;
 #define	GETPROCADDRESS	GetProcAddress
@@ -55,13 +54,13 @@ using namespace std;
 //	add a signal "DATA_AVAILABLE" to signal the GUI that there
 //	is data
 static
-ExtioHandler	*myContext	= NULL;
+extioHandler	*myContext	= NULL;
 
 static
 int	extioCallback (int cnt, int status, float IQoffs, void *IQData) {
 	if (cnt > 0) { 	//	we got data
-	   if (myContext != NULL && myContext -> isStarted) 
-	      myContext -> theReader -> processData (IQoffs, IQData, cnt);
+//	   if (myContext != NULL && myContext -> isStarted) 
+//	      myContext -> theReader -> processData (IQoffs, IQData, cnt);
 	}
 	else	// we got something we cannot deal with
 	if (cnt > 0)
@@ -86,7 +85,8 @@ int	extioCallback (int cnt, int status, float IQoffs, void *IQData) {
 	extioHandler::extioHandler (RadioInterface *theRadio,
                                     int32_t outputRate,
                                     RingBuffer<std::complex<float>> *data,
-                                    QSettings *s);
+                                    QSettings *s):
+	                                    deviceHandler (theRadio) {
 
 char	temp [256];
 wchar_t	*windowsName;
@@ -94,15 +94,15 @@ int16_t	wchars_num;
 	(void)theRadio;
 	this	-> outputRate	= outputRate;
 	this	-> theBuffer	= data;
-	this	-> settings	= s;
+	(void)s;
 
 	lastFrequency	= Khz (25000);
 	isStarted	= false;
 	theReader	= NULL;
-	this -> myFrame		= myFrame;
+	this -> myFrame		= new QFrame (NULL);
 	setupUi (myFrame);
 	theSelector	-> hide ();
-	myContext	= (ExtioHandler *)this;
+	myContext	= (extioHandler *)this;
 
 	dll_open	= false;
 	running		= false;
@@ -118,7 +118,7 @@ int16_t	wchars_num;
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("incorrect filename\n"));
 	   status	-> setText ("no filename");
-	   return false;
+	   throw (21);
 	}
 
 	wchars_num = MultiByteToWideChar (CP_UTF8, 0,
@@ -130,11 +130,13 @@ int16_t	wchars_num;
 	                     -1, windowsName, wchars_num);
 	wcstombs (temp, windowsName, 128);
 	Handle		= LoadLibrary (windowsName);
-//	fprintf (stderr, "Last error = %ld\n", GetLastError ());
+	fprintf (stderr, "Last error = %ld\n", GetLastError ());
 	if (Handle == NULL) {
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("loading dll failed\n"));
 	   status	-> setText ("incorrect dll?");
+	   fprintf (stderr, "we could not load %s\n",
+	                           dll_file. toLatin1 (). data ());
 	   throw (21);
 	}
 
@@ -155,7 +157,7 @@ int16_t	wchars_num;
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("init failed\n"));
 	   status	-> setText ("could not init device");
-	   return false;
+	   throw (22);
 	}
 
 	fprintf (stderr, "hardware type = %d\n", hardwareType);
@@ -168,7 +170,7 @@ int16_t	wchars_num;
 	      QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("device not supported\n"));
 	      status	-> setText ("unsupported device");
-	      return false;
+	      throw (23);
 
 	   case exthwSCdata:
 	      theSelector -> show ();
@@ -185,19 +187,17 @@ int16_t	wchars_num;
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("Opening hardware failed\n"));
 	   status	-> setText ("Opening hardware failed");
-	   return false;
+	   throw (24);
 	}
 
 	status	-> setText ("It seems we are running");
-	theReader	-> setInputrate (get_deviceRate ());
 
 	ShowGUI ();
 	fprintf (stderr, "Hw open successful\n");
 	start ();
-	return true;
 }
 
-	ExtioHandler::~ExtioHandler	(void) {
+	extioHandler::~extioHandler	(void) {
 	if (dll_open) {
 	   HideGUI ();
 	   StopHW ();
@@ -223,7 +223,7 @@ int16_t	wchars_num;
 	theSelector	-> hide ();
 }
 
-bool	ExtioHandler::loadFunctions (void) {
+bool	extioHandler::loadFunctions (void) {
 //	start binding addresses, 
 	InitHW		= (pfnInitHW)GETPROCADDRESS (Handle, "InitHW");
 	if (InitHW == NULL) {
@@ -291,71 +291,57 @@ bool	ExtioHandler::loadFunctions (void) {
 	return true;
 }
 
-int32_t	ExtioHandler::get_deviceRate	(void) {
-	return GetHWSR ();
-}
-
-void	ExtioHandler::setVFOFrequency (int32_t f) {
+void	extioHandler::setVFOFrequency (quint64 f) {
 	fprintf (stderr, "setting freq to %d\n", f);
 	(void)((*SetHWLO) ((int)f));
 	lastFrequency = f;
 }
 
-int32_t	ExtioHandler::getVFOFrequency (void) {
+quint64	extioHandler::getVFOFrequency (void) {
 	return lastFrequency;
 }
 
-bool	ExtioHandler::legalFrequency	(int32_t f) {
-	(void)f;
-	return true;
-}
-
-int32_t	ExtioHandler::defaultFrequency	(void) {
-	return Khz (14070);
-}
-//
 //	envelopes for functions that might or might not
 //	be available
-void	ExtioHandler::ShowGUI		(void) {
+void	extioHandler::ShowGUI		(void) {
 	if (L_ShowGUI != NULL)
 	   (*L_ShowGUI) ();
 }
 
-void	ExtioHandler::HideGUI		(void) {
+void	extioHandler::HideGUI		(void) {
 	if (L_HideGUI != NULL)
 	   (*L_HideGUI) ();
 }
 
-long	ExtioHandler::GetHWSR		(void) {
+long	extioHandler::GetHWSR		(void) {
 	return L_GetHWSR != NULL ? (*L_GetHWSR) () : outputRate;
 }
 
-void	ExtioHandler::GetFilters		(int &x, int &y, int &z) {
+void	extioHandler::GetFilters		(int &x, int &y, int &z) {
 	if (L_GetFilters != NULL)
 	   L_GetFilters (x, y, z);
 }
 
-long	ExtioHandler::GetTune		(void) {
+long	extioHandler::GetTune		(void) {
 	return L_GetTune != NULL ? (*L_GetTune) () : MHz (25);
 }
 
-uint8_t	ExtioHandler::GetMode		(void) {
+uint8_t	extioHandler::GetMode		(void) {
 	return L_GetMode != NULL ? (*L_GetMode)() : 0;
 }
 //
 //
 //	Handling the data
-bool	ExtioHandler::restartReader	(void) {
+bool	extioHandler::restartReader	(void) {
 	fprintf (stderr, "restart reader entered (%d)\n", lastFrequency);
 int32_t	size	= (*StartHW)(lastFrequency);
-	fprintf (stderr, "restart reader returned with %d\n", size);
-	theReader -> restartReader (size);
+	theReader -> restartReader ();
 	fprintf (stderr, "now we have restarted the reader\n");
 	isStarted	= true;
 	return true;
 }
 
-void	ExtioHandler::stopReader	(void) {
+void	extioHandler::stopReader	(void) {
 	if (isStarted) {
 	   (*StopHW)();
 	   theReader	-> stopReader ();
@@ -364,43 +350,43 @@ void	ExtioHandler::stopReader	(void) {
 }
 
 //
-void	ExtioHandler::set_Changed_LO	(int32_t newFreq) {
+void	extioHandler::set_Changed_LO	(int32_t newFreq) {
 	emit set_ExtLO (newFreq);
 }
 
-void	ExtioHandler::set_Changed_TUNE	(int32_t newFreq) {
+void	extioHandler::set_Changed_TUNE	(int32_t newFreq) {
 	emit set_ExtFrequency (newFreq);
 }
 
-void	ExtioHandler::set_Lock_LO	(void) {
+void	extioHandler::set_Lock_LO	(void) {
 	emit set_lockLO ();
 }
 
-void	ExtioHandler::set_Unlock_LO	(void) {
+void	extioHandler::set_Unlock_LO	(void) {
 	emit set_unlockLO ();
 }
 
-void	ExtioHandler::set_StartHW	(void) {
+void	extioHandler::set_StartHW	(void) {
 	emit set_startHW ();
 }
 
-void	ExtioHandler::set_StopHW		(void) {
+void	extioHandler::set_StopHW		(void) {
 	emit set_stopHW ();
 }
 
-int16_t	ExtioHandler::bitDepth		(void) {
-	return	theReader	-> bitDepth ();
+int16_t	extioHandler::bitDepth		(void) {
+	return	16;
 }
 
-void	ExtioHandler::samplesAvailable  (int n) {
+void	extioHandler::samplesAvailable  (int n) {
 std::complex<float> b [512];
 int16_t i;
 
         (void)n;
         while (theReader -> Samples () > 512) {
-           myReader -> getSamples (b, 512, Mode);
-           for (i = 0; i < 512; i ++)
-              b [i] = cmul (b [i], gainValue / 10.0);
+           theReader -> getSamples (b, 512, IandQ);
+//	   for (i = 0; i < 512; i ++)
+//	      b [i] = cmul (b [i], gainValue / 10.0);
            theBuffer -> putDataIntoBuffer (b, 512);
         }
 
@@ -409,9 +395,9 @@ int16_t i;
 }
 
 
-void	ExtioHandler::set_streamSelector (int idx) {
+void	extioHandler::set_streamSelector (int idx) {
 	fprintf (stderr, "Setting stream %d\n", idx);
-	if (!((cardReader *)theReader) -> set_streamSelector (idx))
+	if (!((paReader *)theReader) -> set_StreamSelector (idx))
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("Selecting  input stream failed\n"));
 }
@@ -420,7 +406,7 @@ void	ExtioHandler::set_streamSelector (int idx) {
 //	some problems with two events occurring directly after each other,
 //	blowing up the GUI thread. We therefore queue the events here and
 //	send them to the gui.
-void	ExtioHandler::run	(void) {
+void	extioHandler::run	(void) {
 
 	running		= true;
 	while (running) {
@@ -488,7 +474,7 @@ void	ExtioHandler::run	(void) {
 //	might overload the system, so we adapt the rate with which
 //	the signals are sent.
 	         case DATA_AVAILABLE:
-	            emit samplesAvailable (100);	// number is dummy
+	            emit dataAvailable (100);	// number is dummy
 	            break;
 
 	         default:
@@ -499,20 +485,12 @@ void	ExtioHandler::run	(void) {
 L1:;
 }
 
-void	ExtioHandler::putonQueue	(int s) {
+void	extioHandler::putonQueue	(int s) {
 	commandQueue. enqueue (s);
 	commandHandler. wakeAll ();
 }
 
-void	ExtioHandler::exit		(void) {
-	running	= false;
-}
-
-bool	ExtioHandler::isOK		(void) {
-	return Handle != NULL;
-}
-
-int32_t	ExtioHandler::getRate		(void) {
+int32_t	extioHandler::getRate		(void) {
 	return outputRate;
 }
 

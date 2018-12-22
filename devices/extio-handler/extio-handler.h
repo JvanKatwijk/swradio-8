@@ -35,12 +35,12 @@
 #include	<QQueue>
 #include	<QWaitCondition>
 #include	<QMutex>
-#include	"deviceHandler.h"
+#include	"device-handler.h"
 #include	"ui_extio-widget.h"
 #include	"ringbuffer.h"
 
 class		QSettings;
-class		cardReader;
+class		paReader;
 //	create type defs for the functions
 #ifdef	__MINGW32__
 #define	STDCALL	__stdcall
@@ -182,18 +182,18 @@ typedef enum {
 } extHw_ModeRxTxT;
 
 class	extioHandler:public deviceHandler, public Ui_extioWidget {
+Q_OBJECT
 public:
 			extioHandler		(RadioInterface *,
 	                                         int32_t outputRate,
 	                                         RingBuffer<std::complex<float>> *,
 	                                         QSettings *);
-			~ExtioHandler		(void);
+			~extioHandler		(void);
 	int32_t		getRate			(void);
-	void		setVFOFrequency		(int32_t);
-	int32_t		getVFOFrequency		(void);
+	void		setVFOFrequency		(quint64);
+	quint64		getVFOFrequency		(void);
 	bool		restartReader		(void);
 	void		stopReader		(void);
-	void		resetBuffer		(void);
 	int16_t		bitDepth		(void);
 
 	void		putonQueue		(int);
@@ -208,11 +208,10 @@ public:
 	void		set_StopHW	(void);
 	void		GetFilters	(int &x, int &y, int &z);
 	long		GetTune		(void);
-	int32_t		get_deviceRate	(void);
 	uint8_t		GetMode		(void);
 //
 //	The call back need access to
-	cardReader	*theReader;
+	paReader	*theReader;
 	bool		isStarted;
 
 	RingBuffer<std::complex<float>>	*theBuffer;
@@ -255,15 +254,8 @@ private:
 	char		*rigModel;
 	int		hardwareType;
 public slots:
-	void		set_streamSelector (int);
-signals:
-//	The following signals originate from the Winrad Extio interface
-	void	set_ExtFrequency	(int);
-	void	set_ExtLO		(int);
-	void	set_lockLO		(void);
-	void	set_unlockLO		(void);
-	void	set_stopHW		(void);
-	void	set_startHW		(void);
+	void		set_streamSelector	(int);
+	void		samplesAvailable	(int);
 };
 #endif
 
