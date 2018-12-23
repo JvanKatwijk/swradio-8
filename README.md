@@ -8,7 +8,7 @@ It is currently under development
 Introduction
 ------------------------------------------------------------------
 
-**swradio-8** is software (both Linux and Windows) for
+*swradio-8* is software (both Linux and Windows) for
 listening to short waves and amateur radio.
 The software supports a number of decoders,
 often used by radio amateurs, such as psk, cw and rtty.
@@ -24,7 +24,7 @@ as input device, and is able to
 
 To distinguish between "fast" and "slow" input, the version for the
 pmsdr is named "swradio-pmsdr", while the regular version is
-configred to ne named "swradio-8". In the build for Windows there
+configured to be named "swradio-8". In the build for Windows there
 is an experimental version for use with extio plugins for soundcard
 devices called "swradio-extio".
 
@@ -33,7 +33,7 @@ the device will be connected and opened. If no device is connected,
 it is assumed that file input is requested
 
 --------------------------------------------------------------------------
-Using rtlsdr based devices
+*Using rtlsdr based devices
 --------------------------------------------------------------------------
 
 For the rtlsdr based devices, use was made of a special version of the
@@ -43,31 +43,34 @@ This library makes it possible to use frequencies as low as 14 MHz.
 ![swradio-8](/swradio-rtlsdr-drm.png?raw=true)
 
 -------------------------------------------------------------------------
-Using a pmSDR device and a soundcard
+*Using a pmSDR device and a soundcard
 -------------------------------------------------------------------------
 
 I dusted off my old pmSDR, from the era that the data was entering the
-computer through the soundcard
- Now, in that time I bought an HP Pavilion
+computer through the soundcard. Now, in that time I bought an HP Pavilion
 since - accoding to the specs it could deliver samples with a rate
-of 192K, sufficient to do experiments with FM demodulation.
+of 192K, sufficient to do experiments with FM demodulation, which is
+what I wanted to do.
 
 And indeed, samples could be read with a speed of 192k, however,
-some internal filtering halved the signal in bandwidth, so it was
-completely useless for FM decoding.
+some internal filtering in the stupid computer halved the signal in bandwidth,
+so it was completely useless for FM decoding.
 
-Even further, when sampling on 96k, the band was haved as well,
-so the effective bandwidth then would only be 48k.
+Even further, when sampling on 96k, the band was halved as well,
+so the effective bandwidth then would only be 48k. 
+Of course the solution to get 96K was to decimate in software
+a signal sampled at 192k with a factor 2, but I was not amused.
 
 I'll not report on the discussion I had with the HP service desk
-(bad for my health), they could not confirm that the band
+(bad for my health), they (c/w)ould not confirm that the band
 was halved since they - apparently - had no program to verify that,
-and my programs showing it were
-not from HP, so "not admissable as evidence". So, never HP again for me.
+and my programs showing it were not from HP, so 
+"not admissable as evidence". So, it is obvious that I'll never buy
+an HP laptop again.
 
 Anyway, for using a soundcard, I had to buy an external card, an EMU-2-2.
 It works well under Linux, however, it does not like Windows-10,
-using it systematically leads to a crash.
+using it under W10 leads to a crash.
 
 ![swradio-8](/swradio-pmsdr-drm.png?raw=true)
 
@@ -172,13 +175,12 @@ One may select among a number of different filterings:
 The input can be written to a file, that file can be processed later on.
 
 ------------------------------------------------------------------
-Linux
+*Linux
 ------------------------------------------------------------------
 
 The current version is developed under Linux (Fedora). A cross compiled version
 for Windows (no garantees) is available in the releases section.
-This version will
-run in the same environment (i.e. folder, directory) as the qt-dab software.
+This version will run in the same environment (i.e. folder, directory) as the qt-dab software.
 
 To build a version, adapt the swradio-8.pro file.
 Note that for DRM decoding a special version of the faad library,
@@ -212,9 +214,7 @@ Select - or deselect - decoders:
 The "DESTDIR" parameter in the unix section in the ".pro" file tells where the result is to be put.
 
 -------------------------------------------------------------------------
-
 Windows
-
 -------------------------------------------------------------------------
 
 The releases section contains a zip file with an executable of swradio-8 
