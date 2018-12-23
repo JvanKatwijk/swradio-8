@@ -65,7 +65,7 @@ a signal sampled at 192k with a factor 2, but I was not amused.
 I'll not report on the discussion I had with the HP service desk, I cannot
 remember to have met such unwilling people (bad for my health).
 They (c/w)ould not confirm that the band was halved since they
-- apparently - had no program to verify that, and my programs 
+ - apparently - had no program to verify that, and my programs 
 showing it were not from HP, so "not admissable as evidence" and
 there was no problem whatsoever. Superfluous to mention that I'll never buy
 an HP laptop again.
