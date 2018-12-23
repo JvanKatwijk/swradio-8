@@ -1,0 +1,505 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2017.3.3)  3 MAR 2017 17:55
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**synchronization.tex
+(./synchronization.tex
+LaTeX2e <2016/03/31>
+Babel <3.9r> and hyphenation patterns for 77 language(s) loaded.
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2014/09/29 v1.4h Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size11.clo
+File: size11.clo 2014/09/29 v1.4h Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2014/10/28 v1.0g Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2016/05/09 v1.0r Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/01/02 v1.10 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 96.
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2016/07/10 v0.06j Graphics/color for pdfTeX
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/infwarerr.sty
+Package: infwarerr 2016/05/16 v1.4 Providing info/warning/error messages (HO)
+)
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
+Package: ltxcmds 2016/05/16 v1.23 LaTeX kernel commands for general use (HO)
+)
+\Gread@gobject=\count87
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 2013/01/14 v3.01 AMS font symbols
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
+\@emptytoks=\toks15
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
+))
+(/usr/share/texlive/texmf-dist/tex/latex/base/latexsym.sty
+Package: latexsym 1998/08/17 v2.2e Standard LaTeX package (lasy symbols)
+\symlasy=\mathgroup6
+LaTeX Font Info:    Overwriting symbol font `lasy' in version `bold'
+(Font)                  U/lasy/m/n --> U/lasy/b/n on input line 52.
+)
+(/usr/share/texlive/texmf-dist/tex/latex/relsize/relsize.sty
+Package: relsize 2013/03/29 ver 4.1
+)
+(/usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+Package: textcomp 2005/09/27 v1.99g Standard LaTeX package
+Package textcomp Info: Sub-encoding information:
+(textcomp)               5 = only ISO-Adobe without \textcurrency
+(textcomp)               4 = 5 + \texteuro
+(textcomp)               3 = 4 + \textohm
+(textcomp)               2 = 3 + \textestimated + \textcurrency
+(textcomp)               1 = TS1 - \textcircled - \t
+(textcomp)               0 = TS1 (full)
+(textcomp)             Font families with sub-encoding setting implement
+(textcomp)             only a restricted character set as indicated.
+(textcomp)             Family '?' is the default used for unknown fonts.
+(textcomp)             See the documentation for details.
+Package textcomp Info: Setting ? sub-encoding to TS1/1 on input line 79.
+
+(/usr/share/texlive/texmf-dist/tex/latex/base/ts1enc.def
+File: ts1enc.def 2001/06/05 v3.0e (jk/car/fm) Standard LaTeX file
+)
+LaTeX Info: Redefining \oldstylenums on input line 334.
+Package textcomp Info: Setting cmr sub-encoding to TS1/0 on input line 349.
+Package textcomp Info: Setting cmss sub-encoding to TS1/0 on input line 350.
+Package textcomp Info: Setting cmtt sub-encoding to TS1/0 on input line 351.
+Package textcomp Info: Setting cmvtt sub-encoding to TS1/0 on input line 352.
+Package textcomp Info: Setting cmbr sub-encoding to TS1/0 on input line 353.
+Package textcomp Info: Setting cmtl sub-encoding to TS1/0 on input line 354.
+Package textcomp Info: Setting ccr sub-encoding to TS1/0 on input line 355.
+Package textcomp Info: Setting ptm sub-encoding to TS1/4 on input line 356.
+Package textcomp Info: Setting pcr sub-encoding to TS1/4 on input line 357.
+Package textcomp Info: Setting phv sub-encoding to TS1/4 on input line 358.
+Package textcomp Info: Setting ppl sub-encoding to TS1/3 on input line 359.
+Package textcomp Info: Setting pag sub-encoding to TS1/4 on input line 360.
+Package textcomp Info: Setting pbk sub-encoding to TS1/4 on input line 361.
+Package textcomp Info: Setting pnc sub-encoding to TS1/4 on input line 362.
+Package textcomp Info: Setting pzc sub-encoding to TS1/4 on input line 363.
+Package textcomp Info: Setting bch sub-encoding to TS1/4 on input line 364.
+Package textcomp Info: Setting put sub-encoding to TS1/5 on input line 365.
+Package textcomp Info: Setting uag sub-encoding to TS1/5 on input line 366.
+Package textcomp Info: Setting ugq sub-encoding to TS1/5 on input line 367.
+Package textcomp Info: Setting ul8 sub-encoding to TS1/4 on input line 368.
+Package textcomp Info: Setting ul9 sub-encoding to TS1/4 on input line 369.
+Package textcomp Info: Setting augie sub-encoding to TS1/5 on input line 370.
+Package textcomp Info: Setting dayrom sub-encoding to TS1/3 on input line 371.
+Package textcomp Info: Setting dayroms sub-encoding to TS1/3 on input line 372.
+
+Package textcomp Info: Setting pxr sub-encoding to TS1/0 on input line 373.
+Package textcomp Info: Setting pxss sub-encoding to TS1/0 on input line 374.
+Package textcomp Info: Setting pxtt sub-encoding to TS1/0 on input line 375.
+Package textcomp Info: Setting txr sub-encoding to TS1/0 on input line 376.
+Package textcomp Info: Setting txss sub-encoding to TS1/0 on input line 377.
+Package textcomp Info: Setting txtt sub-encoding to TS1/0 on input line 378.
+Package textcomp Info: Setting lmr sub-encoding to TS1/0 on input line 379.
+Package textcomp Info: Setting lmdh sub-encoding to TS1/0 on input line 380.
+Package textcomp Info: Setting lmss sub-encoding to TS1/0 on input line 381.
+Package textcomp Info: Setting lmssq sub-encoding to TS1/0 on input line 382.
+Package textcomp Info: Setting lmvtt sub-encoding to TS1/0 on input line 383.
+Package textcomp Info: Setting lmtt sub-encoding to TS1/0 on input line 384.
+Package textcomp Info: Setting qhv sub-encoding to TS1/0 on input line 385.
+Package textcomp Info: Setting qag sub-encoding to TS1/0 on input line 386.
+Package textcomp Info: Setting qbk sub-encoding to TS1/0 on input line 387.
+Package textcomp Info: Setting qcr sub-encoding to TS1/0 on input line 388.
+Package textcomp Info: Setting qcs sub-encoding to TS1/0 on input line 389.
+Package textcomp Info: Setting qpl sub-encoding to TS1/0 on input line 390.
+Package textcomp Info: Setting qtm sub-encoding to TS1/0 on input line 391.
+Package textcomp Info: Setting qzc sub-encoding to TS1/0 on input line 392.
+Package textcomp Info: Setting qhvc sub-encoding to TS1/0 on input line 393.
+Package textcomp Info: Setting futs sub-encoding to TS1/4 on input line 394.
+Package textcomp Info: Setting futx sub-encoding to TS1/4 on input line 395.
+Package textcomp Info: Setting futj sub-encoding to TS1/4 on input line 396.
+Package textcomp Info: Setting hlh sub-encoding to TS1/3 on input line 397.
+Package textcomp Info: Setting hls sub-encoding to TS1/3 on input line 398.
+Package textcomp Info: Setting hlst sub-encoding to TS1/3 on input line 399.
+Package textcomp Info: Setting hlct sub-encoding to TS1/5 on input line 400.
+Package textcomp Info: Setting hlx sub-encoding to TS1/5 on input line 401.
+Package textcomp Info: Setting hlce sub-encoding to TS1/5 on input line 402.
+Package textcomp Info: Setting hlcn sub-encoding to TS1/5 on input line 403.
+Package textcomp Info: Setting hlcw sub-encoding to TS1/5 on input line 404.
+Package textcomp Info: Setting hlcf sub-encoding to TS1/5 on input line 405.
+Package textcomp Info: Setting pplx sub-encoding to TS1/3 on input line 406.
+Package textcomp Info: Setting pplj sub-encoding to TS1/3 on input line 407.
+Package textcomp Info: Setting ptmx sub-encoding to TS1/4 on input line 408.
+Package textcomp Info: Setting ptmj sub-encoding to TS1/4 on input line 409.
+)
+(./synchronization.aux)
+\openout1 = `synchronization.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 31.
+LaTeX Font Info:    Try loading font information for TS1+cmr on input line 31.
+ (/usr/share/texlive/texmf-dist/tex/latex/base/ts1cmr.fd
+File: ts1cmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    ... okay on input line 31.
+ (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count88
+\scratchdimen=\dimen105
+\scratchbox=\box26
+\nofMPsegments=\count89
+\nofMParguments=\count90
+\everyMPshowfont=\toks16
+\MPscratchCnt=\count91
+\MPscratchDim=\dimen106
+\MPnumerator=\count92
+\makeMPintoPDFobject=\count93
+\everyMPtoPDFconversion=\toks17
+) (/usr/share/texlive/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
+Package: pdftexcmds 2016/05/21 v0.22 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifluatex.sty
+Package: ifluatex 2016/05/16 v1.4 Provides the ifluatex switch (HO)
+Package ifluatex Info: LuaTeX not detected.
+)
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifpdf.sty
+Package: ifpdf 2016/05/14 v3.1 Provides the ifpdf switch
+)
+Package pdftexcmds Info: LuaTeX not detected.
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
+
+(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/grfext.sty
+Package: grfext 2016/05/16 v1.2 Manage graphics extensions (HO)
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/kvdefinekeys.sty
+Package: kvdefinekeys 2016/05/16 v1.4 Define keys (HO)
+))
+(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+Package: kvoptions 2016/05/16 v3.12 Key value format for package options (HO)
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/kvsetkeys.sty
+Package: kvsetkeys 2016/05/16 v1.17 Key value parser (HO)
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/etexcmds.sty
+Package: etexcmds 2016/05/16 v1.6 Avoid name clashes with e-TeX commands (HO)
+Package etexcmds Info: Could not find \expanded.
+(etexcmds)             That can mean that you are not using pdfTeX 1.50 or
+(etexcmds)             that some package has redefined \expanded.
+(etexcmds)             In the latter case, load this package earlier.
+)))
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+38.
+Package grfext Info: Graphics extension search list:
+(grfext)             [.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 456.
+
+(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+LaTeX Font Info:    Try loading font information for U+msa on input line 43.
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 43.
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+LaTeX Font Info:    Try loading font information for U+lasy on input line 43.
+
+(/usr/share/texlive/texmf-dist/tex/latex/base/ulasy.fd
+File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
+)
+<Screenshot-extio-pmsdr-sw.png, id=1, 1028.34187pt x 578.16pt>
+File: Screenshot-extio-pmsdr-sw.png Graphic file (type png)
+
+<use Screenshot-extio-pmsdr-sw.png>
+Package pdftex.def Info: Screenshot-extio-pmsdr-sw.png used on input line 47.
+(pdftex.def)             Requested size: 369.88582pt x 207.961pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 45--53
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 45--53
+
+ []
+
+[1
+
+{/usr/share/texlive/texmf-dist/fonts/map/pdftex/updmap/pdftex.map} <./Screensho
+t-extio-pmsdr-sw.png>]
+Overfull \hbox (173.45697pt too wide) in paragraph at lines 126--128
+[]\OT1/cmr/m/n/10.95 The code of the DRM de-coder is to be found in the source-
+tree at ".../sdr-j-swreceiver/swreceiver/plugins/decoders/drmdecoder". 
+ []
+
+<ofdm.png, id=19, 984.85588pt x 427.95177pt>
+File: ofdm.png Graphic file (type png)
+ <use ofdm.png>
+Package pdftex.def Info: ofdm.png used on input line 132.
+(pdftex.def)             Requested size: 398.33858pt x 173.09096pt.
+ [2] [3 <./ofdm.png>]
+Overfull \hbox (7.9852pt too wide) in paragraph at lines 216--218
+[]\OT1/cmr/m/n/10.95 Important pa-ram-e-ters are de-ter-mined by this $\OML/cmm
+/m/it/10.95 robustnessmode$ \OT1/cmr/m/n/10.95 and the $\OML/cmm/m/it/10.95 spe
+ctrum \OMS/cmsy/m/n/10.95 ^^@ \OML/cmm/m/it/10.95 occupancy$\OT1/cmr/m/n/10.95 
+. 
+ []
+
+[4] [5] [6] <flowvoordrm.png, id=39, 803.47235pt x 748.20706pt>
+File: flowvoordrm.png Graphic file (type png)
+
+<use flowvoordrm.png>
+Package pdftex.def Info: flowvoordrm.png used on input line 414.
+(pdftex.def)             Requested size: 284.52756pt x 264.94748pt.
+ [7 <./flowvoordrm.png>]
+Overfull \hbox (1.33507pt too wide) in paragraph at lines 463--470
+[]\OT1/cmr/m/n/10.95 We con-tinue read-ing by call-ing this func-tion $\OML/cmm
+/m/it/10.95 getWord$ \OT1/cmr/m/n/10.95 un-til we cap-ture a $\OML/cmm/m/it/10.
+95 symbolsinFrame$
+ []
+
+[8] [9] [10]
+Underfull \hbox (badness 10000) in paragraph at lines 667--675
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 676--683
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 684--692
+
+ []
+
+[11]
+Overfull \hbox (3.42229pt too wide) in paragraph at lines 721--721
+[]\OT1/cmtt/m/n/10 found 3: Mode = 2, time_offset = 162.833313, sampleoff = -0.
+001563 freqoff = -1.741446[] 
+ []
+
+
+Overfull \hbox (3.42229pt too wide) in paragraph at lines 721--721
+[]\OT1/cmtt/m/n/10 found 5: Mode = 2, time_offset = 162.833313, sampleoff = -0.
+007812 freqoff = -1.735270[] 
+ []
+
+
+Overfull \hbox (3.42229pt too wide) in paragraph at lines 743--743
+[]\OT1/cmtt/m/n/10 found 2: Mode = 2, time_offset = 159.184784, sampleoff = -0.
+000374 freqoff = -1.728744[] 
+ []
+
+
+Overfull \hbox (3.42229pt too wide) in paragraph at lines 743--743
+[]\OT1/cmtt/m/n/10 found 3: Mode = 2, time_offset = 160.597839, sampleoff = -0.
+000442 freqoff = -1.726560[] 
+ []
+
+
+Overfull \hbox (3.42229pt too wide) in paragraph at lines 743--743
+[]\OT1/cmtt/m/n/10 found 4: Mode = 2, time_offset = 159.358704, sampleoff = -0.
+000374 freqoff = -1.728518[] 
+ []
+
+
+Overfull \hbox (3.42229pt too wide) in paragraph at lines 743--743
+[]\OT1/cmtt/m/n/10 found 5: Mode = 2, time_offset = 160.163025, sampleoff = -0.
+000244 freqoff = -1.728915[] 
+ []
+
+
+Overfull \hbox (3.42229pt too wide) in paragraph at lines 766--766
+[]\OT1/cmtt/m/n/10 found 1: Mode = 2, time_offset = 183.824158, sampleoff = -0.
+000069 freqoff = -1.465193[] 
+ []
+
+[12]
+Overfull \hbox (50.13734pt too wide) in paragraph at lines 825--829
+ \OT1/cmr/bx/n/10.95 Im-ple-men-ta-tion[] \OT1/cmr/m/n/10.95 The func-tion $\OM
+L/cmm/m/it/10.95 frequencySync$ \OT1/cmr/m/n/10.95 is im-ple-mented as mem-ber 
+of the class $\OML/cmm/m/it/10.95 ofdmProcessor$\OT1/cmr/m/n/10.95 .
+ []
+
+[13]
+Underfull \hbox (badness 10000) in paragraph at lines 874--881
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 882--889
+
+ []
+
+[14]
+Underfull \hbox (badness 10000) in paragraph at lines 945--965
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 984--990
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1004--1010
+
+ []
+
+[15] [16]
+Underfull \hbox (badness 10000) in paragraph at lines 1089--1105
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1112--1128
+
+ []
+
+[17]
+Overfull \hbox (22.0429pt too wide) in paragraph at lines 1205--1229
+\OML/cmm/m/it/10.95 time[] \OT1/cmr/m/n/10.95 = \OML/cmm/m/it/10.95 arg\OT1/cmr
+/m/n/10.95 ([][](\OML/cmm/m/it/10.95 carrier[] \OMS/cmsy/m/n/10.95 ^^B \OML/cmm
+/m/it/10.95 pilotValue[]\OT1/cmr/m/n/10.95 ) \OMS/cmsy/m/n/10.95 ^^B \OT1/cmr/m
+/n/10.95 (\OML/cmm/m/it/10.95 carrier[] \OMS/cmsy/m/n/10.95 ^^B \OML/cmm/m/it/1
+0.95 pilotValue[]\OT1/cmr/m/n/10.95 )[])$
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1205--1229
+
+ []
+
+[18] [19] <screenshot-3.png, id=92, 887.315pt x 657.45625pt>
+File: screenshot-3.png Graphic file (type png)
+
+<use screenshot-3.png>
+Package pdftex.def Info: screenshot-3.png used on input line 1352.
+(pdftex.def)             Requested size: 398.33858pt x 295.1403pt.
+ [20]
+Underfull \hbox (badness 10000) in paragraph at lines 1386--1392
+
+ []
+
+[21 <./screenshot-3.png>]
+Overfull \hbox (0.13443pt too wide) in paragraph at lines 1454--1497
+\OT1/cmr/m/n/10.95 ^^H(\OML/cmm/m/it/10.95 pilot[]; pilot[]\OT1/cmr/m/n/10.95 )
+ = \OML/cmm/m/it/10.95 sinc\OT1/cmr/m/n/10.95 ((\OML/cmm/m/it/10.95 carrier[] \
+OMS/cmsy/m/n/10.95 ^^@ \OML/cmm/m/it/10.95 carrier[]\OT1/cmr/m/n/10.95 ) \OMS/c
+msy/m/n/10.95 ^^B \OML/cmm/m/it/10.95 f[]\OT1/cmr/m/n/10.95 ) \OMS/cmsy/m/n/10.
+95 ^^B \OML/cmm/m/it/10.95 sinc\OT1/cmr/m/n/10.95 ((\OML/cmm/m/it/10.95 symbol[
+] \OMS/cmsy/m/n/10.95 ^^@ \OML/cmm/m/it/10.95 symbol[]\OT1/cmr/m/n/10.95 ) \OMS
+/cmsy/m/n/10.95 ^^B
+ []
+
+[22] [23]
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ù in font cmr10!
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ù in font cmr10!
+
+Overfull \hbox (210.20457pt too wide) in paragraph at lines 1618--1621
+[]\OT1/cmr/m/n/10.95 see "www.audiocoding.com/faad2.html" and "http://drm.sourc
+eforge.net/wiki/index.php/Instructions[]for[]building[]the[]AAC[]decoder"
+ []
+
+[24]
+Missing character: There is no ‚ in font cmr10!
+Missing character: There is no Ä in font cmr10!
+Missing character: There is no ì in font cmr10!
+ [25] (./synchronization.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 2419 strings out of 493069
+ 34135 string characters out of 6138223
+ 89350 words of memory out of 5000000
+ 5900 multiletter control sequences out of 15000+600000
+ 18607 words of font info for 75 fonts, out of 8000000 for 9000
+ 1137 hyphenation exceptions out of 8191
+ 38i,8n,26p,256b,285s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</us
+r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/shar
+e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texl
+ive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/te
+xmf-dist/fonts/type1/public/amsfonts/cmextra/cmex7.pfb></usr/share/texlive/texm
+f-dist/fonts/type1/public/amsfonts/cmextra/cmex8.pfb></usr/share/texlive/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17
+.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></u
+sr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share
+/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmti12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts
+/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfrm0
+600.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfrm0900.pfb
+></usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb></usr/
+share/texlive/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
+Output written on synchronization.pdf (25 pages, 985374 bytes).
+PDF statistics:
+ 197 PDF objects out of 1000 (max. 8388607)
+ 137 compressed objects within 2 object streams
+ 0 named destinations out of 1000 (max. 500000)
+ 21 words of extra memory for PDF output out of 10000 (max. 10000000)
+

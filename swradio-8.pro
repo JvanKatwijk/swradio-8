@@ -98,10 +98,10 @@ SOURCES += ./main.cpp \
 
 unix {
 DESTDIR		= ./linux-bin
-#CONFIG		+= sdrplay
-#CONFIG		+= hackrf
-#CONFIG		+= rtlsdr
-CONFIG		+= pmsdr
+CONFIG		+= sdrplay
+CONFIG		+= hackrf
+CONFIG		+= rtlsdr
+#CONFIG		+= pmsdr
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder

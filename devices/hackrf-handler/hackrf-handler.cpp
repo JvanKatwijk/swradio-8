@@ -20,13 +20,13 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include	<QThread>
 #include	<QSettings>
 #include	<QHBoxLayout>
 #include	<QLabel>
 #include	"hackrf-handler.h"
 
 #define	DEFAULT_GAIN	30
+static float convTable [256];
 
 	hackrfHandler::hackrfHandler	(RadioInterface *mr,
                                          int32_t        outputRate,
@@ -35,15 +35,21 @@
                                                       deviceHandler (mr) {
 int	err;
 int	res;
+int	i;
 
 	this    -> outputRate		= outputRate;
 	this	-> hackrfSettings	= s;
 	this	-> myFrame		= new QFrame (NULL);
 	setupUi (this -> myFrame);
 	this	-> myFrame	-> show ();
-	this	-> inputRate		= Khz (2112);
+	this	-> inputRate		= Khz (24 * 96);
 	this	-> decimationFactor	= inputRate / outputRate;
 	_I_Buffer			= r;
+
+	for (i = 0; i < 128; i ++)
+	   convTable [i] = (float)(i) / 128.0;
+	for (i = 0; i < 128; i ++)
+	   convTable [128 + i] =  -(float)(128 - i) / 128.0;
 
 #ifdef  __MINGW32__
         const char *libraryString = "libhackrf.dll";
@@ -232,16 +238,9 @@ std::complex<float> localBuf [transfer -> valid_length / (2 * ctx -> decimationF
 int	cnt	= 0;
 
       for (i = 0; i < transfer -> valid_length / 2; i ++) {
-	   float re     = (((int8_t *)p) [2 * i]) / 128.0;
-	   float im     = (((int8_t *)p) [2 * i + 1]) / 128.0;
-	   std::complex<float> temp  = std::complex<float> (re, im);
-
-//           temp = temp * ctx -> oscillatorTable [ctx -> oscillatorPhase];
-//           ctx -> oscillatorPhase += ctx -> localShift;
-//           if (ctx -> oscillatorPhase < 0)
-//              ctx -> oscillatorPhase += ctx -> inputRate;
-//           if (ctx -> oscillatorPhase >= ctx -> inputRate)
-//              ctx -> oscillatorPhase -= ctx -> inputRate;
+	   std::complex<float> temp  =
+	              std::complex<float> (convTable [p [2 * i]],
+	                                   convTable [p [2 * i + 1]]);
 
            if (ctx -> filter -> Pass (temp, &(localBuf [cnt])))
               if (localBuf [cnt] == localBuf [cnt])
