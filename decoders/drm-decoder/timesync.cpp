@@ -89,15 +89,14 @@ int16_t	theMode;
 	   }
 	}
 
-	fprintf (stderr, "gammaRel %f\n", gammaRelative);
 //	check if result is reliable */
 	bool	maxOK = true;			/* assume reliable */
-	if (gammaRelative < 0.1)
+	if (gammaRelative < 0.4)
 	   maxOK = false;
 	else
 	for (i = Mode_A; i <= Mode_D; i++) {
 	   if ((i != theMode) && (list_gammaRelative [i - Mode_A] >
-	                           0.70 * gammaRelative))
+	                           0.50 * gammaRelative))
 	      maxOK = false;
 	}
 	

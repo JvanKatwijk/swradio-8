@@ -227,7 +227,7 @@ int32_t	i, realAmount;
 	          V [i] = std::complex<float> (buf [2 * i], buf [2 * i + 1]);
 	          break;
 	       case QandI:
-	          V [i] = std::complex<float>(buf [2 * i + 1], buf [2 * i]);
+	          V [i] = std::complex<float> (buf [2 * i + 1], buf [2 * i]);
 	          break;
 	    }
 	}

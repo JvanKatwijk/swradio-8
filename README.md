@@ -2,9 +2,7 @@
 
 swradio is  Software for Linux and windows for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
-
-![swradio-8 with SDRplay as device](/swradio-cw.png?raw=true)
-Example of use of the cw decoder.
+It is currently under development
 
 ------------------------------------------------------------------
 Introduction
@@ -17,59 +15,97 @@ often used by radio amateurs, such as psk, cw and rtty.
 swradio-8 is the result of rewriting and simplifying the set
 of sdr-j-sw programs.
 
+
 The program can be configured to use the SDRplay,
 the HACKrf, RTLSDR-based dabsticks or the - soundcard based - pmsdr
 as input device, and is able to
 * dump the (decimated) input onto a file in PCM format;
 * use such a file as input.
 
+To distinguish between "fast" and "slow" input, the version for the
+pmsdr is named "swradio-pmsdr", while the regular version is
+configred to ne named "swradio-8". In the build for Windows there
+is an experimental version for use with extio plugins for soundcard
+devices called "swradio-extio".
+
 If a configured device is connected to the computer where the program runs,
 the device will be connected and opened. If no device is connected,
 it is assumed that file input is requested
 
-To keep things simple, configuring the radio is with either one or more
-of the "high-speed" set (SDRplay, HACKrf or RTLSDR stick) or the "low speed"
-(read: sound card) singleton set, with the pmSDR as element.
-
-Note that for use with the Hackrf device,
-have to provide the hackrf lib.
-
 --------------------------------------------------------------------------
-Current development
+Using rtlsdr based devices
 --------------------------------------------------------------------------
-
-The current development is to widen the scope of the radio, so that
-it also can be used with other devices than the SDRplay.  
-Furthermore, there are  some differences in the GUI,
-most pictures need updating.
-
-Furthermore, while these changes are being made, the CMakeLists.txt
-files are outdated and no AppImage is made.
 
 For the rtlsdr based devices, use was made of a special version of the
-library, sources are part of the source tree. 
-In a next version an entry will be made for the "direct sampling" option
-for rtlsdr based devices.
+library, the one by Oliver Jowett. Sources are included in the source tree. 
+This library makes it possible to use frequencies as low as 14 MHz.
 
 ![swradio-8](/swradio-rtlsdr-drm.png?raw=true)
 
-I dusted off the "old" pmsdr device, unfortunately my current laptop does
-not have a "line in" port, the old laptop has one, however while the
-sampling rate is 96k (or 192k), some stupid internal filtering  limits
-the effective bandwidth to app 60k. However, as the picture shows.the
-DRM program from kuwait can be received and decoded.
+-------------------------------------------------------------------------
+Using a pmSDR device and a soundcard
+-------------------------------------------------------------------------
+
+I dusted off my old pmSDR, from the era that the data was entering the
+computer through the soundcard
+ Now, in that time I bought an HP Pavilion
+since - accoding to the specs it could deliver samples with a rate
+of 192K, sufficient to do experiments with FM demodulation.
+
+And indeed, samples could be read with a speed of 192k, however,
+some internal filtering halved the signal in bandwidth, so it was
+completely useless for FM decoding.
+
+Even further, when sampling on 96k, the band was haved as well,
+so the effective bandwidth then would only be 48k.
+
+I'll not report on the discussion I had with the HP service desk
+(bad for my health), they could not confirm that the band
+was halved since they - apparently - had no program to verify that,
+and my programs showing it were
+not from HP, so "not admissable as evidence". So, never HP again for me.
+
+Anyway, for using a soundcard, I had to buy an external card, an EMU-2-2.
+It works well under Linux, however, it does not like Windows-10,
+using it systematically leads to a crash.
 
 ![swradio-8](/swradio-pmsdr-drm.png?raw=true)
+
+--------------------------------------------------------------------------
+*Using extio devices with soundcard*
+---------------------------------------------------------------------------
+
+One of the windows versions of the swradio software  is set
+to use "extio" plugins for handling the radio device.
+To keep things simple the use is limited to radio devices
+with data being sent using the soundcard. 
+
+The version is pretty experimental.
+
+--------------------------------------------------------------------------
+*Using the hackrf device
+-------------------------------------------------------------------------
 
 While the HACKrf seems to work well, I did not manage yet to
 decode DRM programs with samples coming from it.
 
+![swradio-8](/swradio-hackrf.png?raw=true)
+
+
+-------------------------------------------------------------------------
+*Using the SDRplay
+-------------------------------------------------------------------------
+
 The SDRplay provides the full band and makes it easy to receive short wave
 programs.
 
-![swradio-8](/swradio-drm.png?raw=true)
+![swradio-8](/swradio-sdrplay.png?raw=true)
 
-**Preferred frequencies**
+-----------------------------------------------------------------------------
+*Preferred frequencies*
+-----------------------------------------------------------------------------
+
+Preferred frequencies
 can be stored, together with a user defined label (a program name).
 A list of preferred frequencies (programs) is
 maintained between program invocations.
@@ -80,8 +116,11 @@ The pair (name, frequency) then is added to the list.
 Selecting such a "preferred program" is just by clicking the mouse on 
 the programname or the associated field with the frequency.
 
-**Frequency selection**
-is with a keypad, separated from the main widget,
+----------------------------------------------------------------------------
+*Frequency selection*
+----------------------------------------------------------------------------
+
+Frequency selection is with a keypad, separated from the main widget,
 that will appear when touching the Frequency select key.
 Specification  of a frequency is either in kHz or mHz.
 Fine frequency selection - up to an accuracy of 1 Hz - is with the
@@ -94,11 +133,18 @@ selected frequency pointed to.
 As a "quick" help, a button "middle" is present that, when pressed - will set the oscillator such
 that the selected frequency is in the middle of the right half of the spectrum display.
 
-**Waterfall displays**
+----------------------------------------------------------------------------
+*Waterfall displays*
+-----------------------------------------------------------------------------
+
 Note that clicking the right mouse button on any of the two displays, that display will switch from spectrum
 to waterfall display (or vice-versa).
 
-**Decoders** are:
+------------------------------------------------------------------------------
+*Implemented decoders*
+-----------------------------------------------------------------------------
+
+*Decoders** are:
 * am
 * ssb, with selection for usb or lsb;
 * psk, with selection of a variety of modes and settings and with a tuning aid,
@@ -125,19 +171,6 @@ One may select among a number of different filterings:
 
 The input can be written to a file, that file can be processed later on.
 
-** Frequencies**
-
-The frequency to which the oscillator of the selected device will be set will be
-the one in the middle of the "large" display. Any offset of a selected
-frequency to this oscillator frequency will be handled in software.
-
-The SDRplay and HACKrf devices support samplerates of 2M and up.
-These rates are decimated to 96k. The soundcard, used for the pmSDR
-device will be set to 96k.
-
-The function of each button and slider in the widget(s) is described in the
-tooltip for that button (slider)
-
 ------------------------------------------------------------------
 Linux
 ------------------------------------------------------------------
@@ -155,6 +188,10 @@ Select the device
 
 * CONFIG	+= sdrplay
 * CONFIG	+= hackrf
+* CONFIG	+= rtlsdr
+
+or
+
 * CONFIG	+= pmsdr
 
 It is possible to select more than one device, in which case the
@@ -185,40 +222,6 @@ and the required dll's. Note that the library for SDRplay support is not
 included, one has to obtain that from SDRplay.com
 
 -------------------------------------------------------------------------
---------------------------------------------------------------------------
-
-![swradio-8](/swradio-psk.png?raw=true)
-Example of use of the psk decoder. The psk decoder now is equipped with
-a small "scope" as an aid in tuning. Clicking on a positionin the
-psk window will shift the frequency such that that point is in the middle.
-
---------------------------------------------------------------------------
---------------------------------------------------------------------------
-
-![swradio-8](/swradio-mfsk.png?raw=true)
-Example of use of the mfsk decoder. The psk decoder now is equipped with
-a small "scope" as an aid in tuning. Clicking on a positionin the
-psk window will shift the frequency such that that point is on the mark.
-
---------------------------------------------------------------------------
---------------------------------------------------------------------------
-
-![swradio-8](/Screenshot-swradio-4.png?raw=true)
-Example of use of the ssb decoder (old picture) (lsb selected with an lsb bandfilter).
-
---------------------------------------------------------------------------
---------------------------------------------------------------------------
-
-![swradio-8](/screenshot-amtor.png?raw=true)
-Example of "listening" to the dutch coastguard with amtor (old picture)
-
---------------------------------------------------------------------------
-----------------------------------------------------------------------
-
-![swradio-8](/swradio-fax.png?raw=true)
-Example of "listening" to a transmission of a weatherfax on shortwave.
-
---------------------------------------------------------------------------
 --------------------------------------------------------------------------
 
 # Copyright

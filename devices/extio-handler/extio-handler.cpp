@@ -153,10 +153,12 @@ int16_t	wchars_num;
 //	and start the rig
 	rigName		= new char [128];
 	rigModel	= new char [128];
-	if (!((*InitHW) (rigName, rigModel, hardwareType))) {
+	int res = ((*InitHW)(rigName, rigModel, hardwareType));
+	if (res == 0) {
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("init failed\n"));
 	   status	-> setText ("could not init device");
+	   fprintf (stderr, "InitHW returns %d\n", res);
 	   throw (22);
 	}
 

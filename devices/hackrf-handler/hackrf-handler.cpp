@@ -46,8 +46,8 @@ int	res;
 	_I_Buffer			= r;
 
 #ifdef  __MINGW32__
-        const char *libraryString = "hackrf.dll";
-        Handle          = LoadLibrary ((wchar_t *)L"hackrf.dll");
+        const char *libraryString = "libhackrf.dll";
+        Handle          = LoadLibrary ((wchar_t *)L"libhackrf.dll");
 #else
         const char *libraryString = "libhackrf.so";
         Handle          = dlopen (libraryString, RTLD_NOW);
