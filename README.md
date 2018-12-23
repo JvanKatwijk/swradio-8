@@ -25,11 +25,11 @@ as input device, and is able to
 To distinguish between "fast" and "slow" input, the version for the
 pmsdr is named "swradio-pmsdr", while the regular version is
 configured to be named "swradio-8". In the build for Windows there
-is an experimental version for use with extio plugins for soundcard
+is also an experimental version for use with extio plugins for soundcard
 devices called "swradio-extio".
 
 If a configured device is connected to the computer where the program runs,
-the device will be connected and opened. If no device is connected,
+the device will be connected and opened. If no device is detected,
 it is assumed that file input is requested
 
 --------------------------------------------------------------------------
@@ -37,7 +37,8 @@ it is assumed that file input is requested
 --------------------------------------------------------------------------
 
 For the rtlsdr based devices, use was made of a special version of the
-library, the one by Oliver Jowett. Sources are included in the source tree. 
+library, the one by Oliver Jowett. Sources are included in the source tree of
+this program.
 This library makes it possible to use frequencies as low as 14 MHz.
 
 ![swradio-8](/swradio-rtlsdr-drm.png?raw=true)
@@ -48,7 +49,7 @@ This library makes it possible to use frequencies as low as 14 MHz.
 
 I dusted off my old pmSDR, from the era that the data was entering the
 computer through the soundcard. Now, in that time I bought an HP Pavilion
-since - accoding to the specs it could deliver samples with a rate
+since - according to the specs it could deliver samples with a rate
 of 192K, sufficient to do experiments with FM demodulation, which is
 what I wanted to do.
 
@@ -58,19 +59,20 @@ so it was completely useless for FM decoding.
 
 Even further, when sampling on 96k, the band was halved as well,
 so the effective bandwidth then would only be 48k. 
-Of course the solution to get 96K was to decimate in software
+Of course a solution to get 96K was to decimate in software
 a signal sampled at 192k with a factor 2, but I was not amused.
 
-I'll not report on the discussion I had with the HP service desk
-(bad for my health), they (c/w)ould not confirm that the band
-was halved since they - apparently - had no program to verify that,
-and my programs showing it were not from HP, so 
-"not admissable as evidence". So, it is obvious that I'll never buy
+I'll not report on the discussion I had with the HP service desk, I cannot
+remember to have met such unwilling people (bad for my health).
+They (c/w)ould not confirm that the band was halved since they
+- apparently - had no program to verify that, and my programs 
+showing it were not from HP, so "not admissable as evidence" and
+there was no problem whatsoever. Superfluous to mention that I'll never buy
 an HP laptop again.
 
 Anyway, for using a soundcard, I had to buy an external card, an EMU-2-2.
-It works well under Linux, however, it does not like Windows-10,
-using it under W10 leads to a crash.
+It works well under Linux and at the time it worked on W7.
+However, it does not like Windows-10, using it under W10 leads to a crash.
 
 ![swradio-8](/swradio-pmsdr-drm.png?raw=true)
 
@@ -78,7 +80,7 @@ using it under W10 leads to a crash.
 *Using extio devices with soundcard*
 ---------------------------------------------------------------------------
 
-One of the windows versions of the swradio software  is set
+One of the windows versions of the swradio software is set
 to use "extio" plugins for handling the radio device.
 To keep things simple the use is limited to radio devices
 with data being sent using the soundcard. 
@@ -90,7 +92,10 @@ The version is pretty experimental.
 -------------------------------------------------------------------------
 
 While the HACKrf seems to work well, I did not manage yet to
-decode DRM programs with samples coming from it.
+decode DRM programs with samples coming from it. I do make some
+error in interpreting the 8 bit input. Things depending
+on amplitude work well, things depending on the phase(difference)
+do not.
 
 ![swradio-8](/swradio-hackrf.png?raw=true)
 
@@ -100,7 +105,7 @@ decode DRM programs with samples coming from it.
 -------------------------------------------------------------------------
 
 The SDRplay provides the full band and makes it easy to receive short wave
-programs.
+programs. Absolutely one of my favorites.
 
 ![swradio-8](/swradio-sdrplay.png?raw=true)
 
@@ -110,7 +115,7 @@ programs.
 
 Preferred frequencies
 can be stored, together with a user defined label (a program name).
-A list of preferred frequencies (programs) is
+A table of preferred frequencies (programs) is
 maintained between program invocations.
 A selected frequency can be stored by pressing the save frequency button.
 If touched, one is asked to specify a name to be used to label that frequency.
@@ -150,12 +155,12 @@ to waterfall display (or vice-versa).
 *Decoders** are:
 * am
 * ssb, with selection for usb or lsb;
-* psk, with selection of a variety of modes and settings and with a tuning aid,
-* mfsk, with a tuning aid,
-* rtty, with selection of a variety of modes and settings;
-* cw, with (almost) automatic selection of speed;
+* psk, with a wide selection of modes and settings and with a visual tuning aid,
+* mfsk, with a visual tuning aid,
+* rtty, with a wide selection of modes and settings;
+* cw, with (almost) automatic selection of speed and a visual tuning aid,
 * drm, limited to 10 k bandwidth;
-* amtor, with selection of options;
+* amtor, with a wide selection of options;
 * weatherfax decoder, with selection of a variety of settings.
 
 As can be seen from the pictures, the main widget has two main displays,
@@ -165,6 +170,7 @@ showing the spectrum of the incoming data,
 the bottom one width a width of 12k -
 showing the spectrum of the data sent to the decoder, i.e. after being
 filtered and shifted.
+The small display shows the spectrum of the resulting audio.
 
 One may select among a number of different filterings:
 * wide, used for e.g. DRM decoding, uses the full 12 k bandwidth;
