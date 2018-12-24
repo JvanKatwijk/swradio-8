@@ -106,7 +106,7 @@ int	i;
 	   throw (22);
 	}
 
-	res	= this -> hackrf_set_sample_rate (theDevice, 2048000.0);
+	res	= this -> hackrf_set_sample_rate (theDevice, inputRate);
 	if (res != HACKRF_SUCCESS) {
 	   fprintf (stderr, "Problem with hackrf_set_samplerate:");
 	   fprintf (stderr, "%s \n",
@@ -237,10 +237,12 @@ RingBuffer<std::complex<float> > * q = ctx -> _I_Buffer;
 std::complex<float> localBuf [transfer -> valid_length / (2 * ctx -> decimationFactor) + 10];
 int	cnt	= 0;
 
-      for (i = 0; i < transfer -> valid_length / 2; i ++) {
+	for (i = 0; i < transfer -> valid_length / 2; i ++) {
+	   int8_t re = (int8_t)(p [2 * i]);
+	   int8_t im = (int8_t)(p [2 * i + 1]);
 	   std::complex<float> temp  =
-	              std::complex<float> (convTable [p [2 * i]],
-	                                   convTable [p [2 * i + 1]]);
+	              std::complex<float> (((float)re) / 128.0,
+	                                   ((float)im) / 128.0);
 
            if (ctx -> filter -> Pass (temp, &(localBuf [cnt])))
               if (localBuf [cnt] == localBuf [cnt])
