@@ -96,12 +96,9 @@ The version is pretty experimental.
 Using the hackrf device
 -------------------------------------------------------------------------
 
-While the HACKrf seems to work well, I did not manage yet to
-decode DRM programs with samples coming from it. I do make some
-error in interpreting the 8 bit input. Things depending
-on amplitude work well, things depending on the phase(difference)
-do not. I.e. decoding cw can be handled, decoding psk, which is
-higly dependent on phase differences, not.
+The hackrf device works quite well. With this program I test it only on
+shortwave frequencies. It handles the cw as well as modes such as psk and drm
+well.
 
 ![swradio-8](/swradio-hackrf.png?raw=true)
 
