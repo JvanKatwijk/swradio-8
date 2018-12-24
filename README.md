@@ -33,7 +33,7 @@ the device will be connected and opened. If no device is detected,
 it is assumed that file input is requested
 
 --------------------------------------------------------------------------
-*Using rtlsdr based devices
+Using rtlsdr based devices
 --------------------------------------------------------------------------
 
 For the rtlsdr based devices, use was made of a special version of the
@@ -44,31 +44,36 @@ This library makes it possible to use frequencies as low as 14 MHz.
 ![swradio-8](/swradio-rtlsdr-drm.png?raw=true)
 
 -------------------------------------------------------------------------
-*Using a pmSDR device and a soundcard
+Using a pmSDR device and a soundcard
 -------------------------------------------------------------------------
 
 I dusted off my old pmSDR, from the era that the data was entering the
 computer through the soundcard. Now, in that time I bought an HP Pavilion
-since - according to the specs it could deliver samples with a rate
+since - according to the specs - it could deliver samples with a rate
 of 192K, sufficient to do experiments with FM demodulation, which is
-what I wanted to do.
+what I wanted to do at that time.
 
 And indeed, samples could be read with a speed of 192k, however,
 some internal filtering in the stupid computer halved the signal in bandwidth,
-so it was completely useless for FM decoding.
+so receiving a signal sampled at 192k, with a bandwidth of
+less than 96k was completely useless for FM decoding.
 
 Even further, when sampling on 96k, the band was halved as well,
 so the effective bandwidth then would only be 48k. 
 Of course a solution to get 96K was to decimate in software
 a signal sampled at 192k with a factor 2, but I was not amused.
 
-I'll not report on the discussion I had with the HP service desk, I cannot
-remember to have met such unwilling people (bad for my health).
-They (c/w)ould not confirm that the band was halved since they
- - apparently - had no program to verify that, and my programs 
-showing it were not from HP, so "not admissable as evidence" and
-there was no problem whatsoever. Superfluous to mention that I'll never buy
-an HP laptop again.
+I'll not report on the discussion I had with the HP service desk
+(bad for my health), I cannot remember to have met such unwilling (ignorant?)
+people (and I can assure that I met lots of them).
+They, the HP people, (c/w)ould not confirm that the band was halved. They
+claimed that they did not have a program to verify my claim, so my claim
+was ("by definition") false. Seems a little silly for a large
+organization like HP. 
+Of course, my programs showing the bandwidth/samplerates were not from HP, so results
+I sent them (nice spectrum pictures) were "not admissable as evidence", so after
+some talking they decided that there was no problem whatsoever, so no need to communicate
+further. Needless to say that I'll never buy an HP laptop again.
 
 Anyway, for using a soundcard, I had to buy an external card, an EMU-2-2.
 It works well under Linux and at the time it worked on W7.
@@ -77,7 +82,7 @@ However, it does not like Windows-10, using it under W10 leads to a crash.
 ![swradio-8](/swradio-pmsdr-drm.png?raw=true)
 
 --------------------------------------------------------------------------
-*Using extio devices with soundcard*
+Using extio devices with soundcard*
 ---------------------------------------------------------------------------
 
 One of the windows versions of the swradio software is set
@@ -88,20 +93,21 @@ with data being sent using the soundcard.
 The version is pretty experimental.
 
 --------------------------------------------------------------------------
-*Using the hackrf device
+Using the hackrf device
 -------------------------------------------------------------------------
 
 While the HACKrf seems to work well, I did not manage yet to
 decode DRM programs with samples coming from it. I do make some
 error in interpreting the 8 bit input. Things depending
 on amplitude work well, things depending on the phase(difference)
-do not.
+do not. I.e. decoding cw can be handled, decoding psk, which is
+higly dependent on phase differences, not.
 
 ![swradio-8](/swradio-hackrf.png?raw=true)
 
 
 -------------------------------------------------------------------------
-*Using the SDRplay
+Using the SDRplay
 -------------------------------------------------------------------------
 
 The SDRplay provides the full band and makes it easy to receive short wave
