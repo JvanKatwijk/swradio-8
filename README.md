@@ -229,8 +229,8 @@ The "DESTDIR" parameter in the unix section in the ".pro" file tells where the r
 Windows
 -------------------------------------------------------------------------
 
-The releases section contains a zip file with an executable of swradio-8 
-and the required dll's. Note that the library for SDRplay support is not
+The releases section *of the qt-dab repository* contains a zip file with executables, among which
+an executable of swradio-8 and the required dll's. Note that the library for SDRplay support is not
 included, one has to obtain that from SDRplay.com
 
 -------------------------------------------------------------------------
