@@ -187,40 +187,147 @@ The input can be written to a file, that file can be processed later on.
 *Linux
 ------------------------------------------------------------------
 
-The current version is developed under Linux (Fedora). A cross compiled version
+The current version is developed under Linux (Fedora).
+A cross compiled version
 for Windows (no garantees) is available in the releases section.
 This version will run in the same environment (i.e. folder, directory) as the qt-dab software.
 
-To build a version, adapt the swradio-8.pro file.
-Note that for DRM decoding a special version of the faad library,
-obviously incompatible with the regular one, has to be created.
 
-Select the device
+------------------------------------------------------------------
+Ubuntu Linux
+------------------------------------------------------------------
 
-* CONFIG	+= sdrplay
-* CONFIG	+= hackrf
-* CONFIG	+= rtlsdr
+For generating an executable under Ubuntu (16.04 or newer) one may take the
+following steps.
 
-or
+1. Download the source tree
+   git clone https://github.com/JvanKatwijk/swradio-8
 
-* CONFIG	+= pmsdr
+2. Fetch needed components
+   ```
+   sudo apt-get update
+   sudo apt-get install qt5-qmake build-essential g++
+   sudo apt-get install libsndfile1-dev qt5-default libfftw3-dev portaudio19-dev 
+   sudo apt-get install zlib1g-dev libusb-1.0-0-dev mesa-common-dev
+   sudo apt-get install libgl1-mesa-dev libqt5opengl5-dev libsamplerate0-dev libqwt-qt5-dev
+   sudo apt-get install qtbase5-dev
 
-It is possible to select more than one device, in which case the
-software will try to open configured devices, until one found, otherwise
-file input will be selected.
+   ```
 
-Select - or deselect - decoders:
-* CONFIG          += am-decoder
-* CONFIG          += ssb-decoder
-* CONFIG          += cw-decoder
-* CONFIG          += amtor-decoder
-* CONFIG          += psk-decoder
-* CONFIG          += rtty-decoder
-* CONFIG          += fax-decoder
-* CONFIG          += drm-decoder
-* CONFIG          += mfsk-decoder
+3. Create the faad_drm library if you want to use the drm decoder.
+   To make life easy, the sources for the faad library are included
+   in the source tree
+
+   ```
+   cd ./swradio-8
+   cd faad2-2.8
+   ./configure
+   make
+   sudo make install
+   cd ..
+   ```
+
+4. Device support
+
+  a) if you have an SDRplay device, I assume you already have installed
+the library, otherwise visit "https://sdrplay.com"  and follow the instructions.
+Make sure to uncomment in swradio-8.pro the line
+
+	CONFIG += sdrplay
+
+  b) the sources for using the pmSDR device are part of the sourcetree. Note
+that for pmSDR the cardread functions are installed. The idea is to use
+either the pmSDR or the "fast" devices, reflected in the name. A configuration
+with (only) pmSDR will be named "swradio-pmsdr", a configuration with (only)
+fast input devices will be named "swradio-8".
+
+For selecting the pmSDR, make sure to uncomment in swradio-8.pro the line
+
+	CONFIG += pmsdr
+
+and to comment out the lines
+
+	#CONFIG += sdrplay
+	#CONFIG += rtlsdr
+	#CONFIG += hackrf
+
+   Create a file /etc/udev/rules.d/96-pmsdr.rules with as content
+
+	#
+	# udev rules file for Microchip 18F4455 USB Micro (PMSDR)
+	#
+	SUBSYSTEM=="usb", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="000c", MODE:="0666"
+
+   to ensure non-root access to the device through usb.
+
+  c) To make life easy, the sources for the required rtlsdr library used are included in the source tree
+  ```
+   cd rtl-sdr/
+   mkdir build
+   cd build
+   cmake ../ -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON
+   make
+   sudo make install
+   sudo ldconfig
+   cd ..
+   rm -rf build
+   cd ..
+  ```
+
+   Make sure that a file exists in the `/etc/udev/rules.d` directory
+   describing the device, allowing "ordinary" users to access the device.
+
+  d) Create a library for the hackrf device
+
+   ```
+   git clone https://github.com/mossmann/hackrf
+   cd hackrf
+   cd host
+   mkdir build
+   cd build
+   cmake .. -DINSTALL_UDEV_RULES=ON
+   sudo make install
+  ```
+
+   Make sure that a file exists in the `/etc/udev/rules.d` directory
+   describing the device, allowing "ordinary" users to access the device.
+   
+5. Edit the `swradio-8.pro` file for configuring the supported devices and decoders.
+   For the devices
+
+	* CONFIG	+= sdrplay
+	* CONFIG	+= hackrf
+	* CONFIG	+= rtlsdr
+   or
+	* CONFIG	+= pmsdr
+
+   Select - or deselect - decoders:
+
+	* CONFIG          += am-decoder
+	* CONFIG          += ssb-decoder
+	* CONFIG          += cw-decoder
+	* CONFIG          += amtor-decoder
+	* CONFIG          += psk-decoder
+	* CONFIG          += rtty-decoder
+	* CONFIG          += fax-decoder
+	* CONFIG          += drm-decoder
+	* CONFIG          += mfsk-decoder
+
+Note that the "faad_drm" library is (only) needed for the drm decoder.
 
 The "DESTDIR" parameter in the unix section in the ".pro" file tells where the result is to be put.
+
+  5) Check the installation path to qwt. If you were downloading it from http://qwt.sourceforge.net/qwtinstall.html please mention the correct path in `qt-dab.pro` file (for other installation change it accordingly): 
+  ```
+  INCLUDEPATH += /usr/local/include  /usr/local/qwt-6.1.3
+  ````
+
+  6) Build and make
+  ```
+  qmake qt-dab.pro
+  make
+  ```
+
 
 -------------------------------------------------------------------------
 Windows
