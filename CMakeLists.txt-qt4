@@ -28,18 +28,16 @@ else ()
 endif()
 
 	add_definitions (-DHAVE_SDRPLAY)
-#	add_definitions (-DHAVE_HACKRF)
-#	add_definitions (-DHAVE_PMSDR)
-	add_definitions (-DHAVE_AM_DECODER)
-	add_definitions (-DHAVE_SSB_DECODER)
-	add_definitions (-DHAVE_CW_DECODER)
-	add_definitions (-DHAVE_AMTOR_DECODER)
-	add_definitions (-DHAVE_PSK_DECODER)
-	add_definitions (-DHAVE_RTTY_DECODER)
-	add_definitions (-DHAVE_FAX_DECODER)
-	add_definitions (-DHAVE_MFSK_DECODER)
-	add_definitions (-DHAVE_DRM_DECODER)
-	add_definitions (-DESTIMATOR_1)
+        add_definitions (-DHAVE_AM_DECODER)
+        add_definitions (-DHAVE_SSB_DECODER)
+        add_definitions (-DHAVE_CW_DECODER)
+        add_definitions (-DHAVE_AMTOR_DECODER)
+        add_definitions (-DHAVE_PSK_DECODER)
+        add_definitions (-DHAVE_FAX_DECODER)
+        add_definitions (-DHAVE_MFSK_DECODER)
+        add_definitions (-DHAVE_DRM_DECODER)
+        add_definitions (-DESTIMATOR_1)
+
 	
 ########################################################################
 # select the release build type by default to get optimization flags
@@ -123,11 +121,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 #	Here we really start
 
 	include_directories (
-	           ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-	           ${QT5Widgets_INCLUDES}
-	           ${QT_QTCORE_INCLUDE_DIR}
-	           ${QT_QTGUI_INCLUDE_DIR}
-	           .
 	           ./
 	           decimators 
 	           filters 
@@ -138,6 +131,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	           devices/filereader 
 	           devices/sdrplay-handler
 	           devices/hackrf-handler
+	           devices/rtlsdr-handler
 	           decoders 
 	           decoders/am-decoder 
 	           decoders/ssb-decoder 
@@ -147,7 +141,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	           decoders/amtor-decoder 
 	           decoders/fax-decoder 
 	           decoders/mfsk-decoder
-	           decoders/drm-decoder 
+	         ./decoders/drm-decoder 
 	         ./decoders/drm-decoder/ 
 	         ./decoders/drm-decoder/signal-handling 
 	         ./decoders/drm-decoder/signal-handling/eq-1 
@@ -183,14 +177,17 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./scopes-qwt6/spectrogramdata.h 
 	   ./scopes-qwt6/waterfall-scope.h 
 	   ./scopes-qwt6/spectrum-scope.h 
-	   ./scopes-qwt6/fft-scope.h 
-	   ./devices/device-input.h 
-	   ./devices/filereader/filereader.h 
-	   ./devices/filereader/filehulp.h 
+	   ./scopes-qwt6/audio-scope.h
+	   ./scopes-qwt6/fft-scope.h
+           ./devices/device-handler.h
+           ./devices/filereader/filereader.h
+           ./devices/filereader/filehulp.h
+           ./devices/sdrplay-handler/sdrplay-handler.h
+           ./devices/sdrplay-handler/sdrplayselect.h
+	   ./devices/rtlsdr-handler/rtlsdr-handler.h
+	   ./devices/rtlsdr-handler/dongleselect.h
+	   ./devices/hackrf-handler/hackrf-handler.h
 	   ./decoders/virtual-decoder.h 
-	   ./devices/sdrplay-handler/sdrplay-handler.h 
-	   ./devices/sdrplay-handler/sdrplayselect.h
-	   ./devices/hackrf-handler/hackrf-handler.h 
 	   ./decoders/am-decoder/am-decoder.h
 	   ./decoders/ssb-decoder/ssb-decoder.h
 	   ./decoders/cw-decoder/cw-decoder.h
@@ -273,15 +270,18 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./scopes-qwt6/virtual-scope.cpp 
 	   ./scopes-qwt6/waterfall-scope.cpp 
 	   ./scopes-qwt6/spectrum-scope.cpp 
+	   ./scopes-qwt6/audio-scope.cpp
 	   ./scopes-qwt6/fft-scope.cpp 
 	   ./decimators/decimator.cpp 
-	   ./devices/device-input.cpp 
+	   ./devices/device-handler.cpp 
 	   ./devices/filereader/filereader.cpp 
 	   ./devices/filereader/filehulp.cpp 
-	   ./decoders/virtual-decoder.cpp 
 	   ./devices/sdrplay-handler/sdrplay-handler.cpp 
 	   ./devices/sdrplay-handler/sdrplayselect.cpp 
-	   ./devices/hackrf-handler/hackrf-handler.cpp 
+	   ./devices/rtlsdr-handler/rtlsdr-handler.cpp
+	   ./devices/rtlsdr-handler/dongleselect.cpp
+	   ./devices/hackrf-handler/hackrf-handler.cpp
+	   ./decoders/virtual-decoder.cpp
 	   ./decoders/am-decoder/am-decoder.cpp 
 	   ./decoders/ssb-decoder/ssb-decoder.cpp 
 	   ./decoders/cw-decoder/cw-decoder.cpp 
@@ -352,14 +352,17 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
            ./scopes-qwt6/spectrogramdata.h 
            ./scopes-qwt6/waterfall-scope.h 
            ./scopes-qwt6/spectrum-scope.h 
+	   ./scopes-qwt6/audio-scope.h
            ./scopes-qwt6/fft-scope.h 
-	   ./devices/device-input.h
-	   ./devices/sdrplay-handler/sdrplay-handler.h 
-	   ./devices/sdrplay-handler/sdrplayselect.h 
-	   ./devices/hackrf-handler/hackrf-handler.h 
-           ./decoders/virtual-decoder.h 
+	   ./devices/device-handler.h
 	   ./devices/filereader/filereader.h 
 	   ./devices/filereader/filehulp.h
+	   ./devices/sdrplay-handler/sdrplay-handler.h 
+	   ./devices/sdrplay-handler/sdrplayselect.h 
+	   ./devices/rtlsdr-handler/rtlsdr-handler.h
+	   ./devices/rtlsdr-handler/dongleselect.h
+	   ./devices/hackrf-handler/hackrf-handler.h
+           ./decoders/virtual-decoder.h 
 	   ./decoders/am-decoder/am-decoder.h 
 	   ./decoders/ssb-decoder/ssb-decoder.h 
 	   ./decoders/cw-decoder/cw-decoder.h 
@@ -371,7 +374,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-image.h 
 	   ./decoders/fax-decoder/fax-scroller.h 
 	   ./decoders/fax-decoder/fax-filenames.h 
-	   ./decoders/mfsk-decoder/mfsk-decoder.h
+	   ./decoders/mfsk-decoder/mfsk-decoder.h 
 	   ./decoders/drm-decoder/drm-decoder.h  
 	   ./decoders/drm-decoder/input/reader.h 
 	   ./decoders/drm-decoder/frame-processor.h 
@@ -379,30 +382,32 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/freqsyncer.h
 	   ./decoders/drm-decoder/word-collector.h
 	   ./decoders/drm-decoder/signal-handling/equalizer-base.h
-           ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h
-           ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h
-           ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h
+	   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h
+	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h
+	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h
 	   ./decoders/drm-decoder/data/mot-data.h
+	   ./decoders/drm-decoder/data/drm-aacdecoder.h 
 	   ./decoders/drm-decoder/data/data-processor.h
-	   ./decoders/drm-decoder/data/drm-aacdecoder.h
 	   ./decoders/drm-decoder/data/message-processor.h
 	)
 
 	set (${objectName}_UIS
 	        ${${objectName}_UIS}
-	   ./newradio.ui 
-	   ./devices/filereader/filereader-widget.ui
-	   ./devices/sdrplay-handler/sdrplay-widget.ui
-	   ./devices/hackrf-handler/hackrf-widget.ui
-	   ./decoders/am-decoder/am-decoder.ui
-	   ./decoders/ssb-decoder/ssb-decoder.ui
-	   ./decoders/cw-decoder/cw-decoder.ui
-	   ./decoders/amtor-decoder/amtor-widget.ui
-	   ./decoders/psk-decoder/psk-decoder.ui
-	   ./decoders/rtty-decoder/rtty-decoder.ui
-	   ./decoders/fax-decoder/fax-decoder.ui
-	   ./decoders/mfsk-decoder/mfsk-decoder.ui
-	   ./decoders/drm-decoder/drmdecoder.ui
+	   ./newradio.ui
+           ./devices/filereader/filereader-widget.ui
+           ./devices/sdrplay-handler/sdrplay-widget.ui
+           ./devices/rtlsdr-handler/rtlsdr-widget.ui
+           ./devices/hackrf-handler/hackrf-widget.ui
+           ./decoders/am-decoder/am-decoder.ui
+           ./decoders/ssb-decoder/ssb-decoder.ui
+           ./decoders/cw-decoder/cw-decoder.ui
+           ./decoders/amtor-decoder/amtor-widget.ui
+           ./decoders/psk-decoder/psk-decoder.ui
+           ./decoders/rtty-decoder/rtty-decoder.ui
+           ./decoders/fax-decoder/fax-decoder.ui
+           ./decoders/mfsk-decoder/mfsk-decoder.ui
+           ./decoders/drm-decoder/drmdecoder.ui
+
 	)
 
 	QT4_WRAP_UI (UIS ${${objectName}_UIS})
@@ -434,7 +439,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	                       ${RTLTCP_lib}
 	                       ${FFTW3F_LIBRARIES}
 	                       ${extraLibs}
-	                       ${FAAD_LIBRARIES}
 	                       ${CMAKE_DL_LIBS}
 	)
 
