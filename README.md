@@ -2,7 +2,14 @@
 
 swradio is  Software for Linux and windows for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
-It is currently under development
+
+For Linux there is a description of how to create an executable, it is written
+for Ubuntu, it is, however, simply to translate to scripts to be used with other
+distros. Furthermore there is an "appImage", to be found in the releases section
+(while the indicator at the top mentions "failure", the appImage is correct).
+
+For windows, there is an executable, derived from recent sources, in the releases
+section of the qt-dab repository.
 
 ------------------------------------------------------------------
 Introduction
