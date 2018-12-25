@@ -109,11 +109,11 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   set (extraLibs ${extraLibs} ${PTHREADS})
 	endif (NOT(PTHREADS))
 
-        find_package(Faad)
+        find_package(FaadDRM)
         if (NOT FAAD_FOUND )
-            message(FATAL_ERROR "please install libfaad")
+            message(FATAL_ERROR "please install libfaad_drm")
         endif ()
-        list(APPEND extraLibs ${LIBFAAD_drm_LIBRARY})
+        list(APPEND extraLibs ${FAAD_LIBRARY})
 
 
 #######################################################################
@@ -419,7 +419,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	          ${QT_QTGUI_INCLUDE_DIR}
 	          ${FFTW_INCLUDE_DIRS}
 	          ${PORTAUDIO_INCLUDE_DIRS}
-	          ${FAAD_INCLUDE_DIRS}
 	          ${SNDFILES_INCLUDE_DIRS}
 	)
 

@@ -224,11 +224,13 @@ following steps.
 
    ```
    cd ./swradio-8
-   cd faad2-2.8
+   tar zxvf faad2-2.8.8
+   cd faad2-2.8.8
    ./configure
    make
    sudo make install
    cd ..
+   rm -rf faad2-2.8.8
    ```
 
 4. Device support
@@ -266,12 +268,14 @@ and to comment out the lines
 
   c) To make life easy, the sources for the required rtlsdr library used are included in the source tree
   ```
+   tar zxvf rtl-sdr.tgz
    cd rtl-sdr/
    mkdir build
    cd build
    cmake ../ -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON
    make
    sudo make install
+   rm -rf rtl-sdr
    sudo ldconfig
    cd ..
    rm -rf build

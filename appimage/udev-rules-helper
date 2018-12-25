@@ -1,0 +1,39 @@
+#!/bin/bash
+
+HERE="$(dirname "$(readlink -f "${0}")")"
+
+rmmod dvb_usb_rtl28xxu || true
+
+cat > /tmp/10-rtl-sdr.rules <<\EOF
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2832", MODE="0666", SYMLINK+="rtl_sdr"
+EOF
+
+mv /tmp/10-rtl-sdr.rules /etc/udev/rules.d/10-rtl-sdr.rules
+
+cat > /tmp/53-hackrf.rules <<\EOF
+# HackRF Jawbreaker
+ATTR{idVendor}=="1d50", ATTR{idProduct}=="604b", SYMLINK+="hackrf-jawbreaker-%k", MODE="660"
+# HackRF One
+ATTR{idVendor}=="1d50", ATTR{idProduct}=="6089", SYMLINK+="hackrf-one-%k", MODE="660"
+# rad1o
+ATTR{idVendor}=="1d50", ATTR{idProduct}=="cc15", SYMLINK+="rad1o-%k", MODE="660"
+# NXP Semiconductors DFU mode (HackRF and rad1o)
+ATTR{idVendor}=="1fc9", ATTR{idProduct}=="000c", SYMLINK+="nxp-dfu-%k", MODE="660"
+# rad1o "full flash" mode
+KERNEL=="sd?", SUBSYSTEM=="block", ENV{ID_VENDOR_ID}=="1fc9", ENV{ID_MODEL_ID}=="0042", SYMLINK+="rad1o-flash-%k", MODE="660"
+# rad1o flash disk
+KERNEL=="sd?", SUBSYSTEM=="block", ENV{ID_VENDOR_ID}=="1fc9", ENV{ID_MODEL_ID}=="0082", SYMLINK+="rad1o-msc-%k", MODE="660"
+EOF
+
+mv /tmp/53-hackrf.rules /etc/udev/rules.d/53-hackrf.rules
+
+cat > /tmp/66-mirics.rules <<\EOF
+SUBSYSTEM=="usb",ENV{DEVTYPE}=="usb_device",ATTRS{idVendor}=="1df7",ATTRS{idProduct}=="2500",MODE:="0666"
+SUBSYSTEM=="usb",ENV{DEVTYPE}=="usb_device",ATTRS{idVendor}=="1df7",ATTRS{idProduct}=="3010",MODE:="0666"
+SUBSYSTEM=="usb",ENV{DEVTYPE}=="usb_device",ATTRS{idVendor}=="1df7",ATTRS{idProduct}=="3000",MODE:="0666"
+EOF
+
+mv /tmp/66-mirics.rules /etc/udev/rules.d/66-mirics.rules
+
+udevadm control --reload-rules
+udevadm trigger --attr-match=subsystem=usb
