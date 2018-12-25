@@ -211,8 +211,10 @@ Ubuntu Linux
 For generating an executable under Ubuntu (16.04 or newer) one may take the
 following steps.
 
-1. Download the source tree
-   git clone https://github.com/JvanKatwijk/swradio-8
+1. Download the source tree (it is assumed that you have a git client and cmake installed.
+   ```
+   git clone https://github.com/JvanKatwijk/swradio-8"\
+   ```
 
 2. Fetch needed components
    ```
@@ -273,7 +275,8 @@ and to comment out the lines
 
    to ensure non-root access to the device through usb.
 
-  c) To make life easy, the sources for the required rtlsdr library used are included in the source tree
+   c) To make life easy, the sources for the required rtlsdr library used are included in the source tree
+
   ```
    tar zxvf rtl-sdr.tgz
    cd rtl-sdr/
@@ -292,7 +295,7 @@ and to comment out the lines
    Make sure that a file exists in the `/etc/udev/rules.d` directory
    describing the device, allowing "ordinary" users to access the device.
 
-  d) Create a library for the hackrf device
+   d) Create a library for the hackrf device by downloading the sources and compiling
 
    ```
    git clone https://github.com/mossmann/hackrf
