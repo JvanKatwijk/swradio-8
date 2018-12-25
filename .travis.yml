@@ -32,7 +32,7 @@ install:
   - cmake .. -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON
   - make
   - sudo make install
-  - cd ..
+  - cd ../..
   - rm -rf rtl-sdr
   
   - ls -l
@@ -43,7 +43,7 @@ install:
   - cmake .. -DINSTALL_UDEV_RULES=ON
   - make
   - sudo make install
-  - cd ..
+  - cd ../..
   - rm -rf host
 
   - cp CMakeLists.txt-qt4 CMakeLists.txt
