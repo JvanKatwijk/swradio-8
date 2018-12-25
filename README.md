@@ -68,17 +68,18 @@ what I wanted to do at that time.
 
 And indeed, samples could be read with a speed of 192k, however,
 some internal filtering in the stupid computer halved the signal in bandwidth,
-so receiving a signal sampled at 192k, with a bandwidth of
-less than 96k was completely useless for FM decoding.
+so receiving a signal sampled at 192k gave me a signal with a bandwidth of
+less than 96k, ompletely useless for FM decoding!!
 
 Even further, when sampling on 96k, the band was halved as well,
 so the effective bandwidth then would only be 48k. 
-Of course a solution to get 96K was to decimate in software
-a signal sampled at 192k with a factor 2, but I was not amused.
+Of course a solution to get 96K was to decimate (in software)
+a signal sampled at 192k with a factor 2, but it was not why I bought the
+stupid thing.
 
 I'll not report on the discussion I had with the HP service desk
 (bad for my health), I cannot remember to have met such unwilling (ignorant?)
-people (and I can assure that I met lots of them).
+people (and I can assure you that I met lots of them).
 They, the HP people, (c/w)ould not confirm that the band was halved. They
 claimed that they did not have a program to verify my claim, so my claim
 was ("by definition") false. Seems a little silly for a large
