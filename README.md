@@ -80,11 +80,11 @@ stupid thing.
 I'll not report on the discussion I had with the HP service desk
 (bad for my health), I cannot remember to have met such unwilling (ignorant?)
 people (and I can assure you that I met lots of them).
-They, the HP people, (c/w)ould not confirm that the band was halved. They
+They, the HP people, (c/w)ould not confirm or falsify that the band was halved. They
 claimed that they did not have a program to verify my claim, so my claim
 was ("by definition") false. Seems a little silly for a large
 organization like HP. 
-Of course, my programs showing the bandwidth/samplerates were not from HP, so results
+Of course, the programs that I wrote to show the bandwidth/samplerates were mine, not from HP, so results
 I sent them (nice spectrum pictures) were "not admissable as evidence", so after
 some talking they decided that there was no problem whatsoever, so no need to communicate
 further. Needless to say that I'll never buy an HP laptop again.
