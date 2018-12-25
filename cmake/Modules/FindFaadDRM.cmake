@@ -6,12 +6,13 @@
 # FAAD_FOUND - True if libfaad_drm found.
 
 find_path(FAAD_INCLUDE_DIR faad.h DOC "The directory where faad.h resides")
-find_library(FAAD_LIBRARY NAMES faad DOC "The libfaad library")
+find_library(FAAD_LIBRARY NAMES faad_drm DOC "The libfaad library")
 
 if(FAAD_INCLUDE_DIR AND FAAD_LIBRARY)
   set(FAAD_FOUND 1)
   set(FAAD_LIBRARIES ${FAAD_LIBRARY})
   set(FAAD_INCLUDE_DIRS ${FAAD_INCLUDE_DIR})
+  MESSAGE (STATUS "Found Libfaad_drm: ${FAAD_LIBRARY}")
 else(FAAD_INCLUDE_DIR AND FAAD_LIBRARY)
   set(FAAD_FOUND 0)
   set(FAAD_LIBRARIES)
