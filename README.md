@@ -184,14 +184,11 @@ One may select among a number of different filterings:
 The input can be written to a file, that file can be processed later on.
 
 ------------------------------------------------------------------
-*Linux
+*Linux*
 ------------------------------------------------------------------
 
 The current version is developed under Linux (Fedora).
-A cross compiled version
-for Windows (no garantees) is available in the releases section.
-This version will run in the same environment (i.e. folder, directory) as the qt-dab software.
-
+For Ubuntu Linux, a description is given how to build an executable
 
 ------------------------------------------------------------------
 Ubuntu Linux
@@ -230,7 +227,7 @@ following steps.
 4. Device support
 
   a) if you have an SDRplay device, I assume you already have installed
-the library, otherwise visit "https://sdrplay.com"  and follow the instructions.
+the library, otherwise visit "www.sdrplay.com"  and follow the instructions.
 Make sure to uncomment in swradio-8.pro the line
 
 	CONFIG += sdrplay
@@ -317,12 +314,12 @@ Note that the "faad_drm" library is (only) needed for the drm decoder.
 
 The "DESTDIR" parameter in the unix section in the ".pro" file tells where the result is to be put.
 
-  5) Check the installation path to qwt. If you were downloading it from http://qwt.sourceforge.net/qwtinstall.html please mention the correct path in `qt-dab.pro` file (for other installation change it accordingly): 
+6. Check the installation path to qwt. If you were downloading it from http://qwt.sourceforge.net/qwtinstall.html please mention the correct path in `qt-dab.pro` file (for other installation change it accordingly): 
   ```
   INCLUDEPATH += /usr/local/include  /usr/local/qwt-6.1.3
   ````
 
-  6) Build and make
+7. Build and make
   ```
   qmake qt-dab.pro
   make
@@ -343,7 +340,7 @@ included, one has to obtain that from SDRplay.com
 # Copyright
 
 
-	Copyright (C)  2013, 2014, 2015, 2016, 2017
+	Copyright (C)  2013, 2014, 2015, 2016, 2017, 2018
 	Jan van Katwijk (J.vanKatwijk@gmail.com)
 	Lazy Chair Computing
 
