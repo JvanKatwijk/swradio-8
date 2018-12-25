@@ -30,7 +30,10 @@ devices called "swradio-extio".
 
 If a configured device is connected to the computer where the program runs,
 the device will be connected and opened. If no device is detected,
-it is assumed that file input is requested
+it is assumed that file input is requested and a file selection menu will appear.
+
+Input files in PCM format, with a 2 channel, 96000 samples/second configuration
+will be accepted.
 
 --------------------------------------------------------------------------
 Using rtlsdr based devices
@@ -43,11 +46,14 @@ This library makes it possible to use frequencies as low as 14 MHz.
 
 ![swradio-8](/swradio-rtlsdr-drm.png?raw=true)
 
+It is obvious that reception will improve if some form of filtering is applied
+to the input, e.g. a tuned loop.
+
 -------------------------------------------------------------------------
 Using a pmSDR device and a soundcard
 -------------------------------------------------------------------------
 
-I dusted off my old pmSDR, from the era that the data was entering the
+I dusted off my old pmSDR, dating from the era that the data was entering the
 computer through the soundcard. Now, in that time I bought an HP Pavilion
 since - according to the specs - it could deliver samples with a rate
 of 192K, sufficient to do experiments with FM demodulation, which is
@@ -75,14 +81,15 @@ I sent them (nice spectrum pictures) were "not admissable as evidence", so after
 some talking they decided that there was no problem whatsoever, so no need to communicate
 further. Needless to say that I'll never buy an HP laptop again.
 
-Anyway, for using a soundcard, I had to buy an external card, an EMU-2-2.
-It works well under Linux and at the time it worked on W7.
+Anyway, for using a soundcard, I had to buy an external card, an EMU-202 with
+which I did all kinds of FM decoding at the time in combination with the pmSDR.
+Here we need "only" 96k, it works well under Linux and at the time it worked on W7.
 However, it does not like Windows-10, using it under W10 leads to a crash.
 
 ![swradio-8](/swradio-pmsdr-drm.png?raw=true)
 
 --------------------------------------------------------------------------
-Using extio devices with soundcard*
+Using extio devices with soundcard
 ---------------------------------------------------------------------------
 
 One of the windows versions of the swradio software is set
@@ -113,7 +120,7 @@ programs. Absolutely one of my favorites.
 ![swradio-8](/swradio-sdrplay.png?raw=true)
 
 -----------------------------------------------------------------------------
-*Preferred frequencies*
+Preferred frequencies
 -----------------------------------------------------------------------------
 
 Preferred frequencies
@@ -128,7 +135,7 @@ Selecting such a "preferred program" is just by clicking the mouse on
 the programname or the associated field with the frequency.
 
 ----------------------------------------------------------------------------
-*Frequency selection*
+Frequency selection
 ----------------------------------------------------------------------------
 
 Frequency selection is with a keypad, separated from the main widget,
@@ -145,14 +152,14 @@ As a "quick" help, a button "middle" is present that, when pressed - will set th
 that the selected frequency is in the middle of the right half of the spectrum display.
 
 ----------------------------------------------------------------------------
-*Waterfall displays*
+Waterfall displays
 -----------------------------------------------------------------------------
 
 Note that clicking the right mouse button on any of the two displays, that display will switch from spectrum
 to waterfall display (or vice-versa).
 
 ------------------------------------------------------------------------------
-*Implemented decoders*
+Implemented decoders
 -----------------------------------------------------------------------------
 
 *Decoders** are:
@@ -184,7 +191,7 @@ One may select among a number of different filterings:
 The input can be written to a file, that file can be processed later on.
 
 ------------------------------------------------------------------
-*Linux*
+Linux
 ------------------------------------------------------------------
 
 The current version is developed under Linux (Fedora).
