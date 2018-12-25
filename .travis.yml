@@ -35,6 +35,7 @@ install:
   - cd ..
   - rm -rf rtl-sdr
   
+  - ls -l
   - tar zxvf hackrf.tgz
   - cd host
   - mkdir build
