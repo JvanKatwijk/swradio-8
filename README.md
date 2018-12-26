@@ -7,6 +7,10 @@ For Linux there is a description of how to create an executable, it is written
 for Ubuntu, it is, however, simply to translate to scripts to be used with other
 distros. Furthermore there is an "appImage", to be found in the releases section
 (while the indicator at the top mentions "failure", the appImage is correct).
+The appImage was created - using the travis service - in an Ubuntu 14 environment,
+it contains the required libraries and should run on any more or less recent Linux
+environment. (Note that a passwd is asked form since the software tries to install
+the udev rules for the devices).
 
 For windows, there is an executable, derived from recent sources, in the releases
 section of the qt-dab repository.
