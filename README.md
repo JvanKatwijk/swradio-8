@@ -73,8 +73,10 @@ what I wanted to do at that time.
 And indeed, samples could be read with a speed of 192k, however,
 some internal filtering in the stupid computer halved the signal in bandwidth,
 so receiving a signal sampled at 192k gave me a signal with a bandwidth of
-less than 96k, ompletely useless for FM decoding!!
+less than 96k, completely useless for FM decoding (it is a time ago
+but still pretty frustrated about it).
 
+(*frustrated:)
 Even further, when sampling on 96k, the band was halved as well,
 so the effective bandwidth then would only be 48k. 
 Of course a solution to get 96K was to decimate (in software)
@@ -91,7 +93,7 @@ organization like HP.
 Of course, the programs that I wrote to show the bandwidth/samplerates were mine, not from HP, so results
 I sent them (nice spectrum pictures) were "not admissable as evidence", so after
 some talking they decided that there was no problem whatsoever, so no need to communicate
-further. Needless to say that I'll never buy an HP laptop again.
+further. Needless to say that I'll never buy an HP laptop again. (*end of frustrated)
 
 Anyway, for using a soundcard, I had to buy an external card, an EMU-202 with
 which I did all kinds of FM decoding at the time in combination with the pmSDR.
@@ -218,7 +220,7 @@ following steps.
 
 1. Download the source tree (it is assumed that you have a git client and cmake installed.
    ```
-   git clone https://github.com/JvanKatwijk/swradio-8"\
+   git clone https://github.com/JvanKatwijk/swradio-8
    ```
 
 2. Fetch needed components
@@ -234,11 +236,11 @@ following steps.
 
 3. Create the faad_drm library if you want to use the drm decoder.
    To make life easy, the sources for the faad library are included
-   in the source tree
+   in the source tree (packed).
 
    ```
    cd ./swradio-8
-   tar zxvf faad2-2.8.8
+   tar zxvf faad2-2.8.8.tar.gz
    cd faad2-2.8.8
    ./configure
    make
@@ -280,7 +282,8 @@ and to comment out the lines
 
    to ensure non-root access to the device through usb.
 
-   c) To make life easy, the sources for the required rtlsdr library used are included in the source tree
+   c) To make life easy, the sources for the required -non-standard - rtlsdr library used are included in the source tree,
+   again as a packed file.
 
   ```
    tar zxvf rtl-sdr.tgz
@@ -313,7 +316,8 @@ and to comment out the lines
   ```
 
    Make sure that a file exists in the `/etc/udev/rules.d` directory
-   describing the device, allowing "ordinary" users to access the device.
+   describing the device, allowing "ordinary" users to access the device. I.e.
+   add yourself to the "plugdev" group.
    
 5. Edit the `swradio-8.pro` file for configuring the supported devices and decoders.
    For the devices
@@ -350,13 +354,15 @@ The "DESTDIR" parameter in the unix section in the ".pro" file tells where the r
   qmake qt-dab.pro
   make
   ```
-
+Alternatively, you could use the "cmake" route. The file CMakeLists.txt-qt5 can be used for qt-5,
+the file CMakeLists.txt-qt4 is merely used for the construction of the appImage.
+The configurations here include the three mentioned "fast" devices.
 
 -------------------------------------------------------------------------
 Windows
 -------------------------------------------------------------------------
 
-The releases section *of the qt-dab repository* contains a zip file with executables, among which
+The releases section of the *qt-dab repository* contains a zip file with executables, among which
 an executable of swradio-8 and the required dll's. Note that the library for SDRplay support is not
 included, one has to obtain that from SDRplay.com
 
@@ -364,7 +370,6 @@ included, one has to obtain that from SDRplay.com
 --------------------------------------------------------------------------
 
 # Copyright
-
 
 	Copyright (C)  2013, 2014, 2015, 2016, 2017, 2018
 	Jan van Katwijk (J.vanKatwijk@gmail.com)
