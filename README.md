@@ -76,7 +76,7 @@ so receiving a signal sampled at 192k gave me a signal with a bandwidth of
 less than 96k, completely useless for FM decoding (it is a time ago
 but still pretty frustrated about it).
 
-(*frustrated:)
+(*frustration section:*)
 Even further, when sampling on 96k, the band was halved as well,
 so the effective bandwidth then would only be 48k. 
 Of course a solution to get 96K was to decimate (in software)
@@ -93,7 +93,7 @@ organization like HP.
 Of course, the programs that I wrote to show the bandwidth/samplerates were mine, not from HP, so results
 I sent them (nice spectrum pictures) were "not admissable as evidence", so after
 some talking they decided that there was no problem whatsoever, so no need to communicate
-further. Needless to say that I'll never buy an HP laptop again. (*end of frustrated)
+further. Needless to say that I'll never buy an HP laptop again. (*end of frustration section*)
 
 Anyway, for using a soundcard, I had to buy an external card, an EMU-202 with
 which I did all kinds of FM decoding at the time in combination with the pmSDR.
