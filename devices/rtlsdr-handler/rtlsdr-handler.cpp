@@ -111,6 +111,8 @@ int	res;
 int16_t	deviceIndex;
 int16_t	i;
 int	inputRate;
+int	k;
+QString	temp;
 
 	this	-> myFrame	= new QFrame (NULL);
 	setupUi (this -> myFrame);
@@ -198,22 +200,37 @@ int	inputRate;
 
 	gainsCount = rtlsdr_get_tuner_gains (device, NULL);
 	gains	= new int [gainsCount];
-	fprintf(stderr, "Supported gain values (%d): ", gainsCount);
+	fprintf (stderr, "Supported gain values (%d): ", gainsCount);
 	gainsCount = rtlsdr_get_tuner_gains (device, gains);
-	for (i = 0; i < gainsCount; i++)
-	   fprintf(stderr, "%.1f ", gains [i] / 10.0);
-	rtlsdr_set_tuner_gain_mode (device, 1);
-	rtlsdr_set_tuner_gain (device, gains [gainsCount / 2]);
-	gainSlider	-> setMaximum (gainsCount);
-	gainSlider	-> setValue (gainsCount / 2);
+	for (i = gainsCount; i > 0; i++) {
+	   fprintf (stderr, "%.1f ", gains [i - 1] / 10.0);
+	   combo_gain -> addItem (QString::number (gains [i - 1]));
+	}
 
+	fprintf (stderr, "\n");
+
+	temp =
+	        rtlsdrSettings -> value ("externalGain", "10"). toString ();
+        k       = combo_gain -> findText (temp);
+        if (k != -1) {
+           combo_gain   -> setCurrentIndex (k);
+           theGain      = temp. toInt ();
+        }
+	else {
+	   combo_gain	-> setCurrentIndex (gainsCount / 2);
+	   theGain	= (combo_gain -> currentText ()). toInt ();
+	}
+	 
+	rtlsdr_set_tuner_gain_mode (device, 1);
+	rtlsdr_set_tuner_gain (device, theGain);
+	
 	d_filter	= new decimatingFIR (inputRate / outputRate * 5 - 1,
 	                                     - outputRate / 2,
 	                                     outputRate / 2,
 	                                     inputRate,
 	                                     inputRate / outputRate);
-	connect (gainSlider, SIGNAL (valueChanged (int)),
-	         this, SLOT (setExternalGain (int)));
+	connect (combo_gain, SIGNAL (activated (const QString &)),
+	         this, SLOT (setExternalGain (const QString &)));
 	connect (f_correction, SIGNAL (valueChanged (int)),
 	         this, SLOT (setCorrection (int)));
 	connect (checkAgc, SIGNAL (stateChanged (int)),
@@ -223,9 +240,7 @@ int	inputRate;
 //	the functions associated with the control
 	if (rtlsdrSettings != NULL) {
 	   rtlsdrSettings	-> beginGroup ("Stick");
-	   int	k	= rtlsdrSettings	-> value ("dab_externalGain", 24). toInt ();
-	   gainSlider	-> setValue (k);
-	   k		= rtlsdrSettings	-> value ("dab_correction", 0). toInt ();
+	   k	= rtlsdrSettings	-> value ("dab_correction", 0). toInt ();
 	   f_correction		-> setValue (k);
 
 	   rtlsdrSettings	-> endGroup ();
@@ -255,7 +270,7 @@ err:
 	if (open && libraryLoaded && rtlsdrSettings != NULL) {
 	   rtlsdrSettings	-> beginGroup ("Stick");
 	   rtlsdrSettings	-> setValue ("rtlsdr_externalGain",
-	                                             gainSlider -> value ());
+	                                             combo_gain -> currentText ());
 	   rtlsdrSettings	-> setValue ("rtlsdr_correction",
 	                                             f_correction -> value ());
 	   rtlsdrSettings	-> endGroup ();
@@ -337,19 +352,11 @@ void	rtlsdrHandler::stopReader	(void) {
 }
 //
 //
-void	rtlsdrHandler::setExternalGain	(int gain) {
-static int	oldGain	= 0;
-
-	if (gain == oldGain)
+void	rtlsdrHandler::setExternalGain	(const QString &s) {
+	if (!open || !libraryLoaded)
 	   return;
-
-	if ((gain < 0) || (gain >= gainsCount))
-	   return;	
-
-	oldGain	= gain;
-	rtlsdr_set_tuner_gain (device, gains [gain]);
-	(void)rtlsdr_get_tuner_gain (device);
-	gainDisplay	-> display (gain);
+        theGain         = s. toInt ();
+        rtlsdr_set_tuner_gain (device, theGain);
 }
 //
 

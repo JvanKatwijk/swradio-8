@@ -112,7 +112,7 @@ public:
 	void	newdataAvailable	(int);
 
 private slots:
-	void		setExternalGain	(int);
+	void		setExternalGain	(const QString &);
 	void		setCorrection	(int);
 	void		setAgc		(int);
 
@@ -129,6 +129,7 @@ private:
 	bool		open;
 	int16_t		gainsCount;
 	int		*gains;
+	int		theGain;
 //
 //	here we need to load functions from the dll
 	bool		load_rtlFunctions	(void);
