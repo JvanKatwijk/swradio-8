@@ -136,34 +136,36 @@ HKEY APIkey;
 wchar_t APIkeyValue [256];
 ULONG APIkeyValue_length = 255;
 
-	if (RegOpenKey (HKEY_LOCAL_MACHINE,
-	                TEXT("Software\\MiricsSDR\\API"),
-	                &APIkey) != ERROR_SUCCESS) {
-          fprintf (stderr,
-	           "failed to locate API registry entry, error = %d\n",
-	           (int)GetLastError());
-	   delete myFrame;
-	   throw (21);
-	}
-
-	RegQueryValueEx (APIkey,
-	                 (wchar_t *)L"Install_Dir",
-	                 NULL,
-	                 NULL,
-	                 (LPBYTE)&APIkeyValue,
-	                 (LPDWORD)&APIkeyValue_length);
-//	Ok, make explicit it is in the 64 bits section
-	wchar_t *x = wcscat (APIkeyValue, (wchar_t *)L"\\x86\\mir_sdr_api.dll");
-//	wchar_t *x = wcscat (APIkeyValue, (wchar_t *)L"\\x64\\mir_sdr_api.dll");
-//	fprintf (stderr, "Length of APIkeyValue = %d\n", APIkeyValue_length);
-//	wprintf (L"API registry entry: %s\n", APIkeyValue);
-	RegCloseKey(APIkey);
-
-	Handle	= LoadLibrary (x);
+	wchar_t *libname = (wchar_t *)L"mir_sdr_api.dll";
+	Handle  = LoadLibrary (libname);
 	if (Handle == NULL) {
-	  fprintf (stderr, "Failed to open mir_sdr_api.dll\n");
-	  delete myFrame;
-	  throw (22);
+	   if (RegOpenKey (HKEY_LOCAL_MACHINE,
+	                   TEXT("Software\\MiricsSDR\\API"),
+	                   &APIkey) != ERROR_SUCCESS) {
+              fprintf (stderr,
+	               "failed to locate API registry entry, error = %d\n",
+	               (int)GetLastError());
+	      delete myFrame;
+	      throw (21);
+	   }
+
+	   RegQueryValueEx (APIkey,
+	                    (wchar_t *)L"Install_Dir",
+	                    NULL,
+	                    NULL,
+	                    (LPBYTE)&APIkeyValue,
+	                    (LPDWORD)&APIkeyValue_length);
+//	Ok, make explicit it is in the 64 bits section
+	   wchar_t *x =
+	          wcscat (APIkeyValue, (wchar_t *)L"\\x86\\mir_sdr_api.dll");
+	   RegCloseKey(APIkey);
+
+	   Handle	= LoadLibrary (x);
+	   if (Handle == NULL) {
+	      fprintf (stderr, "Failed to open mir_sdr_api.dll\n");
+	      delete myFrame;
+	      throw (22);
+	   }
 	}
 #else
 	Handle		= dlopen ("libusb-1.0.so", RTLD_NOW | RTLD_GLOBAL);
