@@ -218,12 +218,10 @@ ULONG APIkeyValue_length = 255;
 	}
 
 	sdrplaySettings -> beginGroup ("sdrplaySettings");
-	ifgainSlider      -> setValue (
-                    sdrplaySettings -> value ("GRdB", 40). toInt ());
+	GRdBSelector      -> setValue (
+                    sdrplaySettings -> value ("sdrplay-ifgrdb", 40). toInt ());
 	lnaGainSetting          -> setValue (
                    sdrplaySettings -> value ("sdrplay-lnastate", 0). toInt ());
-//      show the value
-	GRdBDisplay             -> display (ifgainSlider -> value ());
 
         ppmControl      -> setValue (
                     sdrplaySettings -> value ("ppmOffset", 0). toInt ());
@@ -232,7 +230,7 @@ ULONG APIkeyValue_length = 255;
                     sdrplaySettings -> value ("sdrplay-agcMode", 0). toInt ();
         if (agcMode) {
            agcControl -> setChecked (true);
-           ifgainSlider         -> hide ();
+           GRdBSelector         -> hide ();
            gainsliderLabel      -> hide ();
         }
 
@@ -355,7 +353,7 @@ ULONG APIkeyValue_length = 255;
 	                           bankFor_rsp (lastFrequency)));
 
 //      and be prepared for future changes in the settings
-	connect (ifgainSlider, SIGNAL (valueChanged (int)),
+	connect (GRdBSelector, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_ifgainReduction (int)));
 	connect (lnaGainSetting, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_lnagainReduction (int)));
@@ -373,12 +371,10 @@ ULONG APIkeyValue_length = 255;
 	sdrplayHandler::~sdrplayHandler	(void) {
 	stopReader ();
 	sdrplaySettings -> beginGroup ("sdrplaySettings");
-	sdrplaySettings -> setValue   ("GRdBGain",
-	                                ifgainSlider -> value ());
 	sdrplaySettings -> setValue   ("ppmOffset",
 	                                ppmControl -> value ());
 	sdrplaySettings -> setValue ("sdrplay-ifgrdb",
-	                              ifgainSlider -> value ());
+	                              GRdBSelector -> value ());
         sdrplaySettings -> setValue ("sdrplay-lnastate",
                                             lnaGainSetting -> value ());
         sdrplaySettings -> setValue ("sdrplay-agcMode",
@@ -455,7 +451,7 @@ void	sdrplayHandler::setVFOFrequency		(quint64 newFrequency) {
 int	gRdBSystem;
 int	samplesPerPacket;
 mir_sdr_ErrT	err;
-int     GRdB            = ifgainSlider          -> value ();
+int     GRdB            = GRdBSelector          -> value ();
 int     lnaState        = lnaGainSetting        -> value ();
 
 	if (bank_rsp1 ((uint32_t)newFrequency) == -1)
@@ -517,7 +513,7 @@ quint64	sdrplayHandler::getVFOFrequency	(void) {
 
 void	sdrplayHandler::set_ifgainReduction (int newGain) {
 	(void)newGain;
-int	GRdB		= ifgainSlider	-> value ();
+int	GRdB		= GRdBSelector	-> value ();
 int	lnaState	= lnaGainSetting -> value ();
 mir_sdr_ErrT err;
 int	bank		= bankFor_rsp (getVFOFrequency ());
@@ -529,7 +525,6 @@ int	bank		= bankFor_rsp (getVFOFrequency ());
 	   fprintf (stderr, "Error is gain setting %s\n",
 	                           errorCodes (err). toLatin1 (). data ());
 	else {
-	   GRdBDisplay	-> display (GRdB);
 	   lnaGRdBDisplay -> display (get_lnaGRdB (hwVersion, lnaState, bank));
 	}
 }
@@ -610,7 +605,6 @@ void	myGainChangeCallback (uint32_t	GRdB,
 	                      uint32_t	lnaGRdB,
 	                      void	*cbContext) {
 sdrplayHandler	*p	= static_cast<sdrplayHandler *> (cbContext);
-	p -> GRdBDisplay	-> display ((int)GRdB);
 	(void)lnaGRdB;
 //	p -> lnaGRdBDisplay	-> display ((int)lnaGRdB);
 }
@@ -619,7 +613,7 @@ bool	sdrplayHandler::restartReader	(void) {
 int	gRdBSystem;
 int	samplesPerPacket;
 mir_sdr_ErrT	err;
-int	localGred	= ifgainSlider		-> value ();
+int	localGred	= GRdBSelector		-> value ();
 int	lnaState	= lnaGainSetting	-> value ();
 
 	if (running. load ())
@@ -646,7 +640,7 @@ int	lnaState	= lnaGainSetting	-> value ();
            my_mir_sdr_AgcControl (this -> agcMode,
                                   -30,
                                   0, 0, 0, 0, lnaGainSetting -> value ());
-           ifgainSlider         -> hide ();
+           GRdBSelector         -> hide ();
            gainsliderLabel      -> hide ();
         }
 
@@ -865,12 +859,12 @@ void	sdrplayHandler::agcControl_toggled (int agcMode) {
 	my_mir_sdr_AgcControl (this -> agcMode,
 	                -30, 0, 0, 0, 0, lnaGainSetting -> value ());
 	if (agcMode == 0) {
-	   ifgainSlider         -> show ();
+	   GRdBSelector         -> show ();
 	   gainsliderLabel      -> show ();
 	   set_ifgainReduction (0);
         }
         else {
-	   ifgainSlider         -> hide ();
+	   GRdBSelector         -> hide ();
 	   gainsliderLabel      -> hide ();
 	}
 }
