@@ -3,7 +3,7 @@
 ######################################################################
 TEMPLATE = app
 QT	+= widgets
-CONFIG	+= console
+CONFIG	-= console
 TARGET	= swradio-8.0
 QMAKE_CFLAGS	+= -ffast-math -g
 QMAKE_CXXFLAGS	+= -ffast-math -g
@@ -121,7 +121,7 @@ LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -l
 }
 
 win32 {
-DESTDIR		= ../../windows-bin
+DESTDIR		= ../../windows-swradio
 CONFIG		+= sdrplay
 CONFIG		+= hackrf
 CONFIG		+= rtlsdr
