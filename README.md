@@ -8,7 +8,7 @@ It is a rewrite and simplification of sdr-j-sw.
 Windows
 --------------------------------------------------------------------------------
 
-For Windows there is an installer, to be found in the releases section, for the swradio.
+For Windows there is an installer, to be found in the releases section, setup-swradio.exe, for the swradio.
 The installer will install an executable as well as the required dll's. The installer
 will call the official installer for the dll implementing the api to get access to the
 SDRplay device.
