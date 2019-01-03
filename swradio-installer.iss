@@ -49,7 +49,22 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 procedure install_sdrplayApi;
 var
     resultCode : Integer;
-begin
-   Exec (ExpandConstant('{app}\SDRplay_RSP_API-Windows-2.13.1.exe'), '', '', SW_SHOWNORMAL,
-    ewWaitUntilTerminated, ResultCode)
+    Names      : TArrayOfString;
+    I          : Integer;
+    found      : Boolean;
+
+ begin
+
+    RegGetSubkeyNames(HKEY_LOCAL_MACHINE, 'SOFTWARE\MiricsSDR', Names);
+    for I := 0 to GetArrayLength(Names)-1 do
+       if Names [I] = 'API' then found := true;
+
+    if not found
+    then
+       begin
+          MsgBox ('Software\MiricsSDR\API not found', mbInformation, MB_OK);
+          Exec (ExpandConstant('{app}\SDRplay_RSP_API-Windows-2.13.1.exe'), '', '', SW_SHOWNORMAL,
+          ewWaitUntilTerminated, ResultCode);
+       end
 end;
+
