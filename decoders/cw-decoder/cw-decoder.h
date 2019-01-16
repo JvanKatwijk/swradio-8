@@ -4,20 +4,20 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
+ *    This file is part of the swradio
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    swradio is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    swradio is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with swradio; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -32,11 +32,11 @@
 #include	"downconverter.h"
 #include	"fir-filters.h"
 #include	"ui_cw-decoder.h"
-#include	"fft-scope.h"
+#include	"waterfall-scope.h"
+#include	"fft.h"
 
 class	Oscillator;
 class	average;
-class	fftScope;
 class	QFrame;
 class	QSettings;
 
@@ -66,11 +66,17 @@ private slots:
 	void		cw_setFilterDegree	(int);
 	void		cw_setSquelchValue	(int);
 	void		cw_adjustFrequency	(int);
-	void		handle_amplitude        (int);
 	void		handleClick             (int);
 
 private:
-	fftScope	*cwViewer;
+	waterfallScope	*cwViewer;
+	double		*x_axis;
+	double		*y_values;
+	common_fft	*the_fft;
+	std::complex<float> *fftBuffer;
+	int		screenwidth;
+	int		fillP;
+	decimatingFIR	*theFilter;
 	int32_t		theRate;
 	QFrame		*myFrame;
 	RingBuffer<std::complex<float>> inputBuffer;

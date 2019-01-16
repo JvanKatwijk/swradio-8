@@ -28,12 +28,12 @@
 
 float	goertzelFilter::Pass	 (float sample) {
 	s = sample + coeff * s_prev[0] - s_prev2[0];
-	s_prev2[0] = s_prev[0];
-	s_prev[0] = s;
-	n[0]++;
+	s_prev2 [0] = s_prev[0];
+	s_prev  [0] = s;
+	n [0]++;
 	s = sample + coeff * s_prev[1] - s_prev2[1];
-	s_prev2[1] = s_prev[1];
-	s_prev[1] = s;    
+	s_prev2 [1] = s_prev[1];
+	s_prev [1] = s;    
 	n[1]++;
 	N++;
 	active = (N / resetSamples) & 0x01;

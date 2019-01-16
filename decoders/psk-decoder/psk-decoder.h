@@ -4,23 +4,20 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Programming
  *
- *    This file is part of the SDR-J (JSDR).
- *    Many of the ideas as implemented in ESDR are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of swradio
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    swradio is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    swradio is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with swradio; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -33,9 +30,11 @@
 #include	"ui_psk-decoder.h"
 #include	"shifter.h"
 #include	<vector>
-#include	"fft-scope.h"
+#include	"fft.h"
+#include	"waterfall-scope.h"
 
 class	bandpassFIR;
+class	decimatingFIR;
 class	viterbi;
 class	QFrame;
 class	QSettings;
@@ -59,7 +58,6 @@ private slots:
 	void		psk_setSquelchLevel	(int);
 	void		psk_setMode		(const QString &);
 	void		psk_setFilterDegree	(int);
-	void		handle_amplitude	(int);
 	void		handleClick		(int);
 	
 private:
@@ -72,7 +70,14 @@ private:
 	   MODE_QPSK125 =	0112
 	};
 
-	fftScope	*pskViewer;
+	decimatingFIR	*theFilter;
+	waterfallScope	*pskViewer;
+	int		screenwidth;
+	double		*x_axis;
+	double		*y_values;
+	int		fillP;
+	common_fft	*the_fft;
+	std::complex<float> *fftBuffer;
 	int32_t		theRate;
 	RingBuffer<std::complex<float> > *audioData;
 	QSettings	*pskSettings;

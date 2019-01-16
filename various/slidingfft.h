@@ -27,7 +27,7 @@
 #include	"radio-constants.h"
 #include	<vector>
 
-#define	STABILIZER	0.9999
+#define	STABILIZER	0.999
 /*
  *	a sliding FFT
  */

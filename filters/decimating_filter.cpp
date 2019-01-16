@@ -69,7 +69,7 @@ int	i;
 	if (outp < outrate / 2) {
 	   *out = outbuffer [outp];
 	   outp += 1;
-	   success = true;
+	   success = true;	
 	}
 
 	inbuffer   [inrate / 2 + inp] = in;

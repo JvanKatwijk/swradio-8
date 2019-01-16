@@ -42,6 +42,7 @@ HEADERS += ./radio-constants.h \
            ./various/fft.h \
 	   ./various/shifter.h \
 	   ./various/utilities.h \
+	   ./various/slidingfft.h \
 	   ./various/program-list.h \
 	   ./various/popup-keypad.h \
 	   ./various/s-meter.h \
@@ -78,6 +79,7 @@ SOURCES += ./main.cpp \
 	   ./various/s-meter.cpp \
            ./various/shifter.cpp \
 	   ./various/utilities.cpp \
+	   ./various/slidingfft.cpp \
 	   ./various/program-list.cpp \
 	   ./various/downconverter.cpp \
            ./filters/fft-filters.cpp \
@@ -304,11 +306,9 @@ mfsk-decoder {
         FORMS           += ./decoders/mfsk-decoder/mfsk-decoder.ui
         HEADERS         += ./decoders/mfsk-decoder/mfsk-decoder.h \
 	                   ./decoders/mfsk-decoder/goertzel-filter.h \
-	                   ./decoders/mfsk-decoder/slidingfft.h \
 	                   ./decoders/mfsk-decoder/interleave.h
         SOURCES         += ./decoders/mfsk-decoder/mfsk-decoder.cpp \
 	                   ./decoders/mfsk-decoder/goertzel-filter.cpp \
-	                   ./decoders/mfsk-decoder/slidingfft.cpp \
 	                   ./decoders/mfsk-decoder/interleave.cpp
 }
 

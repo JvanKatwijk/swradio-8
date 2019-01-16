@@ -4,28 +4,26 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Programming
  *
- *    This file is part of the SDR-J (JSDR).
+ *    This file is part of swradio
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    swradio is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    swradio is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with swradio; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
 #include	<QFrame>
 #include	<QSettings>
 #include	"cw-decoder.h"
-#include	"fir-filters.h"
-#include	"fft-scope.h"
 #include	"utilities.h"
 
 #define	USECS_PER_SEC		1000000
@@ -60,26 +58,32 @@ extern const char *const codetable [];
 	myFrame         -> show (); //
 	workingRate     = 2000;
 	setup_cwDecoder (workingRate);
-	cwViewer	= new fftScope (cwScope,
-	                                128,
-	                                  1,
-	                                512,
-	                                 50,
-	                                  8);
-	cwViewer	-> setScope (0, 0);
-	cwViewer	-> switch_viewMode ();
-	handle_amplitude (amplitudeSlider -> value ());
-	connect (amplitudeSlider, SIGNAL (valueChanged (int)),
-                 this, SLOT (handle_amplitude (int)));
+	screenwidth     = 128;
+        x_axis          = new double [screenwidth];
+        for (int i = 0; i < screenwidth; i ++)
+           x_axis [i] = - screenwidth / 2 + i;
+        y_values        = new double [screenwidth];
+
+	fillP		= 0;
+        theFilter       = new decimatingFIR (35, screenwidth / 2, workingRate, 8);
+        cwViewer       = new waterfallScope (cwScope,
+                                             screenwidth, 30);
+        the_fft         = new common_fft (workingRate / 8);
+        fftBuffer       = the_fft -> getVector ();
+
 	connect (cwViewer, SIGNAL (clickedwithLeft (int)),
 	         this, SLOT (handleClick (int)));
 }
 
 	cwDecoder::~cwDecoder		(void) {
-	delete	SmoothenSamples;
-	delete	thresholdFilter;
-	delete	spaceFilter;
-	delete	myFrame;
+	delete		SmoothenSamples;
+	delete		thresholdFilter;
+	delete		spaceFilter;
+	delete		cwViewer;
+	delete		the_fft;
+	delete[]	x_axis;
+	delete[]	y_values;
+	delete		myFrame;
 }
 
 void	cwDecoder::setup_cwDecoder (int32_t rate) {
@@ -206,8 +210,8 @@ void	cwDecoder::speedAdjust () {
 }
 
 void	cwDecoder::process (std::complex<float> z) {
-	processBuffer (&z, 1);
 	audioOut	-> putDataIntoBuffer (&z, 1);
+	processBuffer (&z, 1);
 	if (++CycleCount > theRate / 10){
 	   CycleCount	= 0;
 	   cw_showdotLength	(cwDotLength);
@@ -230,7 +234,7 @@ int32_t	i;
 
 	inputBuffer. putDataIntoBuffer (buffer, amount);
 	while ((int32_t)(inputBuffer. GetRingBufferReadAvailable ()) > inSize) {
-	   inputBuffer. getDataFromBuffer (inBuffer, inSize);
+	   inputBuffer.    getDataFromBuffer (inBuffer, inSize);
 	   inputConverter. convert_in (inBuffer);
 	   amount = inputConverter. hasData ();
 	   inputConverter. dataOut (outBuffer, amount);
@@ -244,14 +248,34 @@ DSPCOMPLEX	ret;
 int32_t	lengthOfTone;
 int32_t	lengthOfSilence;
 int32_t	t;
+int i;
 char	buffer [4];
 std::complex<float>	s;
+std::complex<float> res;
+std::complex<float>v [250];
 
 	s	= cw_BandPassFilter	-> Pass (s);
 	s	= localShifter. do_shift (z, cw_IF * 10);
 	value	=  abs (s);
 
-	cwViewer -> addElements (&s, 1);
+	if (theFilter -> Pass (s, &res)) {
+	   fftBuffer [fillP ++] = res;
+	   if (fillP >= workingRate / 16) {
+              for (i = fillP; i < workingRate / 8; i ++)
+                 fftBuffer [i] = std::complex<float> (0, 0);
+              the_fft -> do_FFT ();
+              for (i = 0; i < workingRate / 16; i ++) {
+                 v [i] = fftBuffer [workingRate / 16 + i];
+                 v [workingRate / 16 + i] = fftBuffer [i];
+              }
+              for (i = 0; i < screenwidth; i ++)
+                 y_values [i] =
+                        abs (v [workingRate / 16 - screenwidth / 2 + i]);
+              cwViewer -> display (x_axis, y_values,
+                                 amplitudeSlider -> value (), 0, 0);
+              fillP     = 0;
+	   }
+	}
 	if (value > agc_peak)
 	   agc_peak = decayingAverage (agc_peak, value, 50.0);
 	else
@@ -548,12 +572,8 @@ void    cwDecoder::cw_adjustFrequency (int f) {
 	
 }
 
-void    cwDecoder::handle_amplitude   (int a) {
-        cwViewer       -> setLevel (a);
-}
-
 void    cwDecoder::handleClick (int a) {
-        adjustFrequency (4 * a);
+        adjustFrequency (a);
 }
 
 

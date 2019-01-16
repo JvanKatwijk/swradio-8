@@ -4,20 +4,20 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Programming
  *
- *    This file is part of the SDR-J (JSDR).
+ *    This file is part of the swradio
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    swradio is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    swradio is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with swradio; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
@@ -61,16 +61,19 @@
 	myFrame		-> show ();
 
 	setup_pskDecoder (rate);
-	pskViewer       = new fftScope (pskScope,
-                                        128,
-                                          1,
-                                        512,
-                                         50,
-                                          8);
-        pskViewer       -> setScope (0, 0);
-	pskViewer       -> switch_viewMode  ();
-        connect (amplitudeSlider, SIGNAL (valueChanged (int)),
-                 this, SLOT (handle_amplitude (int)));
+	screenwidth	= 128;
+	x_axis		= new double [screenwidth];
+	for (int i = 0; i < screenwidth; i ++)
+	   x_axis [i] = - screenwidth / 2 + i;
+	y_values	= new double [screenwidth];
+
+	theFilter	= new decimatingFIR (35, screenwidth / 2, PSKRATE, 8);
+	pskViewer       = new waterfallScope (pskScope,
+	                                      screenwidth, 30);
+	the_fft		= new common_fft (PSKRATE / 8);
+	fftBuffer	= the_fft -> getVector ();
+	connect (pskViewer, SIGNAL (clickedwithLeft (int)),
+                 this, SLOT (handleClick (int)));
 	psk_setup ();
 
 	restore_GUISettings (pskSettings);
@@ -94,6 +97,7 @@
 	connect (pskFilterDegreeTrigger, SIGNAL (valueChanged (int)),
 	         this, SLOT (psk_setFilterDegree (int)));
 	psk_clrText ();
+	fillP	= 0;
 }
 //
 //
@@ -113,6 +117,9 @@
 	delete		viterbiDecoder;
 	delete		BPM_Filter;
 	delete[]	pskBuffer;	
+	delete[]	x_axis;
+	delete[]	y_values;
+	delete		the_fft;
 	myFrame		-> hide ();
 	delete		myFrame;
 }
@@ -186,19 +193,6 @@ void	pskDecoder::psk_setup (void) {
 	                                           PSK_IF - speedofPskMode (),
 	                                           PSK_IF + speedofPskMode (),
 	                                           theRate);
-	delete pskViewer;
-	pskViewer       = new fftScope (pskScope,
-	                                PSKRATE / 4 / DecimatingCountforpskMode (),
-                                          1,
-	                                PSKRATE / 2 / DecimatingCountforpskMode  (),
-                                         50,
-                                          8);
-        pskViewer       -> setScope (0, 0);
-	pskViewer       -> switch_viewMode  ();
-        connect (amplitudeSlider, SIGNAL (valueChanged (int)),
-                 this, SLOT (handle_amplitude (int)));
-	connect (pskViewer, SIGNAL (clickedwithLeft (int)),
-	         this, SLOT (handleClick (int)));
 }
 
 bool	pskDecoder::isBinarypskMode () {
@@ -303,6 +297,7 @@ std::complex<float>	old_z;
 std::complex<float>	out [256];
 uint16_t	i;
 int16_t		cnt;
+std::complex<float> v [PSKRATE / 8];
 
 	if (++pskCycleCount > theRate / 10) {
 	   pskCycleCount	= 0;
@@ -326,18 +321,34 @@ int16_t		cnt;
 
 static	bool decCnt	= false;
 
-	for (i = 0; i < cnt; i ++) {
 //	Now we are on PSKRATE 
+	for (i = 0; i < cnt; i ++) {
+	   int j;
+	   std::complex<float> res;
+	   if (theFilter -> Pass (out [i], &res)) {
+	      fftBuffer [fillP ++] = cmul (res, 5);
+	      if (fillP < PSKRATE / 16)
+	         continue;
+	      for (j = fillP; j < PSKRATE / 8; j ++)
+	         fftBuffer [j] = std::complex<float> (0, 0);
+	      the_fft -> do_FFT ();
+	      for (j = 0; j < PSKRATE / 16; j ++) {
+                 v [j] = fftBuffer [PSKRATE / 16 + j];
+                 v [PSKRATE / 16 + j] = fftBuffer [j];
+              }
+	      for (j = 0; j < screenwidth; j ++)
+	         y_values [j] = 
+	                abs (v [PSKRATE / 16 - screenwidth / 2 + j]);
+	      pskViewer -> display (x_axis, y_values,
+	                            amplitudeSlider -> value (), 0, 0);
+	      fillP	= 0;
+	   }
+	}
+
+	for (i = 0; i < cnt; i ++) {
 	   if (++pskDecimatorCount < this -> DecimatingCountforpskMode ()) 
 	      continue;
 	   doDecode (out [i]);
-	   if (decCnt) {
-	      std::complex<float> xx = std::complex<float> (
-	                                  real (out [i]) * 2048,
-	                                  imag (out [i]) * 2048);
-	      pskViewer	-> addElements (&xx, 1);
-	   }
-	   decCnt = !decCnt;
 	}
 }
 
@@ -611,10 +622,6 @@ int	k;
 	                                                          toInt ();
 	pskFilterDegreeTrigger	-> setValue (k);
 	pskSettings		-> endGroup ();
-}
-
-void    pskDecoder::handle_amplitude   (int a) {
-        pskViewer       -> setLevel (a);
 }
 
 void	pskDecoder::handleClick	(int a) {
