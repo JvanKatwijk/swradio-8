@@ -39,10 +39,7 @@
 	for (int i = 0; i < samplesperSymbol; i ++)
 	   x_axis [i] = i - samplesperSymbol / 2;
 	y_values		= new double [samplesperSymbol];
-	theFilter		= new decimatingFIR (155, 50, inputRate, inputRate / 120);
-	theSlider		= new slidingFFT (240,
-	                                           60 - samplesperSymbol / 2,
-	                                           60 + samplesperSymbol / 2 - 1);
+	theFilter		= new decimatingFIR (55, 100, inputRate, inputRate / 120);
 	the_fft			= new common_fft (240);
 	fftBuffer		= the_fft	-> getVector ();
 	theCache		= new Cache (samplesperSymbol,
@@ -53,6 +50,9 @@
 	cacheLineP		= 0;
 	fillP			= 0;
 	cacheSize		= 30;
+
+	connect (Viewer, SIGNAL (clickedwithLeft (int)),
+	         this, SLOT (handleClick (int)));
 }
 
 	testDecoder::~testDecoder (void) {
@@ -74,7 +74,7 @@ std::complex<float> res;
 std::complex<float> v [240];
 
 	if (theFilter -> Pass (z, &res)) {
-	   fftBuffer [fillP++] = res;
+	   fftBuffer [fillP++] = cmul (res, 3);
 	   if (fillP < 60)
 	      return;
 
@@ -94,12 +94,17 @@ std::complex<float> v [240];
 	      y_values [i] = abs (theCache -> cacheElement (cacheLineP, i));
 
 	   Viewer -> display (x_axis, y_values,
-	                         amplitudeSlider -> value (),
-	                         0, 0);
+	                      amplitudeSlider -> value (),
+	                      0, 0);
 	   cacheLineP ++;
 	   if (cacheLineP >= cacheSize)
 	      cacheLineP = 0;
 	   fillP = 0;
 	}
+}
+
+void    testDecoder::handleClick (int a) {
+	fprintf (stderr, "handling click for %d\n", a);
+        adjustFrequency (a / 2);
 }
 

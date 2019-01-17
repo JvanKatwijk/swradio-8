@@ -27,7 +27,6 @@
 #include 	"virtual-decoder.h"
 #include	"ui_test-decoder.h"
 #include	"fir-filters.h"
-#include	"slidingfft.h"
 #include	"fft.h"
 #include	"waterfall-scope.h"
 
@@ -46,14 +45,13 @@ public:
 
 
 private:
-	int	fillP;
+	int		fillP;
 	QFrame		*myFrame;
 	decimatingFIR	*theFilter;
 	int32_t		inputRate;
 	int32_t		outputRate;
 	int32_t		samplesperSymbol;
 	int32_t		counter;
-	slidingFFT	*theSlider;
 	common_fft	*the_fft;
 	std::complex<float> *fftBuffer;
 	Cache		*theCache;
@@ -62,6 +60,8 @@ private:
 	waterfallScope	*Viewer;
 	double		*x_axis;
 	double		*y_values;
+private	slots:
+	void		handleClick	(int);
 };
 
 #endif

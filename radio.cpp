@@ -416,6 +416,8 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	if (s == "test decoder") {
 	   theDecoder	= new testDecoder (decoderRate,
 	                                   audioData, settings);
+	   connect (theDecoder, SIGNAL (adjustFrequency (int)),
+	            this, SLOT (adjustFrequency_hz (int)));
 	}
 	else
 #endif
