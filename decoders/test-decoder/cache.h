@@ -7,25 +7,26 @@
 
 class	Cache {
 private:
-	int	rowBound;
-	int	columnBound;
+	int	nrows;
+	int	ncolums;
 	std::complex<float> **data;
 
 public:
-       Cache (int16_t a, int16_t b) {
+       Cache (int16_t ncolums, int16_t nrows) {
 int16_t i;
 
-        rowBound        = a;
-        columnBound     = b;
-        data            = new std::complex<float> *[a];
-        for (i = 0; i < a; i++)
-           data [i] = new std::complex<float> [b];
-	fprintf (stderr, "new cache with %d and %d\n", a, b);
+        this	-> ncolums	= ncolums;
+	this	-> nrows	= nrows;
+        data            = new std::complex<float> *[nrows];
+        for (i = 0; i < nrows; i++)
+           data [i] = new std::complex<float> [ncolums];
+	fprintf (stderr, "new cache with %d rows and %d colums\n",
+	                            nrows, ncolums);
 }
 
         ~Cache (void) {
 int     i;
-        for (i = 0; i < rowBound; i ++)
+        for (i = 0; i < nrows; i ++)
            delete[] data [i];
 
         delete[] data;

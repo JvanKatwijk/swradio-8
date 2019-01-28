@@ -33,23 +33,23 @@
 	myFrame	-> show ();
 	this	-> inputRate	= inRate;
 	this	-> outputRate	= 600;
-	this	-> samplesperSymbol	= 64;
+	this	-> samplesperSymbol	= 60;
 
 	x_axis			= new double [samplesperSymbol];
 	for (int i = 0; i < samplesperSymbol; i ++)
-	   x_axis [i] = i - samplesperSymbol / 2;
+	   x_axis [i] = (i * 0.73 - samplesperSymbol / 2 * 0.73);
 	y_values		= new double [samplesperSymbol];
-	theFilter		= new decimatingFIR (55, 100, inputRate, inputRate / 120);
-	the_fft			= new common_fft (240);
+	theFilter		= new decimatingFIR (55, 100, inputRate, inputRate / 750);
+	the_fft			= new common_fft (1024);
 	fftBuffer		= the_fft	-> getVector ();
 	theCache		= new Cache (samplesperSymbol,
-	                                     samplesperSymbol);
+	                                     4 * 162);
 	Viewer			= new waterfallScope (testSpectrum,
 	                                              samplesperSymbol, 30);
 	counter			= 30;
 	cacheLineP		= 0;
 	fillP			= 0;
-	cacheSize		= 30;
+	cacheSize		= 4 * 162;
 
 	connect (Viewer, SIGNAL (clickedwithLeft (int)),
 	         this, SLOT (handleClick (int)));
@@ -67,29 +67,40 @@ int	i;
 	for (i = 0; i < amount; i ++) 
 	   process (buffer [i]);
 }
-
+//
+//	The tone distance is 1.4648 Hz, the tone duration is
+//	1/1.4648 = 0.68 seconds.
+//	we want to be able to separate half tones, i.e. two bins
+//	per tone. This means a bin-width of 0.732 Hz.
+//	If we take an FFT of 1024 bins, that means a samplerate
+//	of 750. In order to get 4 lines for each tone instance, we
+//	need 750 * 0.68 * 0.25 samples to create an FFT, i.e. 127/128
+//	samples.
+//	
 void    testDecoder::process      (std::complex<float> z) {
 int i, j;
 std::complex<float> res;
-std::complex<float> v [240];
+std::complex<float> v [1024];
+static	bool switcher	= false;
 
 	if (theFilter -> Pass (z, &res)) {
-	   fftBuffer [fillP++] = cmul (res, 3);
-	   if (fillP < 60)
+	   fftBuffer [fillP++] = cmul (res, 2);
+	   if (fillP <  (switcher ? 128 : 127)) 
 	      return;
 
-	   for (i = fillP; i < 240; i ++)
+	   switcher = !switcher;
+	   for (i = fillP; i < 1024; i ++)
 	      fftBuffer [i] = std::complex<float> (0, 0);
 	   the_fft -> do_FFT ();
 
-	   for (i = 0; i < 120; i ++) {
-	      v [i] = fftBuffer [120 + i];
-	      v [120 + i] = fftBuffer [i];
+	   for (i = 0; i < 1024 / 2; i ++) {
+	      v [i] = fftBuffer [1024 / 2 + i];
+	      v [1024 / 2 + i] = fftBuffer [i];
 	   }
 
 	   for (i = 0; i < samplesperSymbol; i ++)
 	      (theCache -> cacheLine (cacheLineP)) [i] =
-	                      v [120 - samplesperSymbol / 2 + i];
+	                      v [1024 / 2 - samplesperSymbol / 2 + i];
 	   for (i = 0; i < samplesperSymbol; i ++)
 	      y_values [i] = abs (theCache -> cacheElement (cacheLineP, i));
 
@@ -97,14 +108,32 @@ std::complex<float> v [240];
 	                      amplitudeSlider -> value (),
 	                      0, 0);
 	   cacheLineP ++;
-	   if (cacheLineP >= cacheSize)
+
+	   if (cacheLineP % 20 == 0) {
+	      int maxLine = -1;
+	      float maxLineSum = 0;
+	      for (i = 10; i < samplesperSymbol - 10; i ++) {
+	         float sum = 0;
+	         for (j = 0; j < 50; j ++)
+	            for (int k = 0; k < 8; k ++)
+	               sum += abs (theCache -> cacheElement (j, i + k));
+	         if (sum > maxLineSum) {
+	            maxLineSum = sum;
+	            maxLine    = i;
+	         }
+	      }
+	      fprintf (stderr, "maxLine = %d\n", maxLine);
+	   }
+	
+	   if (cacheLineP >= cacheSize) 
 	      cacheLineP = 0;
 	   fillP = 0;
+	   
 	}
 }
 
 void    testDecoder::handleClick (int a) {
 	fprintf (stderr, "handling click for %d\n", a);
-        adjustFrequency (a / 2);
+        adjustFrequency (a);
 }
 

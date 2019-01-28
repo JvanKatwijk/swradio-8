@@ -327,7 +327,7 @@ static	bool decCnt	= false;
 	   std::complex<float> res;
 	   if (theFilter -> Pass (out [i], &res)) {
 	      fftBuffer [fillP ++] = cmul (res, 5);
-	      if (fillP < PSKRATE / 16)
+	      if (fillP < PSKRATE / 40)
 	         continue;
 	      for (j = fillP; j < PSKRATE / 8; j ++)
 	         fftBuffer [j] = std::complex<float> (0, 0);
