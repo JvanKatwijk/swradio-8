@@ -58,9 +58,12 @@ SF_INFO	*sf_info;
 	                    f. toLatin1 (). data ());
 	   return;
 	}
-
 	samplesinFile	= sf_info	-> frames;
 	sampleRate	= sf_info	-> samplerate;
+	fileLength      = sf_seek (filePointer, 0, SEEK_END);
+        totalTime       = (float)fileLength / sampleRate;
+	sf_seek (filePointer, 0, SEEK_SET);
+
 	theRate		= rate;
 	numofChannels	= sf_info	-> channels;
 	readerOK	= true;
@@ -145,7 +148,10 @@ static	int cnt	= 0;
 
 	if (++cnt > 5) {
 	   currPos		= sf_seek (filePointer, 0, SEEK_CUR);
-	   emit set_progressBar (currPos * 100 / samplesinFile);
+	   float progress	= (float)currPos / fileLength;
+	   emit setProgress ((int)(progress * 100),
+	                              (float)currPos / sampleRate,
+	                              (float)totalTime);
 	   cnt = 0;
 	}
 	return	2 * n;

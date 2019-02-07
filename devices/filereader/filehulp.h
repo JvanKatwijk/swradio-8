@@ -57,13 +57,15 @@ virtual void		run		(void);
 	int32_t		sampleRate;
 	int16_t		bitsperSample;
 	int32_t		samplesinFile;
+	int32_t		totalTime;
+	int32_t		fileLength;
 	int32_t		currPos;
 	int16_t		numofChannels;
 	std::atomic<bool> running;
 	bool		resetRequest;
 signals:
 	void		dataAvailable	(int);
-	void		set_progressBar	(int);
+	void		setProgress	(int, float, float);
 };
 #endif
 

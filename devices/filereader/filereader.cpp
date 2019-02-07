@@ -37,6 +37,7 @@
 	this	-> myFrame	= new QFrame;
 	(void)s;
 	setupUi		(myFrame);
+	myFrame	-> show ();
 	myReader	= NULL;
 	QString	replayFile
 	              = QFileDialog::
@@ -46,12 +47,12 @@
 	                                  tr ("sound (*.wav)"));
 	replayFile	= QDir::toNativeSeparators (replayFile);
 	myReader	= new fileHulp (replayFile, rate, b);
-	connect (myReader, SIGNAL (set_progressBar (int)),
-	         this, SLOT (set_progressBar (int)));
+	connect (myReader, SIGNAL (setProgress (int, float, float)),
+	         this, SLOT (setProgress (int, float, float)));
 	connect (myReader, SIGNAL (dataAvailable (int)),
 	         this, SIGNAL (dataAvailable (int)));
 	nameofFile	-> setText (replayFile);
-	set_progressBar	(0);
+	setProgress	(0, 0, 0);
 	rateDisplay	-> display (theRate);
 	this	-> lastFrequency	= Khz (14070);
 	connect (resetButton, SIGNAL (clicked (void)),
@@ -64,14 +65,20 @@
 	if (myReader != NULL)
 	   delete myReader;
 	myReader	= NULL;
+	myFrame	-> hide ();
+	delete myFrame;
 }
 
 void	fileReader::handle_progressBar		(int f) {
 	myReader	-> setFileat (f);
 }
 
-void	fileReader::set_progressBar	(int f) {
-	progressBar	-> setValue (f);
+void	fileReader::setProgress	(int progress,
+	                         float  timelength, float playTime) {
+	progressBar	-> setValue (progress);
+	currentTime	-> display (timelength);
+	totalTime	-> display (playTime);
+	
 }
 
 bool	fileReader::restartReader		(void) {

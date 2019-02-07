@@ -1,6 +1,6 @@
 #
 /*
- *    Copyright (C) 2008, 2009, 2010
+ *    Copyright (C) 2010, 2011, 2012
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Programming
  *
@@ -24,49 +24,35 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __FILEREADER__
-#define	__FILEREADER__
+#ifndef	__GALOIS
+#define	__GALOIS
 
-#include	<QWidget>
-#include	<QFrame>
-#include	<QString>
-#include	"device-handler.h"
-#include	"ui_filereader-widget.h"
-#include	"ringbuffer.h"
+#include	<stdint.h>
 
-class	QLabel;
-class	QSettings;
-class	fileHulp;
-class	RadioInterface;
-/*
- */
-class	fileReader: public deviceHandler, public Ui_filereader {
-Q_OBJECT
+class	galois {
+private:
+	uint16_t mm;		/* Bits per symbol */
+	uint16_t gfpoly;
+	uint16_t codeLength;	/* Symbols per block (= (1<<mm)-1) */
+	uint16_t d_q;
+	uint16_t *alpha_to;	/* log lookup table */
+	uint16_t *index_of;	/* Antilog lookup table */
 public:
-		fileReader		(RadioInterface *,
-	                                 int32_t, 
-	                                 RingBuffer<std::complex<float>> *,
-	                                 QSettings *);
-		~fileReader		(void);
-	int32_t	getRate			(void);
-
-	bool	restartReader		(void);
-	void	stopReader		(void);
-	int16_t	bitDepth		(void);
-	void	exit			(void);
-	bool	isOK			(void);
-protected:
-	int32_t		setup_Device	(void);
-	QFrame		*myFrame;
-	fileHulp	*myReader;
-	QLabel		*indicator;
-	QLabel		*fileDisplay;
-	int32_t		lastFrequency;
-	int32_t		theRate;
-private slots:
-	void		reset		(void);
-	void		handle_progressBar (int);
-	void		setProgress	(int, float, float);
+		galois		(uint16_t mm, uint16_t poly);
+		~galois		(void);
+	int	modnn	(int);
+ 	uint16_t add_poly	(uint16_t a, uint16_t b);
+	uint16_t add_power	(uint16_t a, uint16_t b);
+	uint16_t multiply_poly	(uint16_t a, uint16_t b);	// a*b
+	uint16_t multiply_power	(uint16_t a, uint16_t b);
+	uint16_t divide_poly	(uint16_t a, uint16_t b); 	// a/b
+	uint16_t divide_power	(uint16_t a, uint16_t b);
+	uint16_t pow_poly	(uint16_t a, uint16_t n);	// a^n
+	uint16_t pow_power	(uint16_t a, uint16_t n);
+	uint16_t power2poly	(uint16_t a);
+	uint16_t poly2power	(uint16_t a);
+	uint16_t inverse_poly	(uint16_t a);
+	uint16_t inverse_power	(uint16_t a);
 };
 #endif
 
