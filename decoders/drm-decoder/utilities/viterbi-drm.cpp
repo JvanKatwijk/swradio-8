@@ -43,8 +43,18 @@ int16_t	i, j;
 
 	this	-> blockLength	= blockLength;
 
+
+	history = new int32_t *[blockLength + N_POLYS + 1];
+	Costs	= new float   *[blockLength + N_POLYS + 1];
+
+	for (i = 0; i < blockLength + N_POLYS + 1; i ++) {
+	   history [i]	= new int32_t [NumofStates];
+	   Costs [i]	= new float [NumofStates];
+	}
 	predecessor_for_0	= new int16_t [NumofStates];
 	predecessor_for_1	= new int16_t [NumofStates];
+
+//	indexTable	= new float [2 * NumofStates];
 //
 //	These tables give a mapping from (state * bit * Poly -> outputbit)
 	poly1_table	= new uint8_t [2 * NumofStates];
@@ -61,6 +71,7 @@ int16_t	i, j;
 	for (i = 0; i < 2; i ++)
 	   for (j = 0; j < NumofStates; j ++)
 	      poly3_table [i * NumofStates + j] = bitFor (j, Poly3, i);
+
 
 	poly4_table	= new uint8_t [2 * NumofStates];
 	for (i = 0; i < 2; i ++)
@@ -81,9 +92,12 @@ int16_t	i, j;
 	   predecessor_for_0 [i] = ((i << 1) + 00) & (NumofStates - 1);
 	   predecessor_for_1 [i] = ((i << 1) + 01) & (NumofStates - 1);
 	}
+
 }
 
 	viterbi_drm::~viterbi_drm (void) {
+int	i;
+
 	delete	[]	predecessor_for_0;
 	delete	[]	predecessor_for_1;
 	delete	[]	poly1_table;
@@ -92,10 +106,14 @@ int16_t	i, j;
 	delete	[]	poly4_table;
 	delete	[]	poly5_table;
 	delete	[]	poly6_table;
+	for (i = 0; i < blockLength + N_POLYS + 1; i ++)  {
+	   delete [] history [i];
+	   delete [] Costs [i];
+	}
+	delete [] history;
+	delete [] Costs;
 }
 //
-//	it shows that under windows it is not possible to
-//	allocate larger arrays on the stack.
 void	viterbi_drm::deconvolve (metrics *sym,
 	                         int16_t blockLength,
 	                         uint8_t *out) {
@@ -104,21 +122,21 @@ int32_t 	i;
 uint16_t	prev_0, prev_1;
 float	 	costs_0, costs_1;
 float		minimalCosts;
-int32_t		**history = new int32_t *[blockLength + N_POLYS + 1];
-	for (i = 0; i < blockLength + N_POLYS + 1; i ++)
-	   history [i] = new int32_t [NumofStates];
-
-float		**transCosts = new float *[blockLength + N_POLYS + 1];
-	for (i = 0; i < blockLength + N_POLYS + 1; i ++)
-	   transCosts [i] = new float [NumofStates];
-
 int32_t		sequence  [blockLength + N_POLYS + 1];
 
-	for (i = 0; i < blockLength + N_POLYS + 1; i ++) {
-	   memset (transCosts [i], 0, NumofStates * sizeof (float));
-	   memset (history [i], 0, NumofStates * sizeof (int16_t));
-	   sequence [i] = 0;
-	}
+	if (this -> blockLength != blockLength)
+	   fprintf (stderr, "expected %d, got %d\n",
+	                      this -> blockLength, blockLength);
+
+
+//int32_t	**history = new int32_t *[blockLength + N_POLYS + 1];
+//float	**Costs	= new float   *[blockLength + N_POLYS + 1];
+//
+//	for (i = 0; i < blockLength + N_POLYS + 1; i ++) {
+//	   history [i]	= new int32_t [NumofStates];
+//	   Costs [i]	= new float [NumofStates];
+//	}
+	memset (Costs [0], 0, NumofStates * sizeof (float));
 
 //	first step is to "pump" the soft bits into the state machine
 //	and compute the cost matrix.
@@ -134,15 +152,15 @@ int32_t		sequence  [blockLength + N_POLYS + 1];
 //	the previous state to the current state with the symbol "sym"
 //
 //	entrybit = 0, so the index for the cost function is prev_xx
-	      costs_0 = transCosts [i - 1][prev_0] +
+	      costs_0 = Costs [i - 1][prev_0] +
 	                costsFor (prev_0, &sym [N_POLYS * (i - 1)]);
-	      costs_1 = transCosts [i - 1][prev_1] +
+	      costs_1 = Costs [i - 1][prev_1] +
 	                costsFor (prev_1, &sym [N_POLYS * (i - 1)]);
 	      if (costs_0 < costs_1) {
-	         transCosts [i][cState] = costs_0;
+	         Costs [i][cState] = costs_0;
 	         history [i][cState] = prev_0;
 	      } else {
-	         transCosts [i][cState] = costs_1;
+	         Costs [i][cState] = costs_1;
 	         history [i][cState] = prev_1;
 	      }
 	   }
@@ -157,15 +175,15 @@ int32_t		sequence  [blockLength + N_POLYS + 1];
 //
 //	entrybit is here "1", so the index is id cost function
 //	is prev_xx + NumofStates
-	      costs_0 = transCosts [i - 1][prev_0] +
+	      costs_0 = Costs [i - 1][prev_0] +
 	                costsFor (prev_0 + NumofStates, &sym [N_POLYS * (i - 1)]);
-	      costs_1 = transCosts [i - 1][prev_1] +
+	      costs_1 = Costs [i - 1][prev_1] +
 	                costsFor (prev_1 + NumofStates, &sym [N_POLYS * (i - 1)]);
 	      if (costs_0 < costs_1) {
-	         transCosts [i][cState] = costs_0;
+	         Costs [i][cState] = costs_0;
 	         history [i][cState] = prev_0;
 	      } else {
-	         transCosts [i][cState] = costs_1;
+	         Costs [i][cState] = costs_1;
 	         history [i][cState] = prev_1;
 	      }
 	   }
@@ -176,8 +194,8 @@ int32_t		sequence  [blockLength + N_POLYS + 1];
 	minimalCosts	= INT_MAX;
 	bestState	= 0;
 	for (i = 0; i < NumofStates; i++) {
-	   if (transCosts [blockLength][i] < minimalCosts) {
-	      minimalCosts = transCosts [blockLength][i];
+	   if (Costs [blockLength][i] < minimalCosts) {
+	      minimalCosts = Costs [blockLength][i];
 	      bestState = i;
 	   }
 	}
@@ -186,19 +204,18 @@ int32_t		sequence  [blockLength + N_POLYS + 1];
  *	Trace back goes back to state 0, and builds up the
  *	sequence of decoded symbols
  */
-	for (i = blockLength + N_POLYS; i > 0; i --) 
+	for (i = blockLength; i > 0; i --) 
 	   sequence [i - 1] = history [i][sequence[i]];
 
 	for (i = 1; i <= blockLength; i++) 
 	   out [i - 1] = (sequence [i] >= NumofStates / 2) ? 01 : 00;
-//
-//	delete
-	for (i = 0; i < blockLength + N_POLYS + 1; i ++)
-	   delete [] history [i];
-	for (i = 0; i < blockLength + N_POLYS + 1; i ++)
-	   delete [] transCosts [i];
-	delete [] history;
-	delete [] transCosts;
+
+//	for (i = 0; i < blockLength + N_POLYS + 1; i ++)  {
+//	   delete [] history [i];
+//	   delete [] Costs [i];
+//	}
+//	delete [] history;
+//	delete [] Costs;
 }
 
 float	viterbi_drm::costsFor (uint16_t lIndex, metrics *sym) {

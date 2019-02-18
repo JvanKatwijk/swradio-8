@@ -55,8 +55,8 @@ int i, j,root, iprim;
 	                                   myGalois. poly2power (generator [j]),
 	                                   root);
 	         generator [j] = myGalois. add_poly (
-	                generator [j - 1],
-	                myGalois. power2poly (p1));
+	                                          generator [j - 1],
+	                                          myGalois. power2poly (p1));
 	      }
 	      else {
 	         generator [j] = generator [j - 1];

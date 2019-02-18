@@ -93,16 +93,15 @@ private:
 	                                 theSignal **, theSignal *);
 	bool		getFACdata	(smodeInfo *, theSignal **, facData *,
 	                                 float, DSPCOMPLEX **);
+	bool		process_sdc	(smodeInfo *, facData *, theSignal **);
 	void		addtoSuperFrame	(smodeInfo *, int16_t);
 	bool		isDatacell	(smodeInfo *,
 	                                 int16_t, int16_t, int16_t);
-	viterbi_drm	viterbiDecoder;
         Reader          my_Reader;              // single instance during life
 
+//	viterbi_drm	my_dummy;
 	wordCollector	*my_wordCollector;
 	referenceFrame	*my_referenceFrame;
-	facProcessor	*my_facProcessor;
-	sdcProcessor	*my_sdcProcessor;
 	mscProcessor	*my_mscProcessor;
 	mscConfig	*my_mscConfig;
 	int16_t		symbolsinFrame;

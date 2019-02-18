@@ -23,26 +23,34 @@
 #
 #ifndef	__SERVICEPARAMETERS
 #define	__SERVICEPARAMETERS
-
+#include	<QObject>
+#include	<QString>
 #include	<stdint.h>
+#include	"msc-config.h"
+class	drmDecoder;
 
-
-class	serviceParameters {
+class	serviceParameters: public QObject {
+Q_OBJECT
 public:
-		serviceParameters 	(void);
-		~serviceParameters 	(void);
-void		ServiceIdentifier	(uint8_t *v);
-void		ShortId 		(uint8_t *v);
-void		AudioCA 		(uint8_t *v);
-void		Language 		(uint8_t *v);
-void		AudioDataflag		(uint8_t *v);
-void		Servicedescriptor 	(uint8_t *v);
-void		DataCAindication 	(uint8_t *v);
+			serviceParameters 	(drmDecoder *, mscConfig *);
+			~serviceParameters 	(void);
+	void		ServiceIdentifier	(uint8_t *v);
+	void		ShortId 		(uint8_t *v);
+	void		AudioCA 		(uint8_t *v);
+	void		Language 		(uint8_t *v);
+	void		AudioDataflag		(uint8_t *v);
+	void		Servicedescriptor 	(uint8_t *v);
+	void		DataCAindication 	(uint8_t *v);
 private:
-bool		set;
-const char	*theLanguage;
-const char	*theProgrammeType;
-bool		AudioService;
+	bool		set;
+	const char	*theLanguage;
+	const char	*theProgrammeType;
+	bool		AudioService;
+	drmDecoder	*drm;
+	mscConfig	*msc;
+signals:
+	void		show_country		(QString);
+	void		show_programType	(QString);
 };
 #endif
 

@@ -29,7 +29,7 @@
 
 //	The wordCollector will handle segments of a given size,
 //	do all kinds of frequency correction (timecorrection
-//	is done in the syncer) and map them onto ofdm words.
+//	was done in the syncer) and map them onto ofdm words.
 //	
 //	The caller just calls upon "getWord" to get a new ofdm word
 //
@@ -101,6 +101,7 @@ float	timeOffsetFractional;
 	d = floor (timedelay + 0.5);
 	timeOffsetFractional	= timedelay - d;
 	timedelay		-= d;
+
 //	To take into account the fractional timing difference,
 //	keep it simple, just linear interpolation
 	int f = (int)(floor (buffer -> currentIndex)) & bufMask;
@@ -150,10 +151,9 @@ float	timeOffsetFractional;
 	}
 	else
 	   memcpy (out,
-	           &fft_vector [-K_min],
+	           &fft_vector [K_min],
 	           (K_max - K_min + 1) * sizeof (DSPCOMPLEX));
 }
-
 //
 //	The getWord as below is used in the main loop, to obtain
 //	a next ofdm word
@@ -192,10 +192,12 @@ float	timeOffsetFractional;
 	timeOffsetInteger	= floor (timedelay + 0.5);
 	timeOffsetFractional	= timedelay - timeOffsetInteger;
 	timedelay		-= timeOffsetInteger;
+
 //	To take into account the fractional timing difference,
 //	we do some interpolation. We assume that -0.5 <= c && c <= 0.5
 	int f	= (int)(floor (buffer -> currentIndex + 
 	                              timeOffsetInteger)) & bufMask;
+
 //	just linear interpolation
 	for (i = 0; i < Ts; i ++) {
 	   if (timeOffsetFractional < 0) {
@@ -255,5 +257,6 @@ float	timeOffsetFractional;
 	           &fft_vector [0], (K_max + 1) * sizeof (DSPCOMPLEX));
 	}
 	else
-	   memcpy (out, &fft_vector [-K_min], (K_max - K_min + 1) * sizeof (DSPCOMPLEX));
+	   memcpy (out, &fft_vector [K_min], (K_max - K_min + 1) * sizeof (DSPCOMPLEX));
 }
+

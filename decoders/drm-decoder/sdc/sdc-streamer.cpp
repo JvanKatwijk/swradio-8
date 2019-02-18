@@ -27,16 +27,14 @@
 
 #include	"sdc-streamer.h"
 #include	"mapper.h"
-#include	"viterbi-drm.h"
 #include	"puncture-tables.h"
 
 //	nrCells indicates - as suggested - the number of QAM cells
-//	so, the number of (soft/raw) bits is twice this number
-//
-	SDC_streamer::SDC_streamer (viterbi_drm	*d,
-	                            uint8_t RX, uint8_t RY, 
+//	so the number of "raw" bits can be derived from that
+	SDC_streamer::SDC_streamer (uint8_t RX, uint8_t RY, 
 	                            Mapper	*myMapper,
-	                            int16_t	nrCells) {
+	                            int16_t	nrCells):
+	                               deconvolver (RX * ((2 * nrCells - 12) / RY)) {
 	this	-> RX		= RX;
 	this	-> RY		= RY;
 	this	-> demapper	= myMapper;
@@ -48,7 +46,6 @@
 	residuTable		= pt	-> getResiduTable (RX, RY, nrCells);
 	residuBits		= pt	-> getResiduBits (RX, RY, nrCells);
 	punctureSize		= 6 * RX;
-	deconvolver		= d;
 }
 
 	SDC_streamer::~SDC_streamer	(void) {
@@ -87,13 +84,14 @@ uint8_t	recomputedBits [2 * nrCells];
 	   }
 //
 //	At this stage Cnt should be equal to 2 * nrCells
-	deconvolver	-> deconvolve (theBits, outLength, out);
+	deconvolver. deconvolve (theBits, outLength, out);
 //
 //	Now the other way around, but only if the flag says so
 	if (!flag)
 	   return;
+
 	Cnt	= 0;		// start all over with counting
-	deconvolver	-> convolve (out, outLength, reconstr);
+	deconvolver. convolve (out, outLength, reconstr);
 	for (i = 0; i < 6 * (outLength + 6) - 36; i ++)
 	   if (punctureTable [i % punctureSize] == 1)
 	      recomputedBits [Cnt ++] = reconstr [i];

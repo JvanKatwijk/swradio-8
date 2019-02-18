@@ -36,15 +36,13 @@
 	                            int16_t	streamNumber,
 	                            int16_t	N1,
 	                            Mapper	*hpMapper,
-	                            Mapper	*lpMapper,
-	                            viterbi_drm	*deconvolver) {
+	                            Mapper	*lpMapper) {
 	this	-> msc		= msc;
 	this	-> streamNumber	= streamNumber;
 	this	-> N1		= N1;
 	this	-> N2		= msc -> muxSize () - N1;
 	this	-> hpMapper	= hpMapper;
 	this	-> lpMapper	= lpMapper;
-	this	-> deconvolver	= deconvolver;
 //
 //	just a handle:
 	dummy			= new punctureTables ();
@@ -69,9 +67,12 @@
 //	higher protected part, N2 the number in the lower protected part
 	highProtectedbits	= 2 * N1 * ((float)RX_High/ RY_High);
 	lowProtectedbits	= RX_Low  * ((2 * N2 - 12) / RY_Low);
+	deconvolver		= new viterbi_drm (highProtectedbits +
+	                                           lowProtectedbits);
 }
 
 	MSC_streamer::~MSC_streamer	(void) {
+	delete deconvolver;
 }
 
 int16_t	MSC_streamer::highBits (void) {

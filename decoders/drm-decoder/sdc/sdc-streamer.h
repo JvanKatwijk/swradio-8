@@ -26,6 +26,7 @@
 #include	<stdio.h>
 #include	<stdint.h>
 #include	"basics.h"
+#include        "viterbi-drm.h"
 
 class	Mapper;
 class	viterbi_drm;
@@ -33,8 +34,7 @@ class	punctureTables;
 
 class	SDC_streamer {
 public:
-			SDC_streamer	(viterbi_drm *,
-	                                 uint8_t, uint8_t, Mapper *, int16_t);
+			SDC_streamer	(uint8_t, uint8_t, Mapper *, int16_t);
 			~SDC_streamer	(void);
 	void		handle_stream	(metrics *, uint8_t *, uint8_t *, bool);
 	int16_t		lengthOut	(void);
@@ -43,7 +43,7 @@ private:
 	uint8_t		*punctureTable;
 	uint8_t		*residuTable;
 	int16_t		punctureSize;
-	viterbi_drm	*deconvolver;
+	viterbi_drm	deconvolver;
 	Mapper		*demapper;
 	uint8_t		RX, RY;
 	int16_t		nrCells;

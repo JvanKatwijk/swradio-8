@@ -41,10 +41,10 @@ public:
 	void		shiftBuffer	(int16_t);
 	uint32_t	bufSize;
 	DSPCOMPLEX	*data;
-	uint16_t	currentIndex;
+	uint32_t	currentIndex;
 protected:
-	uint16_t	Contents	(void);
-	uint16_t	firstFreeCell;
+	uint32_t	Contents	(void);
+	uint32_t	firstFreeCell;
 	RingBuffer<DSPCOMPLEX> * ringBuffer;
 	drmDecoder		*master;
 };

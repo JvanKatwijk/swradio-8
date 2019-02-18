@@ -31,7 +31,7 @@
 	                int16_t s, 
 	                drmDecoder *mr) {
 	ringBuffer		= r;
-	this	-> bufSize	= 2 * 8192;
+	this	-> bufSize	= 4 * 8192;
 	data			= new DSPCOMPLEX [this -> bufSize];
 	memset (data, 0, bufSize * sizeof (DSPCOMPLEX));
 	master			= mr;
@@ -43,7 +43,7 @@
 	delete []	data;
 }
 
-uint16_t	Reader::Contents	(void) {
+uint32_t	Reader::Contents	(void) {
 	if (firstFreeCell >= currentIndex)
 	   return firstFreeCell - currentIndex;
 	return (bufSize - currentIndex) + firstFreeCell;
@@ -76,20 +76,19 @@ int32_t		contents	= Contents ();
 //	one read will suffice, otherwise it will be in two parts
 	if (firstFreeCell + tobeRead <= bufSize) {
 	   ringBuffer -> getDataFromBuffer (&data [firstFreeCell], tobeRead);
-	   firstFreeCell = (firstFreeCell + tobeRead) & (bufSize - 1); 
 	}
 	else {
 	   ringBuffer -> getDataFromBuffer (&data [firstFreeCell],
 	                                     bufSize - firstFreeCell);
 	   ringBuffer -> getDataFromBuffer (&data [0],
 	                                tobeRead - (bufSize - firstFreeCell));
-	   firstFreeCell = tobeRead - (bufSize - firstFreeCell);
 	}
+	   firstFreeCell = (firstFreeCell + tobeRead) % bufSize;
 }
 
 void	Reader::shiftBuffer (int16_t n) {
 	if (n > 0)
 	   waitfor (n + 20);
-	currentIndex = (currentIndex + n) & (bufSize - 1);
+	currentIndex = (currentIndex + n) % bufSize;
 }
 

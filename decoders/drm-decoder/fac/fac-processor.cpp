@@ -26,7 +26,6 @@
 #include	"basics.h"
 #include	"mapper.h"
 #include	"qam4-metrics.h"
-#include	"viterbi-drm.h"
 #include	"prbs.h"
 #include	"checkcrc.h"
 
@@ -46,12 +45,15 @@ const uint16_t crcPolynome [] = {
 //	If no valid FAC can be found, return false
 //
 	facProcessor::facProcessor (uint8_t	Mode,
-	                            uint8_t	Spectrum,
-	                            viterbi_drm	*theDecoder) {
+	                            uint8_t	Spectrum):
+	                               deconvolver (FAC_BITS + FAC_CRC) {
 
 	this	-> Mode		= Mode;
+	if ((Spectrum > 3) ||(Spectrum <= 1)) {
+           Spectrum = 3;
+        }
+
 	this	-> Spectrum	= Spectrum;
-	deconvolver		= theDecoder;
 	myMapper		= new Mapper (2 * FAC_SAMPLES, 21);
 	thePRBS			= new prbs (FAC_BITS + FAC_CRC);
 	theCRC			= new checkCRC (8, crcPolynome);
@@ -134,8 +136,8 @@ int16_t	i;
 	   deconvolveCnt ++;
 	}
 //
-//	This "viterbi" understands the defines metrics
-	deconvolver -> deconvolve (deconvolveBuffer,
+//	This "viterbi" understands the defined metrics
+	deconvolver. deconvolve (deconvolveBuffer,
 	                             FAC_BITS + FAC_CRC, outBuffer);
 }
 

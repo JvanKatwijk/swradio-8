@@ -36,14 +36,12 @@ class	prbs;
 class	SDC_streamer;
 class	qam4_metrics;
 class	qam16_metrics;
-class	viterbi_drm;
 class	Mapper;
 
 class	sdcProcessor {
 public:
 		sdcProcessor	(uint8_t,
 	                 	uint8_t,
-	                        viterbi_drm *,
 	                        facData	*,
 	                 	int16_t);
 		~sdcProcessor	(void);
@@ -55,13 +53,12 @@ private:
 	bool	processSDC_QAM16	(theSignal *v);
 	qam16_metrics	*my_qam16_metrics;
 	qam4_metrics	*my_qam4_metrics;
-	void		checkConfig	(void);
+
 	SDC_streamer	*stream_0;
 	SDC_streamer	*stream_1;
 	checkCRC	theCRC;
 	Mapper		Y13Mapper;
 	Mapper		Y21Mapper;
-	viterbi_drm	*deconvolver;
 	uint8_t		Mode;
 	uint8_t		Spectrum;
 	facData		*my_facDB;

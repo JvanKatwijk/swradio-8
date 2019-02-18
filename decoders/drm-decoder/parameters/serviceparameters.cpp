@@ -21,10 +21,18 @@
  */
 #
 #include	"serviceparameters.h"
+#include	"drm-decoder.h"
 #include	<stdio.h>
 
-		serviceParameters::serviceParameters (void) {
+		serviceParameters::serviceParameters (drmDecoder *drm,
+	                                              mscConfig  *msc) {
 	set	= false;
+	this	-> drm	= drm;
+	this	-> msc	= msc;
+	connect (this, SIGNAL (show_country (QString)),
+	         drm,  SLOT   (show_country (QString)));
+	connect (this, SIGNAL (show_programType (QString)),
+	         drm,  SLOT   (show_programType (QString)));
 }
 		serviceParameters::~serviceParameters (void) {
 }
@@ -80,7 +88,7 @@ uint16_t val = (v [0] << 3) | (v [1] << 2) | (v [2] << 1) | v [3];
 	   case 15:
 	      theLanguage	= "Other Language"; break;
 	}
-//	fprintf (stderr, " Language = %s\n", theLanguage);
+	show_country (theLanguage);
 }
 
 void	serviceParameters::AudioDataflag (uint8_t *v) {
@@ -163,7 +171,7 @@ int16_t	i;
 	   case 31:
 	      theProgrammeType	= "   "; break;
 	}
-//	fprintf (stderr, "programme type = %s\n", theProgrammeType);
+	show_programType (theProgrammeType);
 }
 
 void	serviceParameters::DataCAindication (uint8_t *v) {

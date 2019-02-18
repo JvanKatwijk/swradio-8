@@ -50,15 +50,16 @@ int16_t	i;
 	this	-> Tg		= Tg_of (Mode);
 	this	-> displayCount	= 0;
 	this	-> N_symbols	= symbolsperFrame (Mode);
+
 //	for detecting pilots:
 	int16_t k_pilot [3];
 	int16_t cnt	= 0;
 
-	for (i = 0; i < Tu; i ++) {
+	for (i = 0; i < Tu / 2; i ++) {
 	   if (isFreqCell (Mode, 0, i)) {
 	      k_pilot [cnt ++] = i;
 	      if (cnt > 3)
-	         fprintf (stderr, "Hellup\n");
+	         fprintf (stderr, "Hellup\n");	// does not happen
 	   }
 	}
 
@@ -284,7 +285,7 @@ DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
 	   angle += conj (temp [Tu + i]) * temp [i];
 //	simple averaging:
 	theAngle	= 0.9 * theAngle + 0.1 * arg (angle);
-//
+
 //	offset in Hz / 100
 	float offset	= theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
 	if (++displayCount > 20) {
@@ -295,6 +296,12 @@ DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
 	   show_timeDelay	(offsetFractional);
 	}
 
+	if (abs (offset) > 2300) {
+	   fprintf (stderr, "angle = %f %f, offset = %f (sampleRate %d, Tu %d)\n",
+	             arg (angle), theAngle, offset, sampleRate, Tu);
+	   offset = offset < 0 ? -23 : 23;
+	}
+	   
 	if (offset == offset)	// precaution to handle undefines
 	   theShifter. do_shift (temp, Ts, -offset);
 

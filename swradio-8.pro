@@ -331,9 +331,9 @@ fax-decoder {
 
 drm-decoder {
 	DEFINES		+= HAVE_DRM_DECODER
-	DEFINES		+= ESTIMATOR_1
-	LIBS		+= -lfaad_drm
-#	LIBS		+= -lfaad -larmadillo
+	DEFINES		+= ESTIMATOR_2
+#	LIBS		+= -lfaad_drm
+	LIBS		+= -lfaad_drm -larmadillo
 	DEPENDPATH	+= ./decoders/drm-decoder/ \
 	                   ./decoders/drm-decoder/signal-handling \
                            ./decoders/drm-decoder/signal-handling/eq-1 \
@@ -367,7 +367,7 @@ drm-decoder {
 	                   ./decoders/drm-decoder/signal-handling/matrix2.h \
 	                   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h \
 	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h \
-	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h \
+	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-2.h \
 	                   ./decoders/drm-decoder/utilities/viterbi-drm.h \
 	                   ./decoders/drm-decoder/utilities/mapper.h \
 	                   ./decoders/drm-decoder/utilities/prbs.h \
@@ -412,7 +412,7 @@ drm-decoder {
 	                   ./decoders/drm-decoder/signal-handling/matrix2.cpp \
 	                   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.cpp \
 	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.cpp \
-	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.cpp \
+	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-2.cpp \
 	                   ./decoders/drm-decoder/utilities/viterbi-drm.cpp \
 	                   ./decoders/drm-decoder/utilities/mapper.cpp \
 	                   ./decoders/drm-decoder/utilities/prbs.cpp \

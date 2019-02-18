@@ -37,8 +37,7 @@ public:
 	                         int16_t,	// stream number
 	                         int16_t,	// N1 (HPP ofdm cells)
 	                         Mapper *,	// mapper used for HP
-	                         Mapper *,	// mapper used for LP
-	                         viterbi_drm *	// encoded/decoder
+	                         Mapper *	// mapper used for LP
 	                        );
 		~MSC_streamer	(void);
 	int16_t	highBits	(void);		// computed info

@@ -29,12 +29,11 @@
 
 class	mscConfig;
 class	MSC_streamer;
-class	viterbi_drm;
 class	Mapper;
 
 class	QAM16_SM_Handler : public mscHandler {
 public:
-		QAM16_SM_Handler	(mscConfig *, viterbi_drm *);
+		QAM16_SM_Handler	(mscConfig *);
 		~QAM16_SM_Handler	(void);
 	void	process			(theSignal *, uint8_t *);
 private:

@@ -62,6 +62,8 @@ SF_INFO	*sf_info;
 	sampleRate	= sf_info	-> samplerate;
 	fileLength      = sf_seek (filePointer, 0, SEEK_END);
         totalTime       = (float)fileLength / sampleRate;
+	fprintf (stderr, "filelength = %d, timetoplay %f\n",
+	                     fileLength, totalTime);
 	sf_seek (filePointer, 0, SEEK_SET);
 
 	theRate		= rate;
@@ -142,6 +144,7 @@ static	int cnt	= 0;
 	}
 
 	if (n < length / 2) {
+	   fprintf (stderr, "fileLength = %d\n", fileLength); 
 	   sf_seek (filePointer, 0, SEEK_SET);
 	   fprintf (stderr, "eof reached, starting again\n");
 	}

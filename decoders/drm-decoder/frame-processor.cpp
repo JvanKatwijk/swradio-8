@@ -32,7 +32,6 @@
 #include	"referenceframe.h"
 #include	"basics.h"
 #include	"fac-tables.h"
-#include	"viterbi-drm.h"
 
 //	The main driving class is the frameprocessor. It is
 //	implemented as running in a thread and will control:
@@ -51,8 +50,7 @@
 	                                int16_t		nSymbols,
 	                                int8_t		windowDepth,
                                         int8_t 		qam64Roulette) :
-	                                      my_Reader (buffer, 16384, mr),
-                                              viterbiDecoder (0) {
+	                                      my_Reader (buffer, 16384, mr) {
 int16_t	i;
 	this	-> mr 		= mr;
 	this	-> buffer	= buffer;
@@ -131,8 +129,6 @@ void	frameProcessor::deleteProcessors () {
 	if (my_Equalizer != NULL)
 	   delete	my_Equalizer;
 	my_Equalizer = NULL;
-	delete	my_facProcessor;
-	delete	my_sdcProcessor;
 	delete	my_mscProcessor;
 	delete	my_facData;
 	delete	my_mscConfig;
@@ -150,21 +146,11 @@ uint8_t	Spectrum	= m -> Spectrum;
 
 	my_mscConfig		= new mscConfig	(Mode, Spectrum);
 	my_facData		= new facData	(mr, my_mscConfig);
-//
-	my_Equalizer 		= new equalizer_1 (Mode,
-	                                           Spectrum, windowDepth);
-	my_facProcessor		= new facProcessor (Mode,
-	                                            Spectrum,
-	                                            &viterbiDecoder);
-	my_sdcProcessor		= new sdcProcessor (Mode,
-	                                            Spectrum,
-	                                            &viterbiDecoder,
-	                                            my_facData,
-	                                            sdcCells (&modeInf));
 	my_mscProcessor		= new mscProcessor  (my_mscConfig,
 	                                             mr,
-	                                             qam64Roulette,
-	                                             &viterbiDecoder);
+	                                             qam64Roulette);
+	my_Equalizer 		= new equalizer_1 (Mode,
+	                                           Spectrum, windowDepth);
 }
 
 //
@@ -374,21 +360,8 @@ restart:
 //	when we are here, we can start thinking about  SDC's and superframes
 //	The first frame of a superframe has an SDC part
 	      if (isFirstFrame (my_facData)) {
-	         bool sdcOK;
-	         theSignal sdcVector [sdcCells (&modeInf)];
-	         (void)extractSDC (&modeInf, outbank, sdcVector);
-//	if needed create a new sdcProcessor
-	         if (my_facData -> myChannelParameters. getSDCmode () !=
-	                               my_sdcProcessor -> getSDCmode ()) {
-	            delete my_sdcProcessor;
-	            my_sdcProcessor = new sdcProcessor (modeInf. Mode,
-	                                                modeInf. Spectrum, 
-	                                                &viterbiDecoder,
-	                                                my_facData,
-	                                                sdcCells (&modeInf));
-	         }
-//
-	         sdcOK = my_sdcProcessor -> processSDC (sdcVector); 
+	         bool sdcOK = process_sdc (&modeInf,
+	                                   my_facData, outbank);
 	         setSDCSync (sdcOK);
 	         if (sdcOK) {
 	            goodFrames ++;
@@ -418,7 +391,8 @@ restart:
 //
 //	when we are here, it is time to build the next frame
 	      frameReady	= false;
-	      for (i = 0; i < symbolsperFrame (modeInf. Mode); i ++) {
+	      for (i = 0;
+	           !frameReady && (i < symbolsperFrame (modeInf. Mode)); i ++) {
 	         my_wordCollector ->
 	              getWord (inbank [(lc + i) %
 	                               symbolsperFrame (modeInf. Mode)],
@@ -622,6 +596,15 @@ struct facElement *facTable     = getFacTableforMode (m -> Mode);
 	return false;
 }
 
+bool	frameProcessor::process_sdc (smodeInfo *m,
+	                             facData *my_facData, theSignal **outbank) {
+theSignal sdcVector [sdcCells (m)];
+sdcProcessor my_sdcProcessor (m -> Mode, m -> Spectrum, 
+	                      my_facData, sdcCells (m));
+	(void)extractSDC (&modeInf, outbank, sdcVector);
+	return my_sdcProcessor. processSDC (sdcVector); 
+}
+
 bool	frameProcessor::isSDCcell (smodeInfo *m,
 	                           int16_t symbol, int16_t carrier) {
 
@@ -646,27 +629,26 @@ int16_t	frameProcessor::extractSDC (smodeInfo *m,
 	                            theSignal	*outV) {
 int16_t	valueIndex	= 0;
 int16_t	carrier;
+int16_t	K_min	= Kmin (m -> Mode, m -> Spectrum);
+int16_t	K_max	= Kmax (m -> Mode, m -> Spectrum);
 
-	for (carrier = Kmin (m -> Mode, m -> Spectrum);
-	     carrier <= Kmax (m -> Mode, m -> Spectrum); carrier ++)
+	for (carrier = K_min; carrier <= K_max; carrier ++)
 	   if (isSDCcell (m, 0, carrier)) {
 	      outV [valueIndex ++] = 
-	           bank [0][carrier - Kmin (m -> Mode, m -> Spectrum)];
+	           bank [0][carrier - K_min];
 	   }
 
-	for (carrier = Kmin (m -> Mode, m -> Spectrum);
-	     carrier <= Kmax (m -> Mode, m -> Spectrum); carrier ++) 
+	for (carrier = K_min; carrier <= K_max; carrier ++) 
 	   if (isSDCcell (m, 1, carrier)) {
 	      outV [valueIndex ++] = 
-	           bank [1][carrier - Kmin (m -> Mode, m -> Spectrum)];
+	           bank [1][carrier - K_min];
 	   }
 
 	if ((m -> Mode == 3) || (m -> Mode == 4)) {
-	   for (carrier = Kmin (m -> Mode, m -> Spectrum);
-	        carrier <= Kmax (m -> Mode, m -> Spectrum); carrier ++) 
+	   for (carrier = K_min; carrier <= K_max; carrier ++) 
 	      if (isSDCcell (m, 2, carrier)) {
 	         outV [valueIndex ++] = 
-	              bank [2][carrier - Kmin (m -> Mode, m -> Spectrum)];
+	              bank [2][carrier - K_min];
 	      }
 	}
 
@@ -715,6 +697,7 @@ float	sum_weight_FAC	= 0;
 int16_t	nFac		= 0;
 float	WMERFAC;
 struct facElement *facTable     = getFacTableforMode (m -> Mode);
+facProcessor my_facProcessor (m -> Mode, m -> Spectrum);
 
 	for (i = 0; facTable [i]. symbol != -1; i ++) {
 	   int16_t symbol	= facTable [i]. symbol;
@@ -740,7 +723,7 @@ struct facElement *facTable     = getFacTableforMode (m -> Mode);
 //	processFAC will do two things:
 //	decode the FAC samples and check the CRC and, if the CRC
 //	check is OK, it will construct the FAC samples as they should have been
-	result = my_facProcessor -> processFAC (facVector, d);
+	result = my_facProcessor. processFAC (facVector, d);
 	if (result) {
 	   goodcount ++;
 	}
@@ -751,7 +734,6 @@ struct facElement *facTable     = getFacTableforMode (m -> Mode);
 	}
 	return result;
 }
-
 
 void	frameProcessor::getMode (Reader *my_Reader, smodeInfo *m) {
 timeSyncer  my_Syncer (my_Reader, sampleRate,  nSymbols);

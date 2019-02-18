@@ -38,16 +38,18 @@ public:
 	void	deconvolve	(metrics *, int16_t, uint8_t *);
 	void	convolve	(uint8_t *, int16_t, uint8_t *);
 private:
-	float	costsFor		(uint16_t, metrics *);
-	uint8_t	*poly1_table;
-	uint8_t	*poly2_table;
-	uint8_t	*poly3_table;
-	uint8_t	*poly4_table;
-	uint8_t	*poly5_table;
-	uint8_t	*poly6_table;
-	int16_t	*predecessor_for_0;
-	int16_t	*predecessor_for_1;
-	int16_t	blockLength;
-	uint8_t	bitFor		(uint16_t, uint16_t, uint8_t);
+	float		costsFor		(uint16_t, metrics *);
+	int32_t		**history;
+	float		**Costs;
+	uint8_t		*poly1_table;
+	uint8_t		*poly2_table;
+	uint8_t		*poly3_table;
+	uint8_t		*poly4_table;
+	uint8_t		*poly5_table;
+	uint8_t		*poly6_table;
+	int16_t		*predecessor_for_0;
+	int16_t		*predecessor_for_1;
+	int16_t		blockLength;
+	uint8_t		bitFor		(uint16_t, uint16_t, uint8_t);
 };
 #endif

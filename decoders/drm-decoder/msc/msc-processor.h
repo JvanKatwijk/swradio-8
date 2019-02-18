@@ -40,8 +40,7 @@ class	mscProcessor {
 public:
 		mscProcessor		(mscConfig *,
 	                                 drmDecoder *,
-	                                 int8_t,
-	                                 viterbi_drm *);
+	                                 int8_t);
 		~mscProcessor		(void);
 	void	check_mscConfig		(mscConfig *);
 	void	addtoMux		(int16_t, int32_t, theSignal);

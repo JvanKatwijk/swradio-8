@@ -186,7 +186,7 @@ int32_t		sequence  [blockLength + N_POLYS + 1];
  *	Trace back goes back to state 0, and builds up the
  *	sequence of decoded symbols
  */
-	for (i = blockLength + N_POLYS; i > 0; i --) 
+	for (i = blockLength; i > 0; i --) 
 	   sequence [i - 1] = history [i][sequence[i]];
 
 	for (i = 1; i <= blockLength; i++) 

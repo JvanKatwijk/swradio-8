@@ -84,6 +84,8 @@ public slots:
 	void		faadSuccess		(bool);
 	void		showMOT			(QByteArray, int);
 	void		aacData			(QString);
+	void		show_country		(QString);
+	void		show_programType	(QString);
 private slots:
 	void		executeTimeSync		(bool);
 	void		executeFACSync		(bool);

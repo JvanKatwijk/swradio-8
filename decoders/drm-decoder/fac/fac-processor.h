@@ -25,10 +25,11 @@
 
 #include	"radio-constants.h"
 #include	"basics.h"
+#include        "viterbi-drm.h"
+
 class	Mapper;
 class	viterbi_drm;
 class	facData;
-class	equalizer;		// very bad name
 class	prbs;
 class	checkCRC;
 class	qam4_metrics;
@@ -36,14 +37,14 @@ class	qam4_metrics;
 class	facProcessor {
 public:
 			facProcessor	(uint8_t Mode,
-	                                 uint8_t Spectrum, viterbi_drm *);
+	                                 uint8_t Spectrum);
 			~facProcessor	(void);
 	bool		processFAC	(theSignal *, facData *);
 private:
+	viterbi_drm	deconvolver;
 	uint8_t		Mode;
 	uint8_t		Spectrum;
 	Mapper		*myMapper;
-	viterbi_drm	*deconvolver;
 	prbs		*thePRBS;
 	checkCRC	*theCRC;
 	qam4_metrics	*myMetrics;

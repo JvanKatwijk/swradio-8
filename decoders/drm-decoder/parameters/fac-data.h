@@ -35,7 +35,6 @@ class	drmDecoder;
 //	in a structure drmFrame
 
 class	facData: public QObject {
-Q_OBJECT
 public:
 		facData		(drmDecoder *, mscConfig *);
 		~facData	(void);

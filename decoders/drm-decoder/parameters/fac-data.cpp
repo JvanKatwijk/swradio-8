@@ -33,7 +33,8 @@
 //	3. the SDC parameters, deliverd by the SDC
 
 	facData::facData (drmDecoder *mr, mscConfig *msc):
-	                                        myChannelParameters (msc){
+	                                        myChannelParameters (msc),
+	                                        myServiceParameters (mr, msc) {
 	this	-> master	= mr;
 	this	-> FAC_crc	= false;
 	this	-> SDC_crc	= false;
@@ -228,7 +229,7 @@ uint8_t	language [3], country [2];
 	            uint8_t f     = get_SDCBits (v, 30, 1);
 	            hours += f ? - offset : offset;
 	         }
-	         fprintf (stderr, "time = %d %d\n", hours, minutes);
+//	         fprintf (stderr, "time = %d %d\n", hours, minutes);
 	      }
 	      return;
 
@@ -262,6 +263,7 @@ uint8_t	language [3], country [2];
 
 	   case 12:	// Language and country data entity
 	      shortId		= get_SDCBits (v, 0, 2);
+//	      fprintf (stderr, "shortId = %d\n", shortId);
 	      rfu		= get_SDCBits (v, 2, 2);
 	      language [0]	= get_SDCBits (v, 4, 8);
 	      language [1]	= get_SDCBits (v, 12, 8);

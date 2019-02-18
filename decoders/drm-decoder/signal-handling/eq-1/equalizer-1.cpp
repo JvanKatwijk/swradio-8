@@ -376,6 +376,7 @@ int16_t	i;
 //	pilot layout
 //	*delta_freq_offset	=  arg (offs1);
 	*delta_freq_offset	=  arg (offs7) / periodforSymbols;
+//	*delta_freq_offset	=  arg (offs7);
 //	fprintf (stderr, "freq error: freq pilots = %f, all pilots  = %f\n",
 //	                 arg (offs1) / (3 * (symbolsinFrame - 1)),
 //	                 arg (offs7) / periodforSymbols);
@@ -436,7 +437,7 @@ int16_t	symbol_to_process;
 //	process symbol "symbol", 
 void	equalizer_1::processSymbol (int16_t symbol,
 	                            theSignal *outVector) {
-//	ntwee will indicate the "model" of the window, we deal with
+//	"ntwee" will indicate the "model" of the window, we deal with
 //	while windowBase indicates the REAL window, i.e. the
 //	the first symbol of the window as appearing in the frame.
 int16_t	windowBase		= realSym (symbol +

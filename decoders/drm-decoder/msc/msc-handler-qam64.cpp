@@ -33,8 +33,7 @@
 //	In order to handle the A and B levels, we create a
 //	separate processor ("streamer") for the A and B parts of the stream.
 	QAM64_SM_Handler::QAM64_SM_Handler	(mscConfig	*msc,
-	                                         int8_t		qam64Roulette,
-	                                         viterbi_drm	*v):
+	                                         int8_t		qam64Roulette):
 	                                          mscHandler (msc),
 	                                          myDecoder () {
 int16_t	N1, N2;
@@ -73,11 +72,11 @@ int32_t	highProtected, lowProtected;
 	}
 //
 //	Note that N2 is (re)computed in the streamer
-	stream_0	= new MSC_streamer (msc, 0, N1, NULL,  NULL, v);
+	stream_0	= new MSC_streamer (msc, 0, N1, NULL,  NULL);
 	stream_1	= new MSC_streamer (msc, 1, N1,
-	                              Y13mapper_high, Y13mapper_low, v);
+	                              Y13mapper_high, Y13mapper_low);
 	stream_2	= new MSC_streamer (msc, 2, N1,
-	                              Y21mapper_high, Y21mapper_low, v);
+	                              Y21mapper_high, Y21mapper_low);
 
 	highProtected	= stream_0 -> highBits () +
 	                  stream_1 -> highBits () +

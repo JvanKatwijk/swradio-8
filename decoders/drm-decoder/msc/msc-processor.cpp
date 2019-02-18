@@ -37,12 +37,10 @@
 //	and checked once per superframe here
 	mscProcessor::mscProcessor	(mscConfig	*msc,
 	                                 drmDecoder	*drm,
-	                                 int8_t		qam64Roulette,
-	                                 viterbi_drm	*v) {
+	                                 int8_t		qam64Roulette) {
 	drmMaster		= drm;
 	create_Handlers	(msc);
 	this	-> qam64Roulette	= qam64Roulette;
-	viterbiDecoder		= v;
 	my_dataProcessor	= new dataProcessor (msc, drmMaster);
 	muxNo		= 0;
 }
@@ -135,21 +133,19 @@ void	mscProcessor::create_Handlers (mscConfig *msc) {
 	   switch (mscMode) {
 	      case mscConfig::SM:
 	         my_mscHandler = new QAM64_SM_Handler (msc,
-	                                               qam64Roulette,
-	                                               viterbiDecoder);
+	                                               qam64Roulette);
 	         break;
 
 	      default:  
 	         fprintf (stderr, "not implemented yet\n");
 	         my_mscHandler = new QAM64_SM_Handler  (msc,
-	                                                qam64Roulette,
-	                                                viterbiDecoder);
+	                                                qam64Roulette);
 	         break;
 	   }
 	}
 	else
 	if (QAMMode	== mscConfig::QAM16) 	// mscMode == SM
-	   my_mscHandler	= new QAM16_SM_Handler (msc, viterbiDecoder);
+	   my_mscHandler	= new QAM16_SM_Handler (msc);
 	else
 	   my_mscHandler	= new mscHandler (msc);
 	bufferP		= 0;

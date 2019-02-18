@@ -69,9 +69,9 @@ int16_t	symbs;
 	channel_3	-> hide ();
 	channel_4	-> hide ();
 
-	symbs		= 16;
-	int8_t windowDepth = 2;
-	int8_t qam64Roulette = 6;
+	symbs			= 16;
+	int8_t windowDepth 	= 2;
+	int8_t qam64Roulette 	= 6;
 	validFlag		= true;
 	buffer			= new RingBuffer<std::complex<float> > (12000);
 	connect (channel_1, SIGNAL (clicked (void)),
@@ -331,3 +331,12 @@ void    drmDecoder::set_phaseOffset (int f) {
         phaseOffset += f;
 	phaseOffsetDisplay	-> display (phaseOffset);
 }
+
+void	drmDecoder::show_country (QString s) {
+	countryLabel	-> setText (s);
+}
+
+void	drmDecoder::show_programType (QString s) {
+	programTypeLabel	-> setText (s);
+}
+

@@ -33,8 +33,7 @@
 //	For each of the "levels" (qam16 => 2 levels), we create a
 //	separate handler. From "samples to bitstreams" is done here
 //	as is the bit-deinterleaving
-	QAM16_SM_Handler::QAM16_SM_Handler	(mscConfig	*msc,
-	                                         viterbi_drm	* v):
+	QAM16_SM_Handler::QAM16_SM_Handler	(mscConfig	*msc):
 	                                             mscHandler (msc),
 	                                             myDecoder () {
 int16_t	RYlcm, i;
@@ -82,9 +81,9 @@ float	denom;
 //	higher protected bits, N2 follows directly
 
 	stream_0	= new MSC_streamer (msc, 0, N1,
-	                                    Y13mapper_high, Y13mapper_low, v);
+	                                    Y13mapper_high, Y13mapper_low);
 	stream_1	= new MSC_streamer (msc, 1, N1,
-	                                    Y21mapper_high, Y21mapper_low, v);
+	                                    Y21mapper_high, Y21mapper_low);
 	thePRBS		= new prbs (stream_0 -> highBits () +
 	                            stream_1 -> highBits () +
 	                            stream_0 -> lowBits  () +

@@ -80,8 +80,8 @@ int16_t	theMode;
 //
 //	we have collected for all modes the gamma and the theta
 //	now decide for the mode to be detected 
-	theMode	= Mode_B;		// default
-	gammaRelative = -1.0E20;
+	theMode		= Mode_B;		// default
+	gammaRelative	= -1.0E20;
 	for (i = Mode_A; i <= Mode_D; i++) {
 	   if (list_gammaRelative [i - Mode_A] > gammaRelative) {
 	      gammaRelative = list_gammaRelative [i - Mode_A];
@@ -91,7 +91,7 @@ int16_t	theMode;
 
 //	check if result is reliable */
 	bool	maxOK = true;			/* assume reliable */
-	if (gammaRelative < 0.4)
+	if (gammaRelative < 0.5)
 	   maxOK = false;
 	else
 	for (i = Mode_A; i <= Mode_D; i++) {

@@ -30,12 +30,11 @@
 
 class	mscConfig;
 class	MSC_streamer;
-class	viterbi_drm;
 class	Mapper;
 
 class	QAM64_SM_Handler : public mscHandler {
 public:
-		QAM64_SM_Handler	(mscConfig *, int8_t, viterbi_drm *);
+		QAM64_SM_Handler	(mscConfig *, int8_t);
 		~QAM64_SM_Handler	(void);
 	void	process			(theSignal *, uint8_t *);
 private:
