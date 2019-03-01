@@ -340,3 +340,7 @@ void	drmDecoder::show_programType (QString s) {
 	programTypeLabel	-> setText (s);
 }
 
+void	drmDecoder::show_time	(QString s) {
+	timeLabel		-> setText (s);
+}
+

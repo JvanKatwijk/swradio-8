@@ -83,20 +83,23 @@ int16_t	theMode;
 	theMode		= Mode_B;		// default
 	gammaRelative	= -1.0E20;
 	for (i = Mode_A; i <= Mode_D; i++) {
+//	   fprintf (stderr, "%f ", list_gammaRelative [i - Mode_A]);
 	   if (list_gammaRelative [i - Mode_A] > gammaRelative) {
 	      gammaRelative = list_gammaRelative [i - Mode_A];
 	      theMode = i;
 	   }
 	}
+//	fprintf (stderr, "\n");
 
 //	check if result is reliable */
 	bool	maxOK = true;			/* assume reliable */
-	if (gammaRelative < 0.5)
+	if (gammaRelative < 0.3)
+//	if (gammaRelative < 0.5)
 	   maxOK = false;
 	else
 	for (i = Mode_A; i <= Mode_D; i++) {
 	   if ((i != theMode) && (list_gammaRelative [i - Mode_A] >
-	                           0.50 * gammaRelative))
+	                           0.80 * gammaRelative))
 	      maxOK = false;
 	}
 	

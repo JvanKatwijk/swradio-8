@@ -118,9 +118,9 @@ int16_t	new_dataChannel	= drmMaster	-> getDataChannel ();
 	                                                       drmMaster,
 	                                                       applicationId);
 	   my_fecHandler		= new fecHandler (my_packetAssembler);
-	   dataChannel = new_dataChannel;
+	   dataChannel			= new_dataChannel;
 	}
-	   
+
 	(void)size;
 //	we first compute the length of the HP part, which - apparently -
 //	is the start of the LP part
@@ -150,10 +150,12 @@ int16_t	new_dataChannel	= drmMaster	-> getDataChannel ();
 	                          startPosA, lengthA,
 	                          startPosB, lengthB);
 	      }
-	      else {;	// synchronous stream
+	      else {	// synchronous stream
+	         process_syncStream (v, i,
+	                             startPosA, lengthA,
+	                             startPosB, lengthB);
 	      }
 	   }
-	
 	   startPosA	+= lengthA;
 	   startPosB	+= lengthB;
 	}
@@ -206,8 +208,53 @@ void	dataProcessor::process_packets (uint8_t *v, int16_t mscIndex,
 	else
 	   handle_eep_packets (v, mscIndex, startLow, lengthLow);
 }
+
+void	dataProcessor::process_syncStream (uint8_t *v, int16_t mscIndex,
+	                                   int16_t startHigh,
+	                                   int16_t lengthHigh,
+	                                   int16_t startLow,
+	                                   int16_t lengthLow) {
+	if (lengthHigh != 0) 
+	   handle_uep_syncStream (v, mscIndex, startHigh, lengthHigh,
+	                            startLow, lengthLow);
+	else
+	   handle_eep_syncStream (v, mscIndex, startLow, lengthLow);
+}
+
+void	dataProcessor::handle_uep_syncStream (uint8_t *v, int16_t mscIndex,
+	                           int16_t startHigh, int16_t lengthHigh,
+	                           int16_t startLow, int16_t lengthLow) {
+int16_t	i;
+uint8_t dataBuffer [lengthLow + lengthHigh];
+	
+	for (i = 0; i < lengthHigh; i ++)
+	   dataBuffer [i] = get_MSCBits (v, (startHigh + i) * 8, 8);
+	for (i = 0; i < lengthLow; i ++)
+	   dataBuffer [lengthHigh + i] =
+	                    get_MSCBits (v, (startLow + i) * 8, 8);
+	handle_syncStream (dataBuffer, lengthLow + lengthHigh, mscIndex);
+}
+
+void	dataProcessor::handle_eep_syncStream (uint8_t *v, int16_t mscIndex,
+	                           int16_t startLow, int16_t lengthLow) {
+uint8_t	dataBuffer [lengthLow];
+int16_t i;
+
+	for (i = 0; i < lengthLow; i ++)
+	   dataBuffer [i] = get_MSCBits (v, (startLow + i) * 8, 8);
+	handle_syncStream (dataBuffer, lengthLow, mscIndex);
+}
 //
-//
+
+void	dataProcessor::handle_syncStream (uint8_t *dataBuffer,
+	                                  int16_t length,
+	                                  int16_t index) {
+//	fprintf (stderr, "dataBuffer met lengte %d\n", length);
+//	for (int i = 0; i < 40; i ++)
+//	   fprintf (stderr, "%x ", dataBuffer [i]);
+//	fprintf (stderr, "\n");
+}
+
 //	little confusing: start- and length specifications are
 //	in bytes, we are working internally in bits
 void	dataProcessor::process_aac (uint8_t *v, int16_t mscIndex,
@@ -220,61 +267,6 @@ void	dataProcessor::process_aac (uint8_t *v, int16_t mscIndex,
 	   handle_eep_audio (v, mscIndex,  startLow, lengthLow - 4);
 }
 
-static
-int16_t outBuffer [8 * 960];
-static
-audioFrame f [20];
-void	dataProcessor::handle_uep_audio (uint8_t *v, int16_t mscIndex,
-	                           int16_t startHigh, int16_t lengthHigh,
-	                           int16_t startLow, int16_t lengthLow) {
-int16_t	headerLength, i, j;
-int16_t	usedLength	= 0;
-int16_t	crcLength	= 1;
-int16_t	payloadLength;
-
-//	first the globals
-	numFrames = msc -> streams [mscIndex]. audioSamplingRate == 1 ? 5 : 10;
-	headerLength = numFrames == 10 ? (9 * 12 + 4) / 8 : (4 * 12) / 8;
-	payloadLength = lengthLow + lengthHigh - headerLength - crcLength;
-	
-//	Then, read the numFrames - 1 "length"s from the header:
-	for (i = 0; i < numFrames - 1; i ++) {
-	   f [i]. length = get_MSCBits (v, startHigh * 8 + 12 * i, 12);
-	   if (f [i]. length < 0)
-	      return;
-	   usedLength += f [i]. length;
-	}
-//	the length of the last segment is to be computed
-	f [numFrames - 1]. length = payloadLength - usedLength;
-
-//	OK, now it is getting complicated, we first load the part(s) from the
-//	HP part. Length for all parts is equal, i.e. LengthHigh / numFrames
-//	the audiopart is one byte shorter, due to the crc
-	int16_t segmentinHP	= (lengthHigh - headerLength) / numFrames;
-	int16_t audioinHP	= segmentinHP - 1;
-	int16_t	entryinHP	= startHigh + headerLength;
-
-	for (i = 0; i < numFrames; i ++) {
-	   for (j = 0; j < audioinHP; j ++)
-	      f [i]. audio [j] = get_MSCBits (v,
-	                        (entryinHP ++) * 8, 8);
-	   f [i]. aac_crc = get_MSCBits (v, 
-	                        (entryinHP ++) * 8, 8);
-	}
-
-//	Now what is left is the part of the frame in the LP part
-
-	int16_t entryinLP	= startLow;
-	for (i = 0; i < numFrames; i ++) {
-	   for (j = 0;
-	        j < f [i]. length - audioinHP;
-	        j ++)
-	      if (entryinLP < startLow + lengthLow)
-	         f [i]. audio [audioinHP + j] =
-	                    get_MSCBits (v, (entryinLP++) * 8, 8);
-	}
-	playOut (mscIndex);
-}
 
 void	dataProcessor::handle_uep_packets (uint8_t *v, int16_t mscIndex,
 	                           int16_t startHigh, int16_t lengthHigh,
@@ -369,6 +361,61 @@ int16_t	i;
 	   my_packetAssembler -> assemble (packetBuffer,
 	                                   packetLength, mscIndex);
 	}
+}
+static
+int16_t outBuffer [8 * 960];
+static
+audioFrame f [20];
+void	dataProcessor::handle_uep_audio (uint8_t *v, int16_t mscIndex,
+	                           int16_t startHigh, int16_t lengthHigh,
+	                           int16_t startLow, int16_t lengthLow) {
+int16_t	headerLength, i, j;
+int16_t	usedLength	= 0;
+int16_t	crcLength	= 1;
+int16_t	payloadLength;
+
+//	first the globals
+	numFrames = msc -> streams [mscIndex]. audioSamplingRate == 1 ? 5 : 10;
+	headerLength = numFrames == 10 ? (9 * 12 + 4) / 8 : (4 * 12) / 8;
+	payloadLength = lengthLow + lengthHigh - headerLength - crcLength;
+	
+//	Then, read the numFrames - 1 "length"s from the header:
+	for (i = 0; i < numFrames - 1; i ++) {
+	   f [i]. length = get_MSCBits (v, startHigh * 8 + 12 * i, 12);
+	   if (f [i]. length < 0)
+	      return;
+	   usedLength += f [i]. length;
+	}
+//	the length of the last segment is to be computed
+	f [numFrames - 1]. length = payloadLength - usedLength;
+
+//	OK, now it is getting complicated, we first load the part(s) from the
+//	HP part. Length for all parts is equal, i.e. LengthHigh / numFrames
+//	the audiopart is one byte shorter, due to the crc
+	int16_t segmentinHP	= (lengthHigh - headerLength) / numFrames;
+	int16_t audioinHP	= segmentinHP - 1;
+	int16_t	entryinHP	= startHigh + headerLength;
+
+	for (i = 0; i < numFrames; i ++) {
+	   for (j = 0; j < audioinHP; j ++)
+	      f [i]. audio [j] = get_MSCBits (v,
+	                        (entryinHP ++) * 8, 8);
+	   f [i]. aac_crc = get_MSCBits (v, 
+	                        (entryinHP ++) * 8, 8);
+	}
+
+//	Now what is left is the part of the frame in the LP part
+
+	int16_t entryinLP	= startLow;
+	for (i = 0; i < numFrames; i ++) {
+	   for (j = 0;
+	        j < f [i]. length - audioinHP;
+	        j ++)
+	      if (entryinLP < startLow + lengthLow)
+	         f [i]. audio [audioinHP + j] =
+	                    get_MSCBits (v, (entryinLP++) * 8, 8);
+	}
+	playOut (mscIndex);
 }
 //
 //	Processing audio, in an EEP segment, proceeds as follows

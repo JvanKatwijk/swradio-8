@@ -86,6 +86,21 @@ private:
 	void	writeOut	(int16_t *, int16_t, int32_t);
 	void	toOutput	(float *, int16_t);
 	void	playOut		(int16_t);
+
+	void	process_syncStream (uint8_t *v, int16_t mscIndex,
+                                    int16_t startHigh,
+                                    int16_t lengthHigh,
+                                    int16_t startLow,
+                                    int16_t lengthLow);
+	void	handle_uep_syncStream (uint8_t *v, int16_t mscIndex,
+                                   int16_t startHigh, int16_t lengthHigh,
+                                   int16_t startLow, int16_t lengthLow);
+	void	handle_eep_syncStream (uint8_t *v, int16_t mscIndex,
+                                   int16_t startLow, int16_t lengthLow);
+	void	handle_syncStream	(uint8_t *v, int16_t, int16_t);
+
+
+	
 	uint8_t		aac_isInit;
 	uint8_t		prev_audioSamplingRate;
 	uint8_t		prevSBR_flag;

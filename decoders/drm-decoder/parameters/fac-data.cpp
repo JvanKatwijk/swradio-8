@@ -39,6 +39,8 @@
 	this	-> FAC_crc	= false;
 	this	-> SDC_crc	= false;
 	this	-> msc		= msc;
+	connect (this, SIGNAL (show_time (QString)),
+	         mr,   SLOT   (show_time (QString)));
 }
 
 	facData::~facData (void) {
@@ -124,7 +126,6 @@ uint8_t	language [3], country [2];
 //
 //	The bits are sequentially stored in v, so let's go
 
-//	fprintf (stderr, "SDC data with %d\n", dataType);
 	switch (dataType) {
 //	up to 4 streams can be carried. However, not all
 //	of these streams have to be audio!!
@@ -133,7 +134,7 @@ uint8_t	language [3], country [2];
 	      msc	-> protLevelA	= get_SDCBits (v, 0, 2);
 	      msc	-> protLevelB	= get_SDCBits (v, 2, 2);
 	      msc	-> dataLength	= 0;
-//
+
 //	Note that, at least for now, datastreams are generic, i.e.
 //	both Audio and data.
 	      for (i = 0; i < msc -> numofStreams; i ++) {
@@ -151,7 +152,6 @@ uint8_t	language [3], country [2];
 
 	   case 1:	// label entity, first 4 bits are:
 	      shortId	= get_SDCBits (v, 0, 2);
-	      rfu	= get_SDCBits (v, 2, 2);
 //	for now:
 	      (void)shortId; (void)rfu;
 //	the "full" bits are
@@ -186,6 +186,8 @@ uint8_t	language [3], country [2];
 	                                          get_SDCBits (v, 8, 1);
 	            msc -> streams [index]. domain =
 	                                          get_SDCBits (v, 9, 3);
+//	            fprintf (stderr, "synchronous domain %d\n",
+//	                                   msc -> streams [index]. domain);
 	         } else {
 	            // packet mode
 	            msc -> streams [index]. dataUnitIndicator =
@@ -207,7 +209,8 @@ uint8_t	language [3], country [2];
 	               msc -> streams [index]. applicationId =
 	                                          get_SDCBits (v, 25, 11);
 	            msc -> streams [index]. startofData = 36;
-//	         fprintf (stderr, " stream %d packetLength = %d, domain = %d, (app Id = %x) dataUnit = %d\n",
+//	            fprintf (stderr,
+//	                     " stream %d packetLength = %d, domain = %d, (app Id = %x) dataUnit = %d\n",
 //	                    index,
 //	                    msc -> streams [index]. packetLength,
 //	                    msc -> streams [index]. domain,
@@ -218,18 +221,30 @@ uint8_t	language [3], country [2];
 	      return;
 
 	   case 6:
+//	announcement and switching data entity
+	      return;
+
 	   case 7:	
+//	Region definition data entity
+	      { int16_t regionId	= get_SDCBits (v, 0, 4);
+	        int16_t	latitude	= get_SDCBits (v, 4, 8);
+	        int16_t longitude	= get_SDCBits (v, 12, 9);
+//	        fprintf (stderr, "%d, %d, %d\n", regionId, latitude, longitude);
+	      }
 	      return;
 
 	   case 8:	// time and date information
-	      {  int16_t hours	= get_SDCBits (v, 17, 5);
+	      {  int16_t hours		= get_SDCBits (v, 17, 5);
 	         int16_t minutes	= get_SDCBits (v, 22, 6);
 	         if (lengthofBody > 30) {
 	            int16_t offset = get_SDCBits (v, 31, 5);
 	            uint8_t f     = get_SDCBits (v, 30, 1);
 	            hours += f ? - offset : offset;
 	         }
-//	         fprintf (stderr, "time = %d %d\n", hours, minutes);
+
+	         char temp [100];
+	         sprintf (temp, "time = %d %d\n", hours, minutes);
+	         master -> show_time (QString (temp));
 	      }
 	      return;
 
@@ -265,11 +280,11 @@ uint8_t	language [3], country [2];
 	      shortId		= get_SDCBits (v, 0, 2);
 //	      fprintf (stderr, "shortId = %d\n", shortId);
 	      rfu		= get_SDCBits (v, 2, 2);
-	      language [0]	= get_SDCBits (v, 4, 8);
-	      language [1]	= get_SDCBits (v, 12, 8);
-	      language [2]	= get_SDCBits (v, 20, 8);
-	      country [0]	= get_SDCBits (v, 28, 8);
-	      country [1]	= get_SDCBits (v, 36, 8);
+	      msc -> streams [shortId]. language [0] = get_SDCBits (v, 4, 8);
+	      msc -> streams [shortId]. language [1] = get_SDCBits (v, 12, 8);
+	      msc -> streams [shortId]. language [2] = get_SDCBits (v, 20, 8);
+	      msc -> streams [shortId]. country  [0] = get_SDCBits (v, 28, 8);
+	      msc -> streams [shortId]. language [1] = get_SDCBits (v, 36, 8);
 	      (void)shortId;
 	      (void)rfu;
 	      (void)language;
@@ -282,11 +297,11 @@ uint8_t	language [3], country [2];
 	   case 14:
 	      {  int16_t streamId = get_SDCBits	(v, 0, 2);
 	         rfu		  = get_SDCBits	(v, 2, 2);
-	      msc -> streams [streamId]. R	= get_SDCBits (v, 4, 8);
-	      msc -> streams [streamId]. C	= get_SDCBits (v, 12, 8);
-	      msc -> streams [streamId]. packetLength =
-	                             get_SDCBits (v, 20, 8) - 3;
-	      msc -> streams [streamId]. FEC	= true;
+	         msc -> streams [streamId]. R	= get_SDCBits (v, 4, 8);
+	         msc -> streams [streamId]. C	= get_SDCBits (v, 12, 8);
+	         msc -> streams [streamId]. packetLength =
+	                                  get_SDCBits (v, 20, 8) - 3;
+	         msc -> streams [streamId]. FEC	= true;
 	      }
 	      return;
 

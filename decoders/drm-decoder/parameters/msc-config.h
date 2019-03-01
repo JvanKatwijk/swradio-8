@@ -70,6 +70,8 @@ enum	{
 	   uint8_t	shortId;	// identification
 	   bool		selected;
 	   uint8_t	streamId;
+	   uint8_t	language [3];
+	   uint8_t	country  [2];
 	   int16_t	lengthHigh;
 	   int16_t	lengthLow;
 	   uint8_t	audioCoding;

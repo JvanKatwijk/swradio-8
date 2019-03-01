@@ -368,47 +368,50 @@ int16_t	Z_256 (uint8_t Mode, int16_t n, int16_t m) {
 	}
 }
 
-bool	isBoostCell (uint8_t Mode, uint8_t spectrum, int16_t carrier) {
+bool	isBoostCell (uint8_t Mode, uint8_t spectrum,
+	                     int16_t symbol, int16_t carrier) {
 	switch (Mode) {
 	   case Mode_A:
 	      switch (spectrum) {
 	         default:
 	         case 0:
-	            return (carrier == 2) || (carrier == 6) ||
-	                   (carrier == 98) || (carrier == 102);
+	               return (carrier == 2) || (carrier == 98) ||
+	                      (carrier == 6) || (carrier == 102);
 	         case 1:
-	            return (carrier == 2) || (carrier == 6) ||
-	                   (carrier == 110) || (carrier == 114);
+	               return (carrier == 2) || (carrier == 110) ||
+	                      (carrier == 6) || (carrier == 114);
 	         case 2:
-	            return (carrier == -102) || (carrier == -98) ||
-	                   (carrier == 98) || (carrier == 102);
+	               return (carrier == -102) || (carrier == 98) ||
+	                      (carrier == -98) || (carrier == 102);
 	         case 3:
-	            return (carrier == -114) || (carrier == -110) ||
-	                   (carrier == 110) || (carrier == 114);
+	               return (carrier == -114) || (carrier == 110) ||
+	                      (carrier == -110) || (carrier == 114);
 	      }
 
 	   case Mode_B:
-	      switch (spectrum + 1) {
+	      switch (spectrum) {
 	         case 0:
-	            return carrier == 1 || carrier == 3 ||
-	                   carrier == 89 || carrier == 91;
+	               return (carrier == 1) || (carrier == 89) ||
+	                      (carrier == 3) || (carrier == 91);
 	         case 1:
-	            return carrier == 1 || carrier == 3 ||
-	                   carrier == 101 || carrier == 103;
+	               return (carrier == 1) || (carrier == 101) ||
+	                      (carrier == 3) || (carrier == 103);
 	         case 2:
-	            return carrier == -91 || carrier == -89 ||
-	                   carrier == 89  || carrier == 91;
+	               return (carrier == -91) || (carrier == 89) ||
+	                      (carrier == -89) || (carrier == 91);
 	         case 3:
 	         default:
-	            return carrier == -103 || carrier == -101 ||
-	                   carrier == 101 || carrier == 103;
+	               return (carrier == -103) || (carrier == 101) ||
+	                      (carrier == -101) || (carrier == 103);
 	      }
 
 	   case Mode_C:
 	      switch (spectrum) {
 	         default:
-	            return carrier == -69 || carrier == -67 ||
-	                   carrier == 67  || carrier == 69;
+	            if ((symbol & 01) == 0)
+	               return (carrier == -69) || (carrier == 67);
+	            else
+	               return (carrier == -67)  || (carrier == 69);
 	      }
 
 	   case Mode_D:
@@ -440,7 +443,7 @@ int16_t	p	= int16_t((float(carrier - k0 - n * x)) / (x * y));
 int16_t	phase	= (4 * Z_256 (Mode, n , m) + p * W_1024 (Mode, n, m) +
 	          (p * p) * (1 + symbol) * Q_1024 (Mode)) % 1024;
 
-	if (isBoostCell (Mode, Spectrum, carrier))
+	if (isBoostCell (Mode, Spectrum, symbol, carrier))
 	   return valueFor (sqrt (4.0), phase);
 	else
 	   return valueFor (sqrt (2.0), phase);

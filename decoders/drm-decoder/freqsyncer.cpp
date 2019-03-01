@@ -140,6 +140,7 @@ uint8_t	spectrum;
 	      m -> Spectrum = spectrum;
 	   }
 	}
+	fprintf (stderr, "hier is spectrum %d\n", m -> Spectrum);
 	return true;
 }
 

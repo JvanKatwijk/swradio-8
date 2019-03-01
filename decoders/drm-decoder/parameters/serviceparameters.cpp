@@ -98,12 +98,15 @@ void	serviceParameters::AudioDataflag (uint8_t *v) {
 void	serviceParameters::Servicedescriptor (uint8_t *v) {
 uint8_t val	= 0;
 int16_t	i;
-	if (!AudioService)
-	   return;		// apparently data service, skip for now
-
 	for (i = 0; i < 5; i ++)
 	   val = (val << 1) | (v [i] & 01);
 
+	if (!AudioService) {
+//	   fprintf (stderr, "application type %d\n", val);
+	   return;		// apparently data service, skip for now
+	}
+
+	
 //fprintf (stderr, "programmetype = %d ", val);
 	switch (val) {
 	   default:		// cannot happen

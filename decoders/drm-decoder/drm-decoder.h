@@ -86,6 +86,7 @@ public slots:
 	void		aacData			(QString);
 	void		show_country		(QString);
 	void		show_programType	(QString);
+	void		show_time		(QString);
 private slots:
 	void		executeTimeSync		(bool);
 	void		executeFACSync		(bool);

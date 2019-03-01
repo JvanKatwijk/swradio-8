@@ -35,6 +35,7 @@ class	drmDecoder;
 //	in a structure drmFrame
 
 class	facData: public QObject {
+Q_OBJECT
 public:
 		facData		(drmDecoder *, mscConfig *);
 		~facData	(void);
@@ -54,6 +55,8 @@ private:
 	drmDecoder	*master;
 	bool		FAC_crc;
 	bool		SDC_crc;
+signals:
+	void		show_time	(QString);
 };
 
 #endif

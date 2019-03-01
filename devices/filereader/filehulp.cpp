@@ -58,16 +58,16 @@ SF_INFO	*sf_info;
 	                    f. toLatin1 (). data ());
 	   return;
 	}
+
 	samplesinFile	= sf_info	-> frames;
 	sampleRate	= sf_info	-> samplerate;
-	fileLength      = sf_seek (filePointer, 0, SEEK_END);
-        totalTime       = (float)fileLength / sampleRate;
-	fprintf (stderr, "filelength = %d, timetoplay %f\n",
-	                     fileLength, totalTime);
-	sf_seek (filePointer, 0, SEEK_SET);
+	numofChannels	= sf_info	-> channels;
+	fprintf (stderr, "samplesinfile = %d, sampleRate = %d, channels = %d\n",
+	                      samplesinFile, sampleRate, numofChannels);
+        totalTime       = samplesinFile / sampleRate;
+	fprintf (stderr, "timetoplay %f\n", totalTime);
 
 	theRate		= rate;
-	numofChannels	= sf_info	-> channels;
 	readerOK	= true;
 	resetRequest	= false;
 	
@@ -232,7 +232,8 @@ int64_t	nextStop;
 	   int		error;
 //	outputbuffer size
 	   float	bo [outputLimit];
-	   SRC_STATE	*converter	= src_new (SRC_LINEAR, 2, &error);
+	   SRC_STATE	*converter	= src_new (SRC_SINC_BEST_QUALITY,
+	                                                           2, &error);
 	   SRC_DATA	*src_data	= new SRC_DATA;
 	   if (converter == 0) {
 	      fprintf (stderr, "error creating a converter %d\n", error);

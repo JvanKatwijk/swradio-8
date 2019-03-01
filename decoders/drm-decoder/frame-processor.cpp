@@ -138,7 +138,7 @@ void	frameProcessor::createProcessors (smodeInfo *m) {
 uint8_t	Mode		= m -> Mode;
 uint8_t	Spectrum	= m -> Spectrum;
 
-	if ((Spectrum > 3) ||(Spectrum <= 1)) {
+	if ((Spectrum > 3) ||(Spectrum < 1)) {
 	   m -> Spectrum = 3;
 	   Spectrum	= 3;
 	}
@@ -251,6 +251,7 @@ restart:
 	      oldSpectrum	= modeInf. Spectrum;
 	      oldMode		= modeInf. Mode;
 	   }
+
 	   show_Mode (modeInf. Mode); show_Spectrum (modeInf. Spectrum);
 //
 //	Ok, once here, we know the intoffset, we adjusted the buffer
