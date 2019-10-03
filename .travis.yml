@@ -22,7 +22,7 @@ install:
   - cp swradio.png appdir/qt-dab.png
   - touch appdir/swradio.png # Dear upstream developers, please provide an application icon
   - ls -l appdir/usr/lib
-  -cp libfaad_x64.so /appdir/usr/libfaad_drm.so
+  - cp libfaad_x64.so /appdir/usr/libfaad_drm.so
   - # after_success:
   - ls -l
   - ls -l appdir
