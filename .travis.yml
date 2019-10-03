@@ -8,7 +8,7 @@ before_install:
     - sudo apt-get update -qq
 
 install:
-    - sudo apt-get -y install qt5-qmake qt5-default libqt5opengl5-dev qtbase5-dev libqwt-qt5-dev libsndfile1-dev librtlsdr-dev librtlsdr0 libfftw3-dev portaudio19-dev zlib1g-dev rtl-sdr libusb-1.0-0-dev mesa-common-dev libgl1-mesa-dev libsamplerate-dev
+    - sudo apt-get -y install qt5-qmake qt5-default libqt5opengl5-dev qtbase5-dev libqwt-qt5-dev libsndfile1-dev librtlsdr-dev librtlsdr0 libfftw3-dev portaudio19-dev zlib1g-dev libusb-1.0-0-dev mesa-common-dev libgl1-mesa-dev libsamplerate-dev
 
 script:
   - cmake . -DCMAKE_INSTALL_PREFIX=/usr
@@ -21,7 +21,7 @@ script:
   - cp swradio.png appdir/qt-dab.png
   - touch appdir/swradio.png # Dear upstream developers, please provide an application icon
   - ls -l appdir/usr/lib
-  -# cp ./libfaad_x64.so /appdir/usr/lib/libfaad_drm.so
+  - cp ./libfaad_x64.so /appdir/usr/lib/libfaad_drm.so
 after_success:
   - ls -l
   - ls -l appdir
