@@ -6,38 +6,26 @@ dist: xenial
 before_install:
     - sudo add-apt-repository ppa:beineri/opt-qt-5.12.2-xenial -y
     - sudo apt-get update -qq
-    
-install: 
-    - sudo apt-get -y install qt5-qmake qt5-default libqt5opengl5-dev qtbase5-dev libqwt-qt5-dev libsndfile1-dev librtlsdr-dev librtlsdr0 libfftw3-dev portaudio19-dev libfaad-dev zlib1g-dev rtl-sdr libusb-1.0-0-dev mesa-common-dev libgl1-mesa-dev libsamplerate-dev 
-    - # source /opt/qt5/bin/qt5-env.sh
-    - # QWT for Qt 5, see https://github.com/arkottke/strata/blob/master/.travis.yml
-    - # svn checkout svn://svn.code.sf.net/p/qwt/code/branches/qwt-6.1 qwt
-    - # cd qwt
-    - # qmake
-    - # make -j4
-    - # sudo make install
-    - # find /usr/local/qwt-6.1.4-svn/
-    - # cd ..
-    
-script:
-  - # sed -i -e 's|CONFIG.*sdrplay||g' qt-dab.pro
-  - # sed -i -e 's|CONFIG.*airspy||g' qt-dab.pro
-  - # sed -i -e 's|CONFIG.*spectrum||g' qt-dab.pro
-  - cmake . -DRTLSDR=ON -DRTLTCP=ON  -DAIRSPY=ON -DSDRPLAY=ON -DCMAKE_INSTALL_PREFIX=/usr
+
+install:
+    - sudo apt-get -y install qt5-qmake qt5-default libqt5opengl5-dev qtbase5-dev libqwt-qt5-dev libsndfile1-dev librtlsdr-dev librtlsdr0 libfftw3-dev portaudio19-dev libfaad-dev zlib1g-dev rtl-sdr libusb-1.0-0-dev mesa-common-dev libgl1-mesa-dev libsamplerate-dev
+
+  - cmake . -DCMAKE_INSTALL_PREFIX=/usr
   - make -j4
-  - # sudo make DESTIDR=appdir install ; sudo chown -R $USER appdir ; find appdir/
   - ls -lh .
-  - rm -rf *_autogen
-  - mkdir -p appdir/usr/bin
-  - cp qt-dab-2.7.3  appdir/usr/bin/qt-dab
- 
-  - mkdir -p appdir/usr/share/applications ; cp qt-dab.desktop appdir/usr/share/applications
-  - cp qt-dab.png appdir/qt-dab.png
-  - touch appdir/qt-dab.png # Dear upstream developers, please provide an application icon
-  - mkdir -p ./appdir/usr/share/icons/hicolor/256x256/apps/
-  - cp qt-dab.png appdir/usr/share/icons/hicolor/256x256/apps/
-  
+  - mkdir -p appdir/usr/bin 
+  - cp swradio-8.1 appdir/usr/bin/swradio-8 
+  - mkdir -p appdir/usr/lib
+  - mkdir -p appdir/usr/share/applications ; cp swradio.desktop appdir/usr/share/applications
+  - cp swradio.png appdir/qt-dab.png
+  - touch appdir/swradio.png # Dear upstream developers, please provide an application icon
+  - ls -l appdir/usr/lib
+  - cp libfaad_x64.so /appdir/usr/libfaad_drm.so
 after_success:
+  - ls -l
+  - ls -l appdir
+  - ls -l appdir/usr
+  - ls -l appimage
   - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" 
   - chmod a+x linuxdeployqt*.AppImage
   - unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
@@ -46,13 +34,10 @@ after_success:
   - ./linuxdeployqt*.AppImage --appimage-extract
   - find appdir/usr/plugins/ -type f -exec squashfs-root/usr/bin/patchelf --set-rpath '$ORIGIN/../../lib' {} \;
   - ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/* -bundle-non-qt-libs
-  - # Workaround for https://github.com/JvanKatwijk/qt-dab/issues/34
-  - find /usr/lib/ -type f -name librtlsdr.so* -exec cp {} appdir/usr/lib/librtlsdr.so \;
   - chmod a+x appimage/* ; rm appdir/AppRun ; cp appimage/* appdir/
   - export PATH=squashfs-root/usr/bin/:$PATH # Make it pick up our private patched mksquashfs; https://github.com/plougher/squashfs-tools/pull/13/files
   - squashfs-root/usr/bin/appimagetool $(readlink -f ./appdir/)
   - find ./appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
-  - curl --upload-file ./Qt_DAB*.AppImage https://transfer.sh/Qt_DAB-git.$(git rev-parse --short HEAD)-x86_64.AppImage
+  - curl --upload-file ./swradio*.AppImage https://transfer.sh/swradio-8.$(git rev-parse --short HEAD)-x86_64.AppImage
   - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-  - bash ./upload.sh ./Qt_DAB*.AppImage
-
+  - bash ./upload.sh ./swradio*.AppImage
