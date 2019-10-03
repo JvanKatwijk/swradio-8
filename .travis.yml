@@ -17,7 +17,7 @@ install:
   - make -j4
   - ls -lh .
   - mkdir -p appdir/usr/bin 
-  - cp swradio-8 appdir/usr/bin/swradio-8 
+  - cp swradio-8.1 appdir/usr/bin/swradio-8 
   - mkdir -p appdir/usr/lib
   - mkdir -p appdir/usr/share/applications ; cp swradio.desktop appdir/usr/share/applications
   - cp swradio.png appdir/qt-dab.png
