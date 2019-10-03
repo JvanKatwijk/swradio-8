@@ -9,34 +9,36 @@ before_install:
 
 install:
     - sudo apt-get -y install qt5-qmake qt5-default libqt5opengl5-dev qtbase5-dev libqwt-qt5-dev libsndfile1-dev librtlsdr-dev librtlsdr0 libfftw3-dev portaudio19-dev libfaad-dev zlib1g-dev rtl-sdr libusb-1.0-0-dev mesa-common-dev libgl1-mesa-dev libsamplerate-dev
+
+script:
   - cmake . -DCMAKE_INSTALL_PREFIX=/usr
-  -# make -j4
-  -# ls -lh .
-  -# mkdir -p appdir/usr/bin 
-  -# cp swradio-8.1 appdir/usr/bin/swradio-8 
-  -# mkdir -p appdir/usr/lib
-  -# mkdir -p appdir/usr/share/applications ; cp swradio.desktop appdir/usr/share/applications
-  -# cp swradio.png appdir/qt-dab.png
-  -# touch appdir/swradio.png # Dear upstream developers, please provide an application icon
-  -# ls -l appdir/usr/lib
-  -# cp libfaad_x64.so /appdir/usr/libfaad_drm.so
+  - make -j4
+  - ls -lh .
+  - mkdir -p appdir/usr/bin 
+  - cp swradio-8.1 appdir/usr/bin/swradio-8 
+  - mkdir -p appdir/usr/lib
+  - mkdir -p appdir/usr/share/applications ; cp swradio.desktop appdir/usr/share/applications
+  - cp swradio.png appdir/qt-dab.png
+  - touch appdir/swradio.png # Dear upstream developers, please provide an application icon
+  - ls -l appdir/usr/lib
+  - cp libfaad_x64.so /appdir/usr/libfaad_drm.so
 after_success:
   - ls -l
   - ls -l appdir
   - ls -l appdir/usr
   - ls -l appimage
-  -# wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" 
-  -# chmod a+x linuxdeployqt*.AppImage
-  -# unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
-  -# ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/* -bundle-non-qt-libs
-  -# # Workaround for https://github.com/probonopd/linuxdeployqt/issues/31#issuecomment-289267637
-  -# ./linuxdeployqt*.AppImage --appimage-extract
-  -# find appdir/usr/plugins/ -type f -exec squashfs-root/usr/bin/patchelf --set-rpath '$ORIGIN/../../lib' {} \;
-  -# ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/* -bundle-non-qt-libs
-  -# chmod a+x appimage/* ; rm appdir/AppRun ; cp appimage/* appdir/
-  -# export PATH=squashfs-root/usr/bin/:$PATH # Make it pick up our private patched mksquashfs; https://github.com/plougher/squashfs-tools/pull/13/files
-  -# squashfs-root/usr/bin/appimagetool $(readlink -f ./appdir/)
-  -# find ./appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
-  -# curl --upload-file ./swradio*.AppImage https://transfer.sh/swradio-8.$(git rev-parse --short HEAD)-x86_64.AppImage
-  -# wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-  -# bash ./upload.sh ./swradio*.AppImage
+  - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" 
+  - chmod a+x linuxdeployqt*.AppImage
+  - unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
+  - ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/* -bundle-non-qt-libs
+  - # Workaround for https://github.com/probonopd/linuxdeployqt/issues/31#issuecomment-289267637
+  - ./linuxdeployqt*.AppImage --appimage-extract
+  - find appdir/usr/plugins/ -type f -exec squashfs-root/usr/bin/patchelf --set-rpath '$ORIGIN/../../lib' {} \;
+  - ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/* -bundle-non-qt-libs
+  - chmod a+x appimage/* ; rm appdir/AppRun ; cp appimage/* appdir/
+  - export PATH=squashfs-root/usr/bin/:$PATH # Make it pick up our private patched mksquashfs; https://github.com/plougher/squashfs-tools/pull/13/files
+  - squashfs-root/usr/bin/appimagetool $(readlink -f ./appdir/)
+  - find ./appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
+  - curl --upload-file ./swradio*.AppImage https://transfer.sh/swradio-8.$(git rev-parse --short HEAD)-x86_64.AppImage
+  - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+  - bash ./upload.sh ./swradio*.AppImage
