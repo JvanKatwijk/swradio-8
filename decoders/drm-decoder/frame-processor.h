@@ -32,17 +32,20 @@
 #include	"basics.h"
 #include	"timesync.h"
 #include	"reader.h"
-#include	"viterbi-drm.h"
+#include	"backend-controller.h"
+#include	"fac-processor.h"
+#include	"state-descriptor.h"
 
 class	equalizer_base;
-class	facData;
 class	referenceFrame;
 class	facProcessor;
-class	sdcProcessor;
-class	mscProcessor;
 class	drmDecoder;
-class	mscConfig;
 class	wordCollector;
+
+typedef struct {
+	int	symbol;
+	int	carrier;
+} sdcCell;
 struct facElement {
 	int16_t	symbol;
 	int16_t	carrier;
@@ -56,6 +59,7 @@ Q_OBJECT
 public:
 			frameProcessor	(drmDecoder *,
 	                                 RingBuffer<DSPCOMPLEX> *,
+	                                 RingBuffer<DSPCOMPLEX> *,
 	                                 int32_t,	// samplerate
 	                                 int16_t,	// number of symbs
 	                                 int8_t,	// windowDepth
@@ -65,6 +69,9 @@ public:
 private:
 	drmDecoder	*mr;
 	RingBuffer<DSPCOMPLEX> *buffer;
+	RingBuffer<std::complex<float>> *iqBuffer;
+	backendController	my_backendController;
+	facProcessor	my_facProcessor;
 	int16_t		nSymbols;
 	int32_t		sampleRate;
 	int8_t		windowDepth;
@@ -77,41 +84,37 @@ private:
 	                                         smodeInfo *m);
 	DSPCOMPLEX	facError		(DSPCOMPLEX *,
 	                                         DSPCOMPLEX *, int16_t);
-	void		deleteProcessors	(void);
-	void		createProcessors	(smodeInfo *);
+	void		set_sdcCells		(smodeInfo *modeInf);
+	std::vector<sdcCell> sdcTable;
 	void		run		(void);
-	uint8_t		getSpectrum	(facData *);
+	uint8_t		getSpectrum	(stateDescriptor *);
 	int16_t		sdcCells	(smodeInfo *);
-	int16_t		mscCells	(smodeInfo *);
 	bool		is_bestIndex	(smodeInfo *, int16_t);
 	float	getCorr		(smodeInfo *, DSPCOMPLEX *);
-	bool		isFirstFrame	(facData *);
-	bool		isLastFrame	(facData *);
+	bool		isFirstFrame	(stateDescriptor *);
+	bool		isLastFrame	(stateDescriptor *);
 	bool		isSDCcell	(smodeInfo *, int16_t, int16_t);
 	bool		isFACcell	(smodeInfo *, int16_t, int16_t);
-	int16_t		extractSDC	(smodeInfo *,
-	                                 theSignal **, theSignal *);
-	bool		getFACdata	(smodeInfo *, theSignal **, facData *,
-	                                 float, DSPCOMPLEX **);
-	bool		process_sdc	(smodeInfo *, facData *, theSignal **);
+	bool		processFac	(float, DSPCOMPLEX **);
 	void		addtoSuperFrame	(smodeInfo *, int16_t);
 	bool		isDatacell	(smodeInfo *,
 	                                 int16_t, int16_t, int16_t);
         Reader          my_Reader;              // single instance during life
 
-//	viterbi_drm	my_dummy;
 	wordCollector	*my_wordCollector;
 	referenceFrame	*my_referenceFrame;
-	mscProcessor	*my_mscProcessor;
-	mscConfig	*my_mscConfig;
 	int16_t		symbolsinFrame;
 	equalizer_base	*my_Equalizer;
-	facData		*my_facData;
+	stateDescriptor theState;
 	float		corrBank [30];
 	DSPCOMPLEX	**inbank;
 	theSignal	**outbank;
 	DSPCOMPLEX	**refBank;
 //
+	bool	processSDC	(smodeInfo *modeInf,
+	                         theSignal	**theRawData,
+                                 stateDescriptor *my_facData);
+	void	computeBlock	(smodeInfo *);
 signals:
 	void		setTimeSync	(bool);
 	void		setFACSync	(bool);

@@ -31,6 +31,7 @@
 #include	"radio.h"
 #include	"basics.h"
 #include	"frame-processor.h"
+#include	"iqdisplay.h"
 /*
  */
 		drmDecoder::drmDecoder (int32_t		inRate,
@@ -58,6 +59,7 @@ int16_t	symbs;
 	   theRate = 12000;
 	}
 
+	iqBuffer	= new RingBuffer<std::complex<float>> (32768);
 	localOscillator. resize (theRate);
 	for (int i = 0; i < theRate; i ++)
 	   localOscillator [i] =
@@ -86,6 +88,7 @@ int16_t	symbs;
 
 	my_frameProcessor	= new frameProcessor (this,
 	                                              buffer,
+	                                              iqBuffer,
 	                                              theRate,
 	                                              symbs,
 	                                              windowDepth,
@@ -201,6 +204,10 @@ void	drmDecoder::executeSDCSync	(bool f) {
 
 void	drmDecoder::show_stationLabel (const QString &s) {
 	stationLabel -> setText (s);
+}
+
+void	drmDecoder::show_timeLabel	(const QString &s) {
+//	timedisplayLabel	-> setText (s);
 }
 
 void	drmDecoder::execute_showMode		(int l) {
@@ -330,6 +337,25 @@ void	drmDecoder::showMOT		(QByteArray data, int subtype) {
 void    drmDecoder::set_phaseOffset (int f) {
         phaseOffset += f;
 	phaseOffsetDisplay	-> display (phaseOffset);
+}
+
+void    drmDecoder::showIQ  (int amount) {
+std::complex<float> Values [amount];
+int16_t i;
+int16_t t;
+double  avg     = 0;
+//int     scopeWidth      = scopeSlider -> value();
+
+	if (iqBuffer -> GetRingBufferReadAvailable () < amount)
+	   return;
+        t = iqBuffer -> getDataFromBuffer (Values, amount);
+//        for (i = 0; i < t; i ++) {
+//           float x = abs (Values [i]);
+//           if (!std::isnan (x) && !std::isinf (x))
+//              avg += abs (Values [i]);
+//        }
+//        avg     /= t;
+//        my_iqDisplay -> DisplayIQ (Values, scopeWidth / avg);
 }
 
 void	drmDecoder::show_country (QString s) {

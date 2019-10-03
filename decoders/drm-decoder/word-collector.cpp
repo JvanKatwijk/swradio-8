@@ -53,7 +53,7 @@
 	this	-> K_max	= Kmax	(Mode, Spectrum);
 	this	-> displayCount	= 0;
 	this	-> timedelay	= 0;
-	fft_vector		= (DSPCOMPLEX *)
+	fft_vector		= (std::complex<float> *)
 	                               fftwf_malloc (Tu *
 	                                            sizeof (fftwf_complex));
 	hetPlan			= fftwf_plan_dft_1d (Tu,
@@ -82,12 +82,12 @@
 //	when starting up, we "borrow" the precomputed frequency offset
 //	and start building up the spectrumbuffer.
 //	
-void	wordCollector::getWord (DSPCOMPLEX	*out,
+void	wordCollector::getWord (std::complex<float>	*out,
 	                        int32_t		initialFreq,
 	                        float		offsetFractional) {
-DSPCOMPLEX	temp [Ts];
+std::complex<float>	temp [Ts];
 int16_t		i;
-DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
+std::complex<float>	angle	= std::complex<float> (0, 0);
 float		offset	= 0;
 int32_t		bufMask	= buffer -> bufSize - 1;
 int16_t	d;
@@ -105,15 +105,18 @@ float	timeOffsetFractional;
 //	To take into account the fractional timing difference,
 //	keep it simple, just linear interpolation
 	int f = (int)(floor (buffer -> currentIndex)) & bufMask;
+
 	if (timeOffsetFractional < 0) {
 	   timeOffsetFractional = 1 + timeOffsetFractional;
 	   f -= 1;
 	}
+//
+//	correction of the time offset by interpolation
 	for (i = 0; i < Ts; i ++) {
-	   DSPCOMPLEX one = buffer -> data [(f + i) & bufMask];
-	   DSPCOMPLEX two = buffer -> data [(f + i + 1) & bufMask];
+	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
+	   std::complex<float> two = buffer -> data [(f + i + 1) & bufMask];
 	   temp [i] = cmul (one, 1 - timeOffsetFractional) +
-	                       cmul (two, timeOffsetFractional);
+	                            cmul (two, timeOffsetFractional);
 	}
 
 //	And we shift the bufferpointer here
@@ -123,6 +126,7 @@ float	timeOffsetFractional;
 	for (i = 0; i < Tg; i ++)
 	   angle += conj (temp [Tu + i]) * temp [i];
 //	simple averaging
+//	theAngle	+= 0.1 * arg (angle);
 	theAngle	= 0.9 * theAngle + 0.1 * arg (angle);
 //
 //	offset  (and shift) in Hz / 100
@@ -138,21 +142,7 @@ float	timeOffsetFractional;
 	   show_timeDelay	(offsetFractional);
 	}
 
-//	and extract the Tu set of samples for fft processsing
-	memcpy (fft_vector, &temp [Tg], Tu * sizeof (DSPCOMPLEX));
-
-	fftwf_execute (hetPlan);
-//	extract the "useful" data
-	if (K_min < 0) {
-	   memcpy (out,
-	           &fft_vector [Tu + K_min], - K_min * sizeof (DSPCOMPLEX));
-	   memcpy (&out [- K_min],
-	           &fft_vector [0], (K_max + 1) * sizeof (DSPCOMPLEX));
-	}
-	else
-	   memcpy (out,
-	           &fft_vector [K_min],
-	           (K_max - K_min + 1) * sizeof (DSPCOMPLEX));
+	fft_and_extract (&temp [Tg], out);
 }
 //
 //	The getWord as below is used in the main loop, to obtain
@@ -160,13 +150,13 @@ float	timeOffsetFractional;
 //	With this "getWord" we  also correct the frequency and
 //	timing offsets based on tracking values, computed
 //	during equalization
-void	wordCollector::getWord (DSPCOMPLEX	*out,
+void	wordCollector::getWord (std::complex<float>	*out,
 	                        int32_t		initialFreq,
 	                        bool		firstTime,
 	                        float		offsetFractional,
 	                        float		angle,
 	                        float		clockOffset) {
-DSPCOMPLEX	temp [Ts];
+std::complex<float>	temp [Ts];
 int16_t		i;
 float	offset	= 0;
 int32_t		bufMask		= buffer -> bufSize - 1;
@@ -209,11 +199,11 @@ float	timeOffsetFractional;
 	      timeOffsetFractional -= 1;
 	      f += 1;
 	   }
-	   DSPCOMPLEX one = buffer -> data [(f + i) & bufMask];
-	   DSPCOMPLEX two = buffer -> data [(f + i + 1) & bufMask];
+	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
+	   std::complex<float> two = buffer -> data [(f + i + 1) & bufMask];
 	   temp [i] = cmul (one, 1 - timeOffsetFractional) +
 	              cmul (two, timeOffsetFractional);
-//	   timeOffsetFractional -= sampleclockOffset / 2;
+	   timeOffsetFractional -= sampleclockOffset / 2;
 	}
 
 //	And we adjust the bufferpointer here
@@ -223,13 +213,13 @@ float	timeOffsetFractional;
 //
 //	If we are here for the first time, we compute an initial offset.
 	if (firstTime) {	// compute a vfo offset
-	   DSPCOMPLEX c = DSPCOMPLEX (0, 0);
+	   std::complex<float>c = std::complex<float> (0, 0);
 	   for (i = 0; i < Tg; i ++)
 	      c += conj (temp [Tu + i]) * temp [i];
 	   theAngle = arg (c);
 	}
 	else
-	   theAngle	= theAngle - 0.20 * angle;
+	   theAngle	= theAngle - 0.10 * angle;
 //	offset in 0.01 * Hz
 	offset          = theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
 	if (offset == offset)	// precaution to handle undefines
@@ -245,18 +235,26 @@ float	timeOffsetFractional;
 	   show_clockOffset	(Ts * clockOffset);
 	}
 
+	fft_and_extract (&temp [Tg], out);
+}
+
+void	wordCollector::fft_and_extract (std::complex<float> *in,
+	                                std::complex<float> *out) {
 //	and extract the Tu set of samples for fft processsing
-	memcpy (fft_vector, &temp [Tg], Tu * sizeof (DSPCOMPLEX));
+	memcpy (fft_vector, in, Tu * sizeof (std::complex<float>));
 
 	fftwf_execute (hetPlan);
 //	extract the "useful" data
-	if (Kmin (Mode, Spectrum) < 0) {
+	if (K_min < 0) {
 	   memcpy (out,
-	           &fft_vector [Tu + K_min], - K_min * sizeof (DSPCOMPLEX));
+	           &fft_vector [Tu + K_min],
+	           - K_min * sizeof (std::complex<float>));
 	   memcpy (&out [- K_min],
-	           &fft_vector [0], (K_max + 1) * sizeof (DSPCOMPLEX));
+	           &fft_vector [0], (K_max + 1) * sizeof (std::complex<float>));
 	}
 	else
-	   memcpy (out, &fft_vector [K_min], (K_max - K_min + 1) * sizeof (DSPCOMPLEX));
+	   memcpy (out,
+	           &fft_vector [K_min],
+	           (K_max - K_min + 1) * sizeof (std::complex<float>));
 }
 

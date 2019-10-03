@@ -55,6 +55,7 @@ class           audioSink;
 class           keyPad;
 class           programList;
 class		fftFilter;
+class		bandPlan;
 
 class	RadioInterface:public QMainWindow,
 	               private Ui_MainWindow {
@@ -62,6 +63,7 @@ Q_OBJECT
 public:
 		RadioInterface (QSettings	*sI,
 	                        QString		stationList,
+	                        bandPlan	*my_bandPlan,
 	                        int		inputRate,
 	                        int		decoderRate,
 	                        QWidget		*parent = NULL);
@@ -74,6 +76,7 @@ private:
 	}theBand;
 	
 	QSettings       *settings;
+	bandPlan	*my_bandPlan;
         int32_t         inputRate;
 	int32_t		decoderRate;
 	int32_t		scopeWidth;

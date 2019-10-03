@@ -21,13 +21,15 @@
  */
 #
 #include	"sdc-processor.h"
-#include	"fac-data.h"
+#include	"drm-decoder.h"
+#include	"state-descriptor.h"
 #include	"prbs.h"
 #include	"sdc-include.h"
 #include	"sdc-streamer.h"
 #include	"qam16-metrics.h"
 #include	"qam4-metrics.h"
-#include	"msc-config.h"
+#include	"viterbi-drm.h"
+#include	"drm-decoder.h"
 //
 //	the "processor" for extracting the SDC values from the
 //	(first) frame of a superframe encoded in QAM4/QAM16
@@ -62,33 +64,36 @@ int16_t	index;
 	return 4 + 8 * table_56 [index] + 16;
 }
 
-static	inline
-int16_t	getLengthofSDCData (uint8_t Mode, uint8_t Spectrum, uint8_t SDCMode) {
-int16_t	index;
-	index = (Mode - 1) * 10 + (SDCMode == 1 ? 5 : 0) + Spectrum;
-	return table_56 [index];
-}
+//static	inline
+//int16_t	getLengthofSDCData (uint8_t Mode, uint8_t Spectrum, uint8_t SDCMode) {
+//int16_t	index;
+//	index = (Mode - 1) * 10 + (SDCMode == 1 ? 5 : 0) + Spectrum;
+//	return table_56 [index];
+//}
 //
-//	Mode and Spectrum are given now. nrCells could be
-//	determined by Mode and spectrum and facData
+//	Mode and Spectrum are given now. nrCells is
+//	determined by Mode and spectrum and stateDescriptor
 //	refers to the database structure
-	sdcProcessor::sdcProcessor (uint8_t	Mode,
-	                            uint8_t	Spectrum,
-	                            facData	*my_facData,
+	sdcProcessor::sdcProcessor (drmDecoder *master,
+	                            stateDescriptor	*theState,
 	                            int16_t 	nrCells):
 	                                  theCRC (16, crcPolynome),
 	                                  Y13Mapper (2 * nrCells, 13),
 	                                  Y21Mapper (2 * nrCells, 21) {
-	this	-> Mode		= Mode;
-	this	-> Spectrum	= Spectrum;
-	this	-> my_facDB	= my_facData;
+	this	-> Mode		= theState	-> Mode;
+	this	-> Spectrum	= theState	-> Spectrum;
+	this	-> theState	= theState;
 	this	-> nrCells	= nrCells;
-	this	-> rmFlag	= getRMflag ();
-	this	-> SDCmode	= getSDCmode ();
-
-	qammode	= (rmFlag == 0 && SDCmode == 0) ? mscConfig::QAM16 :
-	                                          mscConfig::QAM4;
-	if (qammode == mscConfig::QAM4) {
+//
+	connect (this, SIGNAL (show_stationLabel (const QString &)),
+	         master, SLOT (show_stationLabel (const QString &)));
+	connect (this, SIGNAL (show_timeLabel    (const QString &)),
+	         master, SLOT (show_timeLabel    (const QString &)));
+	rmFlag	= getRMflag ();
+	SDCmode	= getSDCmode ();
+	qammode	= (rmFlag == 0 && SDCmode == 0) ? stateDescriptor::QAM16 :
+	                                          stateDescriptor::QAM4;
+	if (qammode == stateDescriptor::QAM4) {
 //	   fprintf (stderr, "qammode = QAM4\n");
 	   my_qam4_metrics	= new qam4_metrics ();
 	   stream_0		= new SDC_streamer (1, 2, &Y21Mapper, nrCells);
@@ -111,7 +116,7 @@ int16_t	index;
 	sdcProcessor::~sdcProcessor (void) {
 	delete	thePRBS;
 	delete	stream_0;
-	if (qammode == mscConfig::QAM16) {
+	if (qammode == stateDescriptor::QAM16) {
 	   delete	my_qam16_metrics;
 	   delete	stream_1;
 	}
@@ -119,12 +124,10 @@ int16_t	index;
 	   delete	my_qam4_metrics;
 }
 
-
-//	actual processing of a SDC block is either
-//	qam4 or qam16, so just dispatch
+//	actual processing of a SDC block. 
 bool	sdcProcessor::processSDC (theSignal *v) {
 
-	if (qammode == mscConfig::QAM4) 
+	if (qammode == stateDescriptor::QAM4) 
 	   return processSDC_QAM4 (v);
 	else
 	   return processSDC_QAM16 (v);
@@ -144,12 +147,10 @@ uint8_t	reconstructed [2 * nrCells];
 
 	sdcBits [0] = sdcBits [1] = sdcBits [2] = sdcBits [3] = 0;
 	if (!theCRC. doCRC (sdcBits, 4 + lengthofSDC)) {
-	   my_facDB	-> set_SDC_crc (false);
 	   return false;
 	}
 
-	my_facDB	-> interpretSDC (sdcBits, lengthofSDC);
-	my_facDB	-> set_SDC_crc (true);
+	interpretSDC (sdcBits, lengthofSDC, theState);
 	return true;
 }
 
@@ -185,21 +186,273 @@ int16_t i;
 
 	sdcBits [0] = sdcBits [1] = sdcBits [2] = sdcBits [3] = 0;
 	if (!theCRC. doCRC (sdcBits, 4 + lengthofSDC)) {
-	   my_facDB	-> set_SDC_crc (false);
 	   return false;
 	}
 
-	my_facDB	-> interpretSDC (sdcBits, lengthofSDC);
-	my_facDB	-> set_SDC_crc (true);
-	return true;
+	interpretSDC (sdcBits, lengthofSDC, theState);
+	return theState -> set;
 }
 //
 
 uint8_t	sdcProcessor::getSDCmode	(void) {
-	return my_facDB	-> myChannelParameters.getSDCmode ();
+	return theState	-> getSDCmode ();
 }
 
 uint8_t	sdcProcessor::getRMflag		(void) {
-	return my_facDB	-> myChannelParameters. getRMflag ();
+	return theState	-> getRMflag ();
 }
+
+//
+//	The data in the SDC vector is organised as
+//	4 bits are zero (just inserted for the CRC)
+//	4 bits AFS
+//	N bytes data
+//	16 bits CRC
+//	some padding bits
+
+//	The data is organized as packages with a 12 bits header
+//	that contains (in the first 7 bits) the length of
+//	the data (excluding the header).
+//	We pass on the length in bits, converting back to the
+//	number of bytes in the datafield requires subtracting
+//	the 4 bits (put before the afs field) and the 16 crc bits
+//	and dividing by the number of bits per byte.
+void	sdcProcessor::interpretSDC (uint8_t *v, int16_t size,
+	                                  stateDescriptor *theState) {
+uint8_t	afs	= (v [4] << 3) | (v [5] << 2) | (v [6] << 1) | v [7];
+int16_t	index	= 8;
+int16_t	lengthofBody, versionFlag, dataType;
+int16_t	lengthofDatafield	= (size - 16 - 4) / 8;
+
+	sdcCorrect = true;
+
+	while (index < lengthofDatafield * 8 + 8) {
+	   lengthofBody = get_SDCBits (v, index, 7);
+	   index	+= 7;
+	   versionFlag	= get_SDCBits (v, index, 1);
+	   index	+= 1;
+	   dataType	= get_SDCBits (v, index, 4);
+	   index	+= 4;
+
+	   if ((dataType == 0) && (lengthofBody == 0))
+	      break;
+	   if (index + lengthofBody < lengthofDatafield * 8 + 8) // sanity check
+	      set_SDCData (theState, &v [index], afs,
+	                               dataType, versionFlag, lengthofBody);
+//
+//	   step over contents
+//	   Note that, according to std 6.4.3, the length of the body
+//	   is indicated in full bytes, excluding the first 4 bits, i.e.
+//	   the bitlength = lengthofBody * 8 + 4
+	   index	+= lengthofBody * 8 + 4;
+	}
+	theState -> set =  sdcCorrect;
+}
+//
+//	SDC data is organized similar to the FIC data in DAB, i.e. a
+//	datasegment with, embedded, short vectors with the actual data.
+//	We assume the caller has done all CRC checking and passes
+//	a vector to be interpreted as SDC data with a given type
+void	sdcProcessor::set_SDCData (stateDescriptor *theState,
+	                           uint8_t	*v,
+	                           uint8_t	afs,
+	                           uint8_t	dataType,
+	                           uint8_t	versionFlag,
+	                           int8_t	lengthofBody) {
+uint8_t	shortId, rfu;
+int16_t	i;
+QString s = QString();
+uint8_t	language [3], country [2];
+
+	(void)afs;
+	if (versionFlag == 1)	// next configuration, skip for now
+	   return;
+//
+//	The bits are sequentially stored in v, so let's go
+
+//	fprintf (stderr, "SDC data with %d\n", dataType);
+	switch (dataType) {
+//	up to 4 streams can be carried. However, not all
+//	of these streams have to be audio!!
+	   case 0:	// multiplex description data
+	      if ((lengthofBody < 0) || (lengthofBody / 3 > 4)) {
+	         sdcCorrect = false;
+	      }
+
+	      theState	-> numofStreams	= lengthofBody / 3;
+	      theState	-> protLevelA	= get_SDCBits (v, 0, 2);
+	      theState	-> protLevelB	= get_SDCBits (v, 2, 2);
+	      theState	-> dataLength	= 0;
+//
+//	Note that, at least for now, datastreams are generic, i.e.
+//	both Audio and data.
+	      for (i = 0; i < theState -> numofStreams; i ++) {
+	         theState	-> streams [i]. lengthHigh  =
+	                                get_SDCBits (v, 4 + i * 24, 12);
+	         theState	-> streams [i]. lengthLow  =
+	                                get_SDCBits (v, 16 + i * 24, 12);
+	         theState	-> dataLength += 
+	                                theState -> streams [i]. lengthHigh +
+	                                theState -> streams [i]. lengthLow;
+	         theState	-> dataHigh	+=
+	                                theState -> streams [i]. lengthHigh;
+	      }
+	      return;
+
+	   case 1:	// label entity, first 4 bits are:
+	      shortId	= get_SDCBits (v, 0, 2);
+	      rfu	= get_SDCBits (v, 2, 2);
+//	for now:
+	      (void)shortId; (void)rfu;
+//	the "full" bits are
+	      for (i = 0; i < lengthofBody; i ++) 
+	          s. append (get_SDCBits (v, 4 + 8 * i, 8));
+	      s. append (char (0));
+	      show_stationLabel (QString (s));
+	      return;
+
+	   case 2:	// conditional access parameters
+	      return;
+
+	   case 3:	// alternative frequency signalling
+	      return;
+
+	   case 4:	// alternative frequency signalling
+	      return;
+
+	   case	5:	// Application information data entity
+	      {  int16_t index = get_SDCBits (v, 2, 2);
+	         theState -> streams  [index]. soort		=
+	                                        stateDescriptor::DATA_STREAM;
+	         theState  -> streams [index]. shortId	=
+	                                        get_SDCBits (v, 0, 2);
+	         theState  -> streams [index]. streamId	=
+	                                        get_SDCBits (v, 2, 2);
+	         theState  -> streams [index]. packetModeInd	= get_SDCBits (v, 4, 1);
+	         if (theState -> streams [index]. packetModeInd == 0) {
+	            // synchronous stream Mode
+	            theState -> streams [index]. rfa = get_SDCBits (v, 5, 3);
+	            theState -> streams [index]. enhancementFlag =
+	                                          get_SDCBits (v, 8, 1);
+	            theState -> streams [index]. domain =
+	                                          get_SDCBits (v, 9, 3);
+	         } else {
+	            // packet mode
+	            theState -> streams [index]. dataUnitIndicator =
+	                                          get_SDCBits (v, 5, 1);
+	            theState -> streams [index]. packetId =
+	                                          get_SDCBits (v, 6, 2);
+	            theState -> streams [index]. enhancementFlag =
+	                                          get_SDCBits (v, 8, 1);
+	            theState -> streams [index]. domain =
+	                                          get_SDCBits (v, 9, 3);
+	            theState -> streams [index]. packetLength =
+	                                          get_SDCBits (v, 12, 8);
+	
+	            if (theState -> streams [index]. domain == 0)
+	               theState -> streams [index]. applicationId =
+	                                          get_SDCBits (v, 20, 16);
+	            else
+	            if (theState -> streams [index]. domain == 1)
+	               theState -> streams [index]. applicationId =
+	                                          get_SDCBits (v, 25, 11);
+	            theState -> streams [index]. startofData = 36;
+//	         fprintf (stderr, " stream %d packetLength = %d, domain = %d, (app Id = %x) dataUnit = %d\n",
+//	                    index,
+//	                    theState -> streams [index]. packetLength,
+//	                    theState -> streams [index]. domain,
+//	                    theState -> streams [index]. applicationId,
+//	                    theState -> streams [index]. dataUnitIndicator);
+	         }
+	      }
+	      return;
+
+	   case 6:
+	   case 7:	
+	      return;
+
+	   case 8:	// time and date information
+	      {  int16_t hours		= get_SDCBits (v, 17, 5);
+	         int16_t minutes	= get_SDCBits (v, 22, 6);
+	         if (lengthofBody > 30) {
+	            int16_t offset = get_SDCBits (v, 31, 5);
+	            uint8_t f     = get_SDCBits (v, 30, 1);
+	            hours += f ? - offset : offset;
+	         }
+	         QString t = QString::number (hours);
+	         t. append (":");
+	         t. append (QString::number (minutes));
+	         show_timeLabel (t);
+	      }
+	      return;
+
+	   case 9:	// streams information data entity
+	      {  int16_t index = get_SDCBits (v, 2, 2);
+	         theState -> streams [index]. soort  
+	                                      = stateDescriptor::AUDIO_STREAM;
+	         theState -> streams [index]. shortId
+	                                      = get_SDCBits (v, 0, 2);
+	         theState -> streams [index]. streamId
+	                                      = get_SDCBits (v, 2, 2);
+	         theState -> streams [index]. audioCoding
+	                                      = get_SDCBits (v, 4, 2);
+	         theState -> streams [index]. SBR_flag
+	                                      = get_SDCBits (v, 6, 1);
+	         theState -> streams [index]. audioMode	
+	                                      = get_SDCBits (v, 7, 2);
+	         theState -> streams [index]. audioSamplingRate
+	                                      = get_SDCBits (v, 9, 3);
+	         theState -> streams [index]. textFlag
+	                                      = get_SDCBits (v, 12, 1);
+	         theState -> streams [index]. enhancementFlag
+	                                      = get_SDCBits (v, 13, 1);
+	         theState -> streams [index]. coderField
+	                                      = get_SDCBits (v, 14, 5);
+	         theState -> streams [index]. rfa
+	                                      = get_SDCBits (v, 19, 1);
+	      }
+	      return;
+
+	   case 10:	// FAC channel parameters data entity
+	      return;
+
+	   case 11:	// Alternative frequency signalling
+	      return;
+
+	   case 12:	// Language and country data entity
+	      shortId		= get_SDCBits (v, 0, 2);
+	      rfu		= get_SDCBits (v, 2, 2);
+	      language [0]	= get_SDCBits (v, 4, 8);
+	      language [1]	= get_SDCBits (v, 12, 8);
+	      language [2]	= get_SDCBits (v, 20, 8);
+	      country [0]	= get_SDCBits (v, 28, 8);
+	      country [1]	= get_SDCBits (v, 36, 8);
+	      (void)shortId;
+	      (void)rfu;
+	      (void)language;
+	      (void)country;
+	      return;
+
+	   case 13:
+	      return;
+
+	   case 14:
+	      {  int16_t streamId = get_SDCBits	(v, 0, 2);
+	         rfu		  = get_SDCBits	(v, 2, 2);
+	         theState -> streams [streamId]. R	
+	                                        = get_SDCBits (v, 4, 8);
+	         theState -> streams [streamId]. C
+	                                        = get_SDCBits (v, 12, 8);
+	         theState -> streams [streamId]. packetLength
+	                                        = get_SDCBits (v, 20, 8) - 3;
+	         theState  -> streams [streamId]. FEC	= true;
+	      }
+	      return;
+
+	   default:
+	      return;
+	}
+}
+//
+
 

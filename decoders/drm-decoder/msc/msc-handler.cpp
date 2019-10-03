@@ -24,11 +24,11 @@
 //	the real msc work is to be done by descendants of the mscHandler
 //
 #include	"msc-handler.h"
-#include	"msc-config.h"
+#include	"state-descriptor.h"
 
-	mscHandler::mscHandler	(mscConfig *msc) {
-	my_mscConfig	= msc;
-	muxLength	= msc	-> mscCells () / 3;
+	mscHandler::mscHandler	(stateDescriptor *theState) {
+	this	-> theState	= theState;
+	muxLength		= theState	-> mscCells () / 3;
 }
 
 	mscHandler::~mscHandler	(void) {

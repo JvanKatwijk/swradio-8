@@ -303,7 +303,7 @@ int16_t	i;
 	float		offsa	= 0;
 	int		offs3	= 0;
 	int		offsb	= 0;
-	DSPCOMPLEX	offs7	= DSPCOMPLEX (0, 0);
+	std::complex<float>	offs7	= std::complex<float> (0, 0);
 	
 	for (carrier = K_min; carrier <= K_max; carrier ++) {
 	   if (carrier == 0)
@@ -375,8 +375,8 @@ int16_t	i;
 //	offs7 means using all pilots over two near symbols with the same
 //	pilot layout
 //	*delta_freq_offset	=  arg (offs1);
-	*delta_freq_offset	=  arg (offs7) / periodforSymbols;
-//	*delta_freq_offset	=  arg (offs7);
+//	*delta_freq_offset	=  arg (offs7) / periodforSymbols;
+	*delta_freq_offset	= (arg (offs1) + arg (offs7) / periodforSymbols) / 2;
 //	fprintf (stderr, "freq error: freq pilots = %f, all pilots  = %f\n",
 //	                 arg (offs1) / (3 * (symbolsinFrame - 1)),
 //	                 arg (offs7) / periodforSymbols);

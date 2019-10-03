@@ -20,25 +20,25 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef	__MSC_HANDLER_QAM16
-#define	__MSC_HANDLER_QAM16
+#ifndef	__MSC_HANDLER_QAM16__
+#define	__MSC_HANDLER_QAM16__
 
 #include	"radio-constants.h"
 #include	"msc-handler.h"
 #include	"qam16-metrics.h"
 
-class	mscConfig;
+class	stateDescriptor;
 class	MSC_streamer;
 class	Mapper;
 
 class	QAM16_SM_Handler : public mscHandler {
 public:
-		QAM16_SM_Handler	(mscConfig *);
+		QAM16_SM_Handler	(stateDescriptor *);
 		~QAM16_SM_Handler	(void);
 	void	process			(theSignal *, uint8_t *);
 private:
 	qam16_metrics	myDecoder;
-	mscConfig	*msc;
+	stateDescriptor	*theState;
 	int16_t		lengthA;
 	int16_t		lengthB;
 	uint8_t		*out;

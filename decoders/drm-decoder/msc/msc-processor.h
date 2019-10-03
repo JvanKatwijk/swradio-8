@@ -23,34 +23,30 @@
 /*
  *	MSC processor 
  */
-#ifndef	__MSC_PROCESSOR
-#define	__MSC_PROCESSOR
+#ifndef	__MSC_PROCESSOR__
+#define	__MSC_PROCESSOR__
 
 #include	"radio-constants.h"
 #include	"basics.h"
 
 class	drmDecoder;
-class	mscConfig;
+class	stateDescriptor;
 class	deInterleaver;
 class	mscHandler;
-class	viterbi_drm;
 class	dataProcessor;
 
 class	mscProcessor {
 public:
-		mscProcessor		(mscConfig *,
+		mscProcessor		(stateDescriptor *,
 	                                 drmDecoder *,
 	                                 int8_t);
 		~mscProcessor		(void);
-	void	check_mscConfig		(mscConfig *);
 	void	addtoMux		(int16_t, int32_t, theSignal);
-	void	newFrame		(void);
+	void	newFrame		(stateDescriptor *);
 	void	endofFrame		(void);
 private:
-	void		delete_Handlers	(void);
-	void		create_Handlers	(mscConfig *);
 	drmDecoder	*drmMaster;
-	mscConfig	*msc;
+	stateDescriptor	*theState;
 	int8_t		qam64Roulette;
 	uint8_t		protLevelA;
 	uint8_t		protLevelB;
@@ -64,7 +60,6 @@ private:
 	deInterleaver	*my_deInterleaver;
 	mscHandler	*my_mscHandler;
 	dataProcessor	*my_dataProcessor;
-	viterbi_drm		*viterbiDecoder;
 	int16_t		muxNo;
 	int16_t		dataLength;
 };

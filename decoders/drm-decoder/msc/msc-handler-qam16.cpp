@@ -25,7 +25,7 @@
 //
 #include	"msc-handler-qam16.h"
 #include	"msc-streamer.h"
-#include	"msc-config.h"
+#include	"state-descriptor.h"
 #include	"mapper.h"
 #include	"basics.h"
 #include	"prbs.h"
@@ -33,8 +33,8 @@
 //	For each of the "levels" (qam16 => 2 levels), we create a
 //	separate handler. From "samples to bitstreams" is done here
 //	as is the bit-deinterleaving
-	QAM16_SM_Handler::QAM16_SM_Handler	(mscConfig	*msc):
-	                                             mscHandler (msc),
+	QAM16_SM_Handler::QAM16_SM_Handler	(stateDescriptor *theState):
+	                                             mscHandler (theState),
 	                                             myDecoder () {
 int16_t	RYlcm, i;
 float	denom;
@@ -43,25 +43,27 @@ float	denom;
 //	the number of QAM cells in the A part, then the number of QAM cells
 //	in the lower protected part (the B part) follows
 
-	this	-> msc	= msc;
+	this	-> theState	= theState;
 	lengthA		= 0;
-	for (i = 0; i < msc -> numofStreams; i ++)
-	   lengthA += msc	-> streams [i]. lengthHigh;
+
+	for (i = 0; i < theState -> numofStreams; i ++)
+	   lengthA += theState	-> streams [i]. lengthHigh;
+
 	lengthB		= 0;
-	 for (i = 0; i < msc -> numofStreams; i ++)
-	   lengthB += msc	-> streams [i]. lengthLow;
+	 for (i = 0; i < theState -> numofStreams; i ++)
+	   lengthB += theState	-> streams [i]. lengthLow;
 
 	if (lengthA != 0) {	// two real levels
 //	apply formula from section 7.2.1. to compute the number
 //	of MSC cells for the higher protected part given in bytes
-	   RYlcm	= msc -> getRYlcm_16 (msc -> protLevelA);
+	   RYlcm	= theState -> getRYlcm_16 (theState -> protLevelA);
 	   denom	= 0;
 	   for (i = 0; i < 2; i ++)
-	      denom += msc -> getRp (msc -> protLevelA, i);
+	      denom += theState -> getRp (theState -> protLevelA, i);
 	   denom	*= 2 * RYlcm;
 	   N1		= int16_t (ceil (8.0 * lengthA / denom) * RYlcm);
-	   fprintf (stderr, "N1 = %d (lengthA = %d)\n", N1, lengthA);
-	   N2		= msc	-> muxSize () - N1;
+//	   fprintf (stderr, "N1 = %d (lengthA = %d)\n", N1, lengthA);
+	   N2		= theState	-> muxSize () - N1;
 	   Y13mapper_high	= new Mapper (2 * N1, 13);
 	   Y21mapper_high	= new Mapper (2 * N1, 21);
 	   Y13mapper_low	= new Mapper (2 * N2, 13);
@@ -69,7 +71,7 @@ float	denom;
 	}
 	else {
 	   N1	= 0;
-	   N2	= msc	-> muxSize ();
+	   N2	= theState	-> muxSize ();
 	   Y13mapper_high	= NULL;
 	   Y21mapper_high	= NULL;
 	   Y13mapper_low	= new Mapper (2 * N2, 13);
@@ -80,9 +82,9 @@ float	denom;
 //	The N1 indicates the number of OFDM cells for the
 //	higher protected bits, N2 follows directly
 
-	stream_0	= new MSC_streamer (msc, 0, N1,
+	stream_0	= new MSC_streamer (theState, 0, N1,
 	                                    Y13mapper_high, Y13mapper_low);
-	stream_1	= new MSC_streamer (msc, 1, N1,
+	stream_1	= new MSC_streamer (theState, 1, N1,
 	                                    Y21mapper_high, Y21mapper_low);
 	thePRBS		= new prbs (stream_0 -> highBits () +
 	                            stream_1 -> highBits () +
@@ -109,16 +111,16 @@ uint8_t	bitsOut [highProtectedbits + lowProtectedbits];
 uint8_t	bits_0 [stream_0 -> highBits () + stream_0 -> lowBits ()];
 uint8_t	bits_1 [stream_1 -> highBits () + stream_1 -> lowBits ()];
 
-metrics Y0	[2 * msc -> muxSize ()];
-metrics Y1	[2 * msc -> muxSize ()];
-uint8_t	level_0	[msc -> muxSize ()];
-uint8_t	level_1	[msc -> muxSize ()];
+metrics Y0	[2 * theState -> muxSize ()];
+metrics Y1	[2 * theState -> muxSize ()];
+uint8_t	level_0	[theState -> muxSize ()];
+uint8_t	level_1	[theState -> muxSize ()];
 //
 //	First the "normal" decoding. leading to two bit rows
-	myDecoder. computemetrics (v, msc -> muxSize (), 0, Y0,
+	myDecoder. computemetrics (v, theState -> muxSize (), 0, Y0,
 	                                   false, level_0, level_1);
 	stream_0	-> process	(Y0, bits_0, level_0);
-	myDecoder. computemetrics (v, msc -> muxSize (), 1, Y1,
+	myDecoder. computemetrics (v, theState -> muxSize (), 1, Y1,
 	                                   false, level_0, level_1);
 	stream_1	-> process	(Y1, bits_1, level_1); 
 //

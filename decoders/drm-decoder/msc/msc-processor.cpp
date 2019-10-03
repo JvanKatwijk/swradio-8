@@ -25,7 +25,7 @@
  */
 #include	"msc-processor.h"
 #include	"drm-decoder.h"
-#include	"msc-config.h"
+#include	"state-descriptor.h"
 #include	"deinterleaver.h"
 #include	"msc-handler.h"
 #include	"msc-handler-qam16.h"
@@ -35,37 +35,60 @@
 //	The mscState allows us to create the required
 //	actual processor. The mscConfig is updated regularly
 //	and checked once per superframe here
-	mscProcessor::mscProcessor	(mscConfig	*msc,
+	mscProcessor::mscProcessor	(stateDescriptor *theState,
 	                                 drmDecoder	*drm,
 	                                 int8_t		qam64Roulette) {
+	this	-> theState	= theState;
 	drmMaster		= drm;
-	create_Handlers	(msc);
 	this	-> qam64Roulette	= qam64Roulette;
-	my_dataProcessor	= new dataProcessor (msc, drmMaster);
-	muxNo		= 0;
+	this	-> mscMode	= theState	-> mscMode;
+	this	-> protLevelA	= theState	-> protLevelA;
+	this	-> protLevelB	= theState	-> protLevelB;
+	this	-> numofStreams	= theState	-> numofStreams;
+	this	-> QAMMode	= theState	-> QAMMode;
+	my_dataProcessor	= new dataProcessor (theState, drmMaster);
+
+	this	-> muxsampleLength	= theState -> mscCells  () / 3;
+	this	-> muxsampleBuf	= new theSignal [muxsampleLength];
+	this	-> tempBuffer	= new theSignal [muxsampleLength];
+	if (theState -> muxDepth () > 1)
+	   this -> my_deInterleaver =
+	                     new deInterleaver_long (muxsampleLength,
+	                                             theState -> muxDepth ());
+	else
+	   this -> my_deInterleaver =
+	                     new deInterleaver (muxsampleLength);
+
+	if (QAMMode == stateDescriptor::QAM64) {
+	   switch (mscMode) {
+	      case stateDescriptor::SM:
+	         my_mscHandler = new QAM64_SM_Handler (theState,
+	                                               qam64Roulette);
+	         break;
+
+	      default:  
+	         fprintf (stderr, "not implemented yet\n");
+	         my_mscHandler = new QAM64_SM_Handler  (theState,
+	                                                qam64Roulette);
+	         break;
+	   }
+	}
+	else
+	if (QAMMode == stateDescriptor::QAM16) 	// mscMode == SM
+	   my_mscHandler	= new QAM16_SM_Handler (theState);
+	else
+	   my_mscHandler	= new mscHandler (theState);
+	bufferP		= 0;
 }
 
 	mscProcessor::~mscProcessor	(void) {
-	delete_Handlers ();
-	delete	my_dataProcessor;
+	delete []       muxsampleBuf;
+        delete []       tempBuffer;
+        delete          my_deInterleaver;
+        delete          my_mscHandler;
+	delete		my_dataProcessor;
 }
-//
-//	This function is the one maintaining an eye on the
-//	potentially changing environment. This function
-//	is called once per superframe (after decoding the SDC)
-//
-void	mscProcessor::check_mscConfig	(mscConfig *msc) {
-	if ((mscMode	== msc -> mscMode) &&
-	    (protLevelA == msc -> protLevelA) &&
-	    (protLevelB == msc -> protLevelB) &&
-	    (numofStreams == msc -> numofStreams) &&
-	    (QAMMode	== msc -> QAMMode))
-	return;		// no  (relevant) changes whatsoever
 
-//	Otherwise: be cruel
-	delete_Handlers	();	
-	create_Handlers	(msc);
-}
 //
 //	Processing is easy as long as we can delegate
 //	We accept the datacells one at the time,
@@ -82,79 +105,35 @@ void	mscProcessor::check_mscConfig	(mscConfig *msc) {
 //	- mscHandling, i.e from samples to (hard) bits
 //	-- processing a bitstream
 void	mscProcessor::addtoMux	(int16_t blockno, int32_t cnt, theSignal v) {
-uint8_t *dataBuffer = new uint8_t[msc -> dataLength * BITSPERBYTE + 100];
 
 	(void)blockno; (void)cnt;
 	tempBuffer [bufferP ++] = v;
 	if (bufferP >= muxsampleLength) {
+           uint8_t dataBuffer [theState -> dataLength * BITSPERBYTE + 100];
 	   my_deInterleaver -> deInterleave (tempBuffer,
 	                                     this -> muxsampleBuf);
 	   my_mscHandler    -> process (this -> muxsampleBuf, dataBuffer);
-	   my_dataProcessor -> process (dataBuffer, msc -> dataLength);
+	   my_dataProcessor -> process (dataBuffer, theState -> dataLength);
 	   bufferP	= 0;
 	}
-	delete [] dataBuffer;
+}
+
+//	at the start of the superframe: reset the input pointer
+void	mscProcessor::newFrame		(stateDescriptor *theState) {
+	bufferP	= 0;
 }
 //
 //	At the end of a superframe, this function is called.
 //	simple check:
 void	mscProcessor::endofFrame	(void) {
-	if (msc -> mscCells () != 3 * muxsampleLength + bufferP)
-	   fprintf (stderr, " E R R O R %d %d\n", muxsampleLength, bufferP);
+	if (theState -> mscCells () != 3 * muxsampleLength + bufferP)
+	   fprintf (stderr, " E R R O R %d %d %d\n",
+	                   theState -> mscCells (),
+	                   3 * muxsampleLength + bufferP,
+	                   bufferP);
 	bufferP	= 0;
 	muxNo	= 0;
 }
 
-void	mscProcessor::newFrame		(void) {
-	bufferP	= 0;
-	muxNo	= 0;
-}
 //
-void	mscProcessor::create_Handlers (mscConfig *msc) {
-	this	-> msc		= msc;
-	this	-> mscMode	= msc	-> mscMode;
-	this	-> protLevelA	= msc	-> protLevelA;
-	this	-> protLevelB	= msc	-> protLevelB;
-	this	-> numofStreams	= msc	-> numofStreams;
-	this	-> QAMMode	= msc	-> QAMMode;
-
-	this	-> muxsampleLength	= msc -> mscCells  () / 3;
-	this	-> muxsampleBuf	= new theSignal [muxsampleLength];
-	this	-> tempBuffer	= new theSignal [muxsampleLength];
-	if (msc -> muxDepth () > 1)
-	   this -> my_deInterleaver =
-	                     new deInterleaver_long (muxsampleLength,
-	                                             msc -> muxDepth ());
-	else
-	   this -> my_deInterleaver =
-	                     new deInterleaver (muxsampleLength);
-
-	if (QAMMode	== mscConfig::QAM64) {
-	   switch (mscMode) {
-	      case mscConfig::SM:
-	         my_mscHandler = new QAM64_SM_Handler (msc,
-	                                               qam64Roulette);
-	         break;
-
-	      default:  
-	         fprintf (stderr, "not implemented yet\n");
-	         my_mscHandler = new QAM64_SM_Handler  (msc,
-	                                                qam64Roulette);
-	         break;
-	   }
-	}
-	else
-	if (QAMMode	== mscConfig::QAM16) 	// mscMode == SM
-	   my_mscHandler	= new QAM16_SM_Handler (msc);
-	else
-	   my_mscHandler	= new mscHandler (msc);
-	bufferP		= 0;
-}
-
-void	mscProcessor::delete_Handlers (void) {
-	delete []	muxsampleBuf;
-	delete []	tempBuffer;
-	delete		my_deInterleaver;
-	delete		my_mscHandler;
-}
 

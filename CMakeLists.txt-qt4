@@ -157,6 +157,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	set (${objectName}_HDRS
 	   ./radio-constants.h 
 	   ./radio.h 
+	   ./bandplan.h
 	   ./output/upconverter.h 
 	   ./output/audiosink.h 
 	   ./various/agchandler.h 
@@ -254,6 +255,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ${${objectName}_SRCS}
 	   ./main.cpp 
 	   ./radio.cpp 
+	   ./bandplan.cpp
 	   ./output/upconverter.cpp 
 	   ./output/audiosink.cpp 
 	   ./various/agchandler.cpp 

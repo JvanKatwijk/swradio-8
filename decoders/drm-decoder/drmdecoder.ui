@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>449</width>
-    <height>212</height>
+    <width>462</width>
+    <height>160</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>0</x>
      <y>0</y>
      <width>441</width>
-     <height>211</height>
+     <height>151</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -407,9 +407,9 @@
    <widget class="QLabel" name="messageLabel">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>90</y>
-      <width>411</width>
+      <x>100</x>
+      <y>100</y>
+      <width>321</width>
       <height>21</height>
      </rect>
     </property>
@@ -481,7 +481,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string/>
     </property>
    </widget>
    <widget class="QLabel" name="timeLabel">

@@ -56,6 +56,8 @@ public:
 	                                         float);
 private:
 
+	void		fft_and_extract		(std::complex<float> *,
+	                                         std::complex<float> *);
 	Reader		* buffer;
 	int32_t		sampleRate;
 	uint8_t		Mode;

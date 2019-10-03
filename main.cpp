@@ -26,9 +26,9 @@
 #include	<QSettings>
 #include	<QDir>
 #include	<unistd.h>
-#include	"radio-constants.h"
 #include	"radio.h"
-
+#include	"radio-constants.h"
+#include	"bandplan.h"
 
 QString fullPathfor (QString v) {
 QString fileName;
@@ -52,18 +52,24 @@ QString fileName;
 
 #define	DEFAULT_INI	".sw-radio.ini"
 #define	STATION_LIST	".sw-radio-stations.bin"
+#define	BAND_PLAN	".sw-bandplan.xml"
 
 int	main (int argc, char **argv) {
 int32_t		opt;
 /*
  *	The default values
  */
-
-	QApplication a (argc, argv);
 QSettings	*ISettings;		/* .ini file	*/
 RadioInterface	*MyRadioInterface;
-QString iniFile = QDir::homePath ();
+QString iniFile		= QDir::homePath ();
 QString stationList     = QDir::homePath ();
+QString	bandplanFile	= QDir::homePath ();
+
+	QCoreApplication::setOrganizationName ("Lazy Chair Computing");
+        QCoreApplication::setOrganizationDomain ("Lazy Chair Computing");
+        QCoreApplication::setApplicationName ("sw-radio");
+        QCoreApplication::setApplicationVersion (QString (CURRENT_VERSION) + " Git: " + GITHASH);
+
         iniFile. append ("/");
         iniFile. append (DEFAULT_INI);
         iniFile = QDir::toNativeSeparators (iniFile);
@@ -72,18 +78,41 @@ QString stationList     = QDir::homePath ();
         stationList. append (STATION_LIST);
         stationList = QDir::toNativeSeparators (stationList);
 
+	bandplanFile. append ("/");
+	bandplanFile. append (BAND_PLAN);
+        bandplanFile = QDir::toNativeSeparators (bandplanFile);
+
+        while ((opt = getopt (argc, argv, "i:B:")) != -1) {
+           switch (opt) {
+              case 'i':
+                 iniFile	= fullPathfor (QString (optarg));
+                 break;
+
+              case 'B':
+                 bandplanFile       = atoi (optarg);
+                 break;
+
+             default:
+                 break;
+           }
+        }
+
+#if QT_VERSION >= 0x050600
+        QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
+#endif
+	QApplication a (argc, argv);
+
 	ISettings	= new QSettings (iniFile, QSettings::IniFormat);
 /*
  *	Before we connect control to the gui, we have to
  *	instantiate
  */
-#if QT_VERSION >= 0x050600
-        QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
-#endif
-
 	int rate	= ISettings -> value ("workingRate", 96000). toInt ();
+	bandPlan my_bandPlan (bandplanFile);
         MyRadioInterface = new RadioInterface (ISettings,
-	                                       stationList, 96000, 12000);
+	                                       stationList,
+	                                       &my_bandPlan,
+	                                       96000, 12000);
 	MyRadioInterface -> show ();
         a. exec ();
 /*

@@ -25,18 +25,19 @@
 #include	<QByteArray>
 #include	<QString>
 #include	<stdint.h>
-class	mscConfig;
+class	stateDescriptor;
 class	drmDecoder;
 class	motHandler;
 class	virtual_dataHandler;
 
 class	packetAssembler {
 public:
-		packetAssembler		(mscConfig *, drmDecoder *, uint16_t);
+		packetAssembler		(stateDescriptor *,
+	                                 drmDecoder *, uint16_t);
 		~packetAssembler	(void);
 	void	assemble	(uint8_t *, int16_t, int16_t);
 private:
-	mscConfig	*msc;
+	stateDescriptor	*theState;
 	uint16_t	applicationId;
 	int16_t		mscIndex;
 	bool		waitforFirst;

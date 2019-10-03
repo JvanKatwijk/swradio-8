@@ -21,7 +21,7 @@
  */
 #
 #include	"frame-processor.h"
-#include	"fac-data.h"
+#include	"state-descriptor.h"
 #include	"fac-processor.h"
 #include	"sdc-processor.h"
 #include	"msc-processor.h"
@@ -46,14 +46,21 @@
 //	number of iterations for the multi-level decoding
 	frameProcessor::frameProcessor (drmDecoder	*mr,
 	                                RingBuffer<DSPCOMPLEX> *buffer,
+	                                RingBuffer<DSPCOMPLEX> *iqBuffer,
 	                                int32_t		sampleRate,
 	                                int16_t		nSymbols,
 	                                int8_t		windowDepth,
                                         int8_t 		qam64Roulette) :
-	                                      my_Reader (buffer, 16384, mr) {
+	                                      my_Reader (buffer, 16384, mr),
+	                                      my_backendController (mr,
+	                                                       iqBuffer,
+	                                                       qam64Roulette),
+	                                                       theState (mr,
+	                                                                 1, 3) {
 int16_t	i;
 	this	-> mr 		= mr;
 	this	-> buffer	= buffer;
+	this	-> iqBuffer	= iqBuffer;
 	this	-> sampleRate	= sampleRate;
 	this	-> nSymbols	= nSymbols;
 	this	-> windowDepth	= windowDepth;
@@ -62,7 +69,9 @@ int16_t	i;
 //	defaults, will be overruled almost immediately
 	modeInf. Mode		= 1;
 	modeInf. Spectrum	= 3;
+	modeInf. timeOffset_fractional = 0;
 	my_Equalizer		= NULL;
+	my_wordCollector	= NULL;
 
 //	inbank and outbank have dimensions satisfying the need of the
 //	most "hungry" modes. We do not know the actual mode yet
@@ -82,7 +91,6 @@ int16_t	i;
 	   memset (outbank [i], 0, t * sizeof (theSignal));
 	}
 
-	createProcessors	(&modeInf);
 	connect (this, SIGNAL (setTimeSync (bool)),
 	         mr, SLOT (executeTimeSync (bool)));
 	connect (this, SIGNAL (setFACSync (bool)),
@@ -111,7 +119,9 @@ int16_t	i;
 	taskMayRun. store (false);
 	while (isRunning ())
 	   usleep (100);
-	deleteProcessors	();	//	need to be addressed!!!
+	if (my_Equalizer != NULL)
+	   delete	my_Equalizer;
+	my_Equalizer = NULL;
 
 	for (i = 0; i < symbolsperFrame (Mode_C); i ++) {
 	   delete [] inbank [i];
@@ -125,34 +135,6 @@ void	frameProcessor::stop (void) {
 	taskMayRun. store (false);
 }
 
-void	frameProcessor::deleteProcessors () {
-	if (my_Equalizer != NULL)
-	   delete	my_Equalizer;
-	my_Equalizer = NULL;
-	delete	my_mscProcessor;
-	delete	my_facData;
-	delete	my_mscConfig;
-}
-
-void	frameProcessor::createProcessors (smodeInfo *m) {
-uint8_t	Mode		= m -> Mode;
-uint8_t	Spectrum	= m -> Spectrum;
-
-	if ((Spectrum > 3) ||(Spectrum < 1)) {
-	   m -> Spectrum = 3;
-	   Spectrum	= 3;
-	}
-	
-
-	my_mscConfig		= new mscConfig	(Mode, Spectrum);
-	my_facData		= new facData	(mr, my_mscConfig);
-	my_mscProcessor		= new mscProcessor  (my_mscConfig,
-	                                             mr,
-	                                             qam64Roulette);
-	my_Equalizer 		= new equalizer_1 (Mode,
-	                                           Spectrum, windowDepth);
-}
-
 //
 //	The frameprocessor is the driving force. It will continuously
 //	ask for ofdm symbols, build frames and send frames to the
@@ -160,18 +142,15 @@ uint8_t	Spectrum	= m -> Spectrum;
 //	process)
 void	frameProcessor::run	(void) {
 int16_t		lc;		// index of first word in inbank
-uint8_t		oldMode		= 6,
-		oldSpectrum	= 7;
 int16_t		i;
 int16_t		blockCount	= 0;
 bool		inSync;
 bool		superframer	= false;
-int16_t		goodFrames	= 0;
-int16_t		badFrames	= 0;
 int16_t		threeinaRow;
 int16_t		symbol_no	= 0;
 bool		frameReady;
 int16_t		missers;
+
 //
 	taskMayRun. store (true);	// will be set from elsewhere to false
 //
@@ -187,17 +166,15 @@ restart:
 	   setFACSync		(false);
 	   setSDCSync		(false);
 	   show_services	(0, 0);
-	   superframer		= false;	
-	   goodFrames		= 0;
-	   badFrames		= 0;
-	   threeinaRow		= 0;
+	   bool superframer	= false;	
+	   int threeinaRow	= 0;
 	   show_audioMode	(QString ("  "));
-	   lc			= 0;
-	   missers		= 0;
+	   int lc		= 0;
+	   int 	missers		= 0;
 //
 //	First step: find mode and starting point
 	   modeInf. Mode = -1;
-//
+
 	   while (((modeInf. Mode == -1) ||
 	          (modeInf. Mode == Mode_D)) && taskMayRun. load ()) {
 	      my_Reader. shiftBuffer (Ts_of (Mode_A) / 2);
@@ -211,46 +188,38 @@ restart:
 	        modeInf. timeOffset,
 	        modeInf. sampleRate_offset,
 	        modeInf. freqOffset_fract);
-//	   
+	   if ((modeInf. Spectrum < 1) || (modeInf. Spectrum > 3))
+	      modeInf. Spectrum = 3;
+
 //	adjust the bufferpointer:
 	   my_Reader. shiftBuffer (floor (modeInf. timeOffset + 0.5));
 	   int16_t time_offset_integer = floor (modeInf. timeOffset + 0.5);
 //	fractional time offset:
-	   float time_offset_fractional	= modeInf. timeOffset -
+	   modeInf. timeOffset_fractional	= modeInf. timeOffset -
 	                                         time_offset_integer;
 
 //	and create a reader/processor
 	   frequencySync (mr, &my_Reader, &modeInf);
-           my_wordCollector     = new wordCollector (&my_Reader,
-	                                             sampleRate,
-                                                     modeInf. Mode,
-                                                     modeInf. Spectrum, mr);
 
-	
 	   int32_t intOffset	= modeInf. freqOffset_integer;
 	   setTimeSync	(true);
 //
-//	if the newly detected mode differs from the one we
-//	were dealing with, we have to rebuild a proper
-//	working environment.
-
-	   if ((modeInf. Mode != oldMode) ||
-	       (modeInf. Spectrum != oldSpectrum) ||
-	        abs (intOffset) > Khz (2)) {
+//	   fprintf (stderr, "restarting with Mode %d (%d)\n",
+//	                        modeInf. Mode, modeInf. Spectrum);
 //	sadly, we have to delete the various processors
-	      deleteProcessors ();
+	   if (my_Equalizer != NULL)
+	      delete	my_Equalizer;
+	   theState. Mode	= modeInf. Mode;
+	   theState. Spectrum	= modeInf. Spectrum;
+	   my_Equalizer		= new equalizer_1 (modeInf. Mode,
+	                                           modeInf. Spectrum,
+	                                                   windowDepth);
+	   if (my_wordCollector != NULL)
 	      delete my_wordCollector;
-//	establish a new set of workers and tables
-
-	      createProcessors (&modeInf);
-	      my_wordCollector     = new wordCollector (&my_Reader,
-	                                                sampleRate,
-                                                        modeInf. Mode,
-	                                                modeInf. Spectrum, mr);
-
-	      oldSpectrum	= modeInf. Spectrum;
-	      oldMode		= modeInf. Mode;
-	   }
+	   my_wordCollector     = new wordCollector (&my_Reader,
+	                                             sampleRate,
+                                                     modeInf. Mode,
+	                                             modeInf. Spectrum, mr);
 
 	   show_Mode (modeInf. Mode); show_Spectrum (modeInf. Spectrum);
 //
@@ -265,14 +234,20 @@ restart:
 //	start here with reading ofdm words until we have a
 //	match with the timesync.
 //	We start with reading in "symbolsperFrame" ofdm symbols
-	   for (i = 0; i < symbolsperFrame (modeInf. Mode); i ++) {
-	      my_wordCollector -> getWord (inbank [i],
+	   for (int symbol = 0;
+	        symbol < symbolsperFrame (modeInf. Mode); symbol ++) {
+	      my_wordCollector -> getWord (inbank [symbol],
 	                                   intOffset,
-	                                   time_offset_fractional);
-	      corrBank [i] = getCorr (&modeInf, inbank [i]);
-	      time_offset_fractional -=  Ts_of (modeInf. Mode) *
+	                                   modeInf. timeOffset_fractional);
+	      corrBank [symbol] = getCorr (&modeInf, inbank [symbol]);
+	      modeInf. timeOffset_fractional -=  Ts_of (modeInf. Mode) *
 	                                        modeInf. sampleRate_offset;
 	   }
+//
+//	OK, now we read precisely symbolsperFrame symbols,
+//	so that within the next symbolsperFrame symbols, we
+//	should have some form of a match with synchronizing
+//	with the "first" symbol
 	   int16_t errors	= 0;
 	   lc	= 0;
 //
@@ -283,8 +258,8 @@ restart:
 	      while (true) {
 	         my_wordCollector -> getWord (inbank [lc],
 	                                      intOffset,
-	                                      time_offset_fractional);
-	         time_offset_fractional -=  Ts_of (modeInf. Mode) *
+	                                      modeInf. timeOffset_fractional);
+	         modeInf. timeOffset_fractional -=  Ts_of (modeInf. Mode) *
 	                                           modeInf. sampleRate_offset;
 	         corrBank [lc] = getCorr (&modeInf, inbank [lc]);
 	         lc = (lc + 1) % symbolsperFrame (modeInf. Mode);
@@ -302,7 +277,7 @@ restart:
 	         (void) my_Equalizer ->
 	            equalize (inbank [(lc + symbol_no) %
 	                                   symbolsperFrame (modeInf. Mode)],
-	                   symbol_no, outbank);
+	                      symbol_no, outbank);
 //	The synchronizer needs some lookahead, so we know
 //	that at this point there is no frame fully synchronized.
 //	We are waiting for the equalizer to signal that a full
@@ -315,8 +290,8 @@ restart:
 	         my_wordCollector ->
 	              getWord (inbank [lc],
 	                       intOffset,
-	                       time_offset_fractional);
-	         time_offset_fractional -=  Ts_of (modeInf. Mode) *
+	                       modeInf. timeOffset_fractional);
+	         modeInf. timeOffset_fractional -=  Ts_of (modeInf. Mode) *
 	                                           modeInf. sampleRate_offset,
 	         corrBank [lc] = getCorr (&modeInf, inbank [lc]);
 	         frameReady = my_Equalizer -> equalize (inbank [lc],
@@ -332,26 +307,27 @@ restart:
 //
 //	when we are here, we do have a full "frame".
 //	so, we will be convinced that we are OK when we have a decent FAC
-	      if (getFACdata (&modeInf,
-	                      outbank, my_facData,
-	                      my_Equalizer   -> getMeanEnergy  (),
-	                      my_Equalizer   -> getChannels ())) {
-	         inSync = true;
-	         break;		
-	      }
-	      else 	// if no fac, keep on trying or, start all over again
-	         if (++errors > 5)
-	            goto restart;
-	   }
+	      inSync = processFac (my_Equalizer -> getMeanEnergy (),
+	                           my_Equalizer -> getChannels ());
+//
+//	one test:
+	      if (modeInf. Spectrum != getSpectrum (&theState))
+	         goto restart;
 
+	      sdcTable. resize (sdcCells (&modeInf));
+	      set_sdcCells (&modeInf);
+//	      computeBlock (&modeInf);
+	      if (inSync)
+	         break;		
+//	if no fac, keep on trying or, start all over again
+	      if (++errors > 5)
+	          goto restart;
+	   }
+//
+//	Wow, it seems we have a valid FAC
 	   bool	firstTime	= true;
 	   if (!taskMayRun. load ())
 	      throw (21);
-//
-//	when here, it feels like we have passed a serious exam,
-//	we have in the buffer an equalized frame (the first we met)
-//	ready for further processing
-//
 	   float	offsetFractional	= 0;	//
 	   int16_t	offsetInteger		= 0;
 	   float	deltaFreqOffset		= 0;
@@ -360,26 +336,24 @@ restart:
 	      setFACSync (true);
 //	when we are here, we can start thinking about  SDC's and superframes
 //	The first frame of a superframe has an SDC part
-	      if (isFirstFrame (my_facData)) {
-	         bool sdcOK = process_sdc (&modeInf,
-	                                   my_facData, outbank);
+	      if (isFirstFrame (&theState)) {
+	         bool sdcOK = processSDC (&modeInf,
+	                                  outbank, &theState);
 	         setSDCSync (sdcOK);
 	         if (sdcOK) {
-	            goodFrames ++;
 	            threeinaRow ++;
 	         }
-	         else
-	            badFrames ++;
 	               
-	         show_services (my_mscConfig -> getnrAudio (),
-	                        my_mscConfig -> getnrData ());
-
-	         if (sdcOK) 
-	            my_mscProcessor -> check_mscConfig (my_mscConfig);
+	         show_services (theState. getnrAudio (),
+	                        theState. getnrData ());
+	         blockCount	= 0;
 //
+//	if we seem to have the start of a superframe, we
+//	re-create a backend with the right parameters
+	         if (!superframer && sdcOK)
+	            my_backendController. reset (&theState);
 //	we allow one sdc to fail, but only after having at least
 //	three frames correct
-	         blockCount	= 0;
 	         superframer	= sdcOK || threeinaRow >= 3;
 	         if (!sdcOK)
 	            threeinaRow	= 0;
@@ -422,20 +396,18 @@ restart:
 	      }
 
 //	OK, let us check the FAC
-	      if (!getFACdata (&modeInf,
-	                       outbank,
-	                       my_facData,
-	                       my_Equalizer   -> getMeanEnergy  (),
-	                       my_Equalizer   -> getChannels ())) {
-	            setFACSync (false);
-	            setSDCSync (false);
-	            superframer		= false;
-	            if (missers++ < 3)
-	               continue;
-	            goto restart;	// ... or give up and start all over
-	      }
-	      else
+	      bool success = processFac (my_Equalizer   -> getMeanEnergy  (),
+	                                 my_Equalizer   -> getChannels ());
+	      if (success) 
 	         missers = 0;
+	      else {
+	         setFACSync (false);
+	         setSDCSync (false);
+	         superframer		= false;
+	         if (missers++ < 3)
+	            continue;
+	         goto restart;	// ... or give up and start all over
+	      }
 	   }	// end of main loop
 	}
 	catch (int e) {
@@ -451,27 +423,29 @@ int16_t	   K_min		= Kmin (m -> Mode, m -> Spectrum);
 int16_t	   K_max		= Kmax (m -> Mode, m -> Spectrum);
 
 	if (blockno == 0)	// new superframe
-	   my_mscProcessor	-> newFrame ();
-	for (symbol = 0; symbol < symbolsperFrame (m -> Mode); symbol ++)
+	   my_backendController. newFrame (&theState);
+
+	for (symbol = 0; symbol < symbolsperFrame (m -> Mode); symbol ++) {
 	   for (carrier = K_min; carrier <= K_max; carrier ++)
 	      if (isDatacell (&modeInf, symbol, carrier, blockno)) {
-	         my_mscProcessor -> addtoMux (blockno, teller ++,
+	         my_backendController. addtoMux (blockno, teller ++,
 	                                     outbank [symbol][carrier - K_min]);
 	      }
+	}
 
-	if (isLastFrame (my_facData)) {
-	   my_mscProcessor	-> endofFrame ();
+	if (isLastFrame (&theState)) {
+	   my_backendController. endofFrame ();
 	   teller = 0;
 	}
 }
 
-bool	frameProcessor::isLastFrame (facData *f) {
-uint8_t	val	= f -> myChannelParameters. getIdentity ();
+bool	frameProcessor::isLastFrame (stateDescriptor *f) {
+uint8_t	val	= f -> getIdentity ();
 	return ((val & 03) == 02);
 }
 
-bool	frameProcessor::isFirstFrame (facData *f) {
-uint8_t	val	= f -> myChannelParameters. getIdentity ();
+bool	frameProcessor::isFirstFrame (stateDescriptor *f) {
+uint8_t	val	= f -> getIdentity ();
 	return ((val & 03) == 0) || ((val & 03) == 03);
 }
 
@@ -539,36 +513,6 @@ int16_t	nQAM_SDC_cells	= 0;
 	return nQAM_SDC_cells;
 }
 
-int16_t	frameProcessor::mscCells  (smodeInfo *m) {
-	switch (m -> Mode) {
-	   case 1:
-	      switch (m -> Spectrum) {
-	         case	0:	return 3778;
-	         case	1:	return 4368;
-	         case	2:	return 7897;
-	         default:
-	         case	3:	return 8877;
-	         case	4:	return 16394;
-	      }
-
-	   default:
-	   case 2:
-	      switch (m -> Spectrum) {
-	         case	0:	return 2900;
-	         case	1:	return 3330;
-	         case	2:	return 6153;
-	         default:
-	         case	3:	return 7013;
-	         case	4:	return 12747;
-	      }
-
-	   case 3:
-	      return 5532;
-
-	   case 4:
-	      return 3679;
-	}
-}
 //
 bool	frameProcessor::is_bestIndex (smodeInfo *m, int16_t index) {
 int16_t	i;
@@ -597,18 +541,8 @@ struct facElement *facTable     = getFacTableforMode (m -> Mode);
 	return false;
 }
 
-bool	frameProcessor::process_sdc (smodeInfo *m,
-	                             facData *my_facData, theSignal **outbank) {
-theSignal sdcVector [sdcCells (m)];
-sdcProcessor my_sdcProcessor (m -> Mode, m -> Spectrum, 
-	                      my_facData, sdcCells (m));
-	(void)extractSDC (&modeInf, outbank, sdcVector);
-	return my_sdcProcessor. processSDC (sdcVector); 
-}
-
 bool	frameProcessor::isSDCcell (smodeInfo *m,
 	                           int16_t symbol, int16_t carrier) {
-
 	if (carrier == 0)
 	   return false;
 	if ((m -> Mode == 1) && ((carrier == -1) || (carrier == 1)))
@@ -625,42 +559,44 @@ bool	frameProcessor::isSDCcell (smodeInfo *m,
 	return true;
 }
 
-int16_t	frameProcessor::extractSDC (smodeInfo *m,
-	                            theSignal	**bank,
-	                            theSignal	*outV) {
-int16_t	valueIndex	= 0;
-int16_t	carrier;
-int16_t	K_min	= Kmin (m -> Mode, m -> Spectrum);
-int16_t	K_max	= Kmax (m -> Mode, m -> Spectrum);
-
-	for (carrier = K_min; carrier <= K_max; carrier ++)
-	   if (isSDCcell (m, 0, carrier)) {
-	      outV [valueIndex ++] = 
-	           bank [0][carrier - K_min];
+void	frameProcessor::set_sdcCells (smodeInfo *modeInf) {
+uint8_t	Mode	= modeInf -> Mode;
+uint8_t	Spectrum = modeInf -> Spectrum;
+int	carrier;
+int	cnt	= 0;
+	for (carrier = Kmin (Mode, Spectrum);
+	     carrier <= Kmax (Mode, Spectrum); carrier ++) {
+           if (isSDCcell (modeInf, 0, carrier)) {
+	      sdcTable [cnt]. symbol = 0;
+	      sdcTable [cnt]. carrier = carrier;
+	      cnt ++;
 	   }
-
-	for (carrier = K_min; carrier <= K_max; carrier ++) 
-	   if (isSDCcell (m, 1, carrier)) {
-	      outV [valueIndex ++] = 
-	           bank [1][carrier - K_min];
-	   }
-
-	if ((m -> Mode == 3) || (m -> Mode == 4)) {
-	   for (carrier = K_min; carrier <= K_max; carrier ++) 
-	      if (isSDCcell (m, 2, carrier)) {
-	         outV [valueIndex ++] = 
-	              bank [2][carrier - K_min];
-	      }
 	}
 
-//	fprintf (stderr, "for Mode %d we have %d sdcCells\n",
-//	                   Mode, valueIndex);
-	return valueIndex;
+        for (carrier = Kmin (Mode, Spectrum);
+             carrier <= Kmax (Mode, Spectrum); carrier ++) {
+           if (isSDCcell (modeInf, 1, carrier)) {
+	      sdcTable [cnt]. symbol = 1;
+	      sdcTable [cnt]. carrier = carrier;
+	      cnt ++;
+	   }
+	}
+	   
+	if ((Mode == 3) || (Mode == 4)) {
+	   for (carrier = Kmin (Mode, Spectrum);
+	        carrier <= Kmax (Mode, Spectrum); carrier ++) 
+	      if (isSDCcell (modeInf, 2, carrier)) {
+	         sdcTable [cnt]. symbol = 2;
+	         sdcTable [cnt]. carrier = carrier;
+	         cnt ++;
+	      }
+	}
 }
+
 //
 //	just for readability
-uint8_t	frameProcessor::getSpectrum	(facData *f) {
-uint8_t val = f -> myChannelParameters. getSpectrumBits ();
+uint8_t	frameProcessor::getSpectrum	(stateDescriptor *f) {
+uint8_t val = f -> getSpectrumBits ();
 	return val <= 3 ? val : 3;
 }
 //
@@ -681,54 +617,49 @@ DSPCOMPLEX ldist	= DSPCOMPLEX (0, 0);
 	return cdiv (ldist, amount);
 }
 
-bool	frameProcessor::getFACdata (smodeInfo *m,
-	                            theSignal **bank,
-	                            facData *d, float meanEnergy,
+bool	frameProcessor::processFac (float	meanEnergy,
 	                            DSPCOMPLEX **H) {
 theSignal	facVector [100];
-float		squaredNoiseSequence [100];
-float		squaredWeightSequence [100];
+float		sqrdNoiseSeq [100];
+float		sqrdWeightSeq [100];
 int16_t		i;
 bool		result;
 static	int	count	= 0;
 static	int	goodcount = 0;
-float	sum_MERFAC	= 0;
 float	sum_WMERFAC	= 0;
 float	sum_weight_FAC	= 0;
 int16_t	nFac		= 0;
 float	WMERFAC;
-struct facElement *facTable     = getFacTableforMode (m -> Mode);
-facProcessor my_facProcessor (m -> Mode, m -> Spectrum);
-
+struct facElement *facTable     = getFacTableforMode (modeInf. Mode);
+//
+//	Extract the FAC cells from the equalized dataset
 	for (i = 0; facTable [i]. symbol != -1; i ++) {
 	   int16_t symbol	= facTable [i]. symbol;
 	   int16_t index	= facTable [i]. carrier -
-	                                 Kmin (m -> Mode, m -> Spectrum);
-	   facVector [i]	= bank [symbol][index];
-	   squaredNoiseSequence [i]	= abs (facVector [i]. signalValue) - sqrt (0.5);
-	   squaredNoiseSequence [i]	*= squaredNoiseSequence [i];
-	   DSPCOMPLEX theH	= H [symbol][index];
-	   squaredWeightSequence [i] = real (theH * conj (theH));
-	   sum_MERFAC		+= squaredNoiseSequence [i];
-	   sum_WMERFAC		+= squaredNoiseSequence [i] * 
-	                                (squaredWeightSequence [i] + 1.0E-10);
-	   sum_weight_FAC	+= squaredWeightSequence [i];
+	                               Kmin (modeInf. Mode, modeInf.Spectrum);
+	   facVector [i]	= outbank [symbol][index];
+	   sqrdNoiseSeq [i]	= abs (facVector [i]. signalValue) - sqrt (0.5);
+	   sqrdNoiseSeq [i]	*= sqrdNoiseSeq [i];
+	   sqrdWeightSeq [i]	= real (H [symbol][index] *
+	                                    conj (H [symbol][index]));
+	   sum_WMERFAC		+= sqrdNoiseSeq [i] * 
+	                                (sqrdWeightSeq [i] + 1.0E-10);
+	   sum_weight_FAC	+= sqrdWeightSeq [i];
 	}
 	nFac		= i;
-//	MERFAC		= log10 (sum_MERFAC / i + 1.0E-10);
-	WMERFAC		= log10 (sum_WMERFAC /
-	                         (meanEnergy * (sum_weight_FAC + nFac * 1.0E-10)));
-	WMERFAC		*= -10.0;
+	WMERFAC		= -10 * log10 (sum_WMERFAC /
+	                     (meanEnergy * (sum_weight_FAC + nFac * 1.0E-10)));
 	showSNR (WMERFAC);
 
 //	processFAC will do two things:
 //	decode the FAC samples and check the CRC and, if the CRC
 //	check is OK, it will construct the FAC samples as they should have been
-	result = my_facProcessor. processFAC (facVector, d);
+	facProcessor my_facProcessor;
+	result = my_facProcessor. processFAC (facVector, &theState);
 	if (result) {
 	   goodcount ++;
 	}
-	if (++count == 100) {
+	if (++count >= 100) {
 	   printf ("%d FACs, success = %d\n", count, goodcount);
 	   count = 0;
 	   goodcount = 0;
@@ -744,6 +675,65 @@ timeSyncer  my_Syncer (my_Reader, sampleRate,  nSymbols);
 void    frameProcessor::frequencySync (drmDecoder *mr,
                                        Reader *my_Reader, smodeInfo *m) {
 freqSyncer my_Syncer (my_Reader, m, sampleRate, mr);
-           my_Syncer. frequencySync (m);
+	my_Syncer. frequencySync (m);
+}
+
+bool	frameProcessor::processSDC (smodeInfo	*modeInf,
+	                            theSignal	**theRawData,
+	                            stateDescriptor *theState) {
+int16_t	valueIndex	= 0;
+theSignal sdcVector [sdcCells (modeInf)];
+sdcProcessor  my_sdcProcessor (mr,
+	                       theState,
+	                       sdcCells (modeInf));
+
+	for (int i = 0; i < sdcCells (modeInf); i ++) {
+	   int symbol	= sdcTable [i]. symbol;
+	   int carrier	= sdcTable [i]. carrier;
+	   sdcVector [valueIndex ++] =
+	          theRawData [symbol][carrier - Kmin (modeInf -> Mode,
+	                                              modeInf -> Spectrum)];
+	}
+
+	return my_sdcProcessor. processSDC (sdcVector); 
+}
+
+void	frameProcessor::computeBlock (smodeInfo *modeInf) {
+int K_min = Kmin (modeInf -> Mode, modeInf -> Spectrum);
+int K_max = Kmax (modeInf -> Mode, modeInf -> Spectrum);
+int	nrCells	= 0;
+int	timeCells	= 0;
+int	freqCells	= 0;
+int	pilotCells	= 0;
+int	facCells	= 0;
+	if (modeInf -> Spectrum != 1)
+	   return;
+
+	nrCells = (K_max - K_min + 1) * 
+	                     symbolsperFrame (modeInf -> Mode);
+	for (int symbol = 0;
+	     symbol < symbolsperFrame (modeInf -> Mode); symbol ++)
+	   for (int carrier = K_min; carrier <= K_max; carrier ++) {
+	      if (isFreqCell (modeInf -> Mode, symbol, carrier))
+	         freqCells ++;
+	      else
+	      if (isTimeCell (modeInf -> Mode, symbol, carrier))
+	         timeCells ++;
+	      else
+	      if (isPilotCell (modeInf -> Mode, symbol, carrier))
+	         pilotCells ++;
+	      else
+	      if (isFACcell (modeInf, symbol, carrier))
+	         facCells ++;
+	   }
+	fprintf (stderr, "total nuber of cells %d\n", nrCells);
+	fprintf (stderr, " timeCells %d, freqCells %d, pilotCells %d, facCells %d\n",
+	                  timeCells, freqCells, pilotCells, facCells);
+	int mscCells = nrCells - (timeCells + freqCells + pilotCells + facCells);
+	fprintf (stderr, "resteert %d\n", mscCells);
+	fprintf (stderr, "en er zijn %d sdc cellen\n", sdcCells (modeInf)); 
+	fprintf (stderr, "dus per superframe %d\n",
+	                 3 * mscCells - sdcCells (modeInf));
+
 }
 

@@ -25,32 +25,33 @@
 
 #include	"radio-constants.h"
 #include	"basics.h"
-#include        "viterbi-drm.h"
+#include	"mapper.h"
+#include	"qam4-metrics.h"
+#include	"prbs.h"
+#include	"checkcrc.h"
+#include	"viterbi-drm.h"
 
-class	Mapper;
-class	viterbi_drm;
-class	facData;
-class	prbs;
-class	checkCRC;
-class	qam4_metrics;
+class	stateDescriptor;
+class	equalizer;		// very bad name
 
 class	facProcessor {
 public:
-			facProcessor	(uint8_t Mode,
-	                                 uint8_t Spectrum);
+	                facProcessor	();
 			~facProcessor	(void);
-	bool		processFAC	(theSignal *, facData *);
+	bool		processFAC	(theSignal *, stateDescriptor *);
 private:
+	Mapper		myMapper;
+	prbs		thePRBS;
+	checkCRC	theCRC;
+	qam4_metrics	myMetrics;
 	viterbi_drm	deconvolver;
-	uint8_t		Mode;
-	uint8_t		Spectrum;
-	Mapper		*myMapper;
-	prbs		*thePRBS;
-	checkCRC	*theCRC;
-	qam4_metrics	*myMetrics;
 	void		fromSamplestoBits (theSignal *, uint8_t *);
 	void		fac_Metrics	(theSignal *, int32_t, metrics *);
-	void		interpretFac	(uint8_t *, facData *);
+	void		interpretFac	(uint8_t *, stateDescriptor *);
+	void		set_programType	(uint8_t *, stateDescriptor *);
+	void		set_serviceLanguage (uint8_t *, stateDescriptor *);
+	void		set_serviceParameters (uint8_t *, stateDescriptor *);
+	void		set_channelParameters (uint8_t *, stateDescriptor *);
 };
 
 #endif

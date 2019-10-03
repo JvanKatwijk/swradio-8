@@ -34,10 +34,10 @@
 //	the "coarse" //	frequency offset and a spectrum
 //
 //	The frequency shifter is in steps of 0.01 Hz
-	freqSyncer::freqSyncer (Reader	*b,
-	                        smodeInfo *m,
-	                        int32_t	sampleRate,	
-	                        drmDecoder *mr):
+	freqSyncer::freqSyncer (Reader		*b,
+	                        smodeInfo	*m,
+	                        int32_t		sampleRate,	
+	                        drmDecoder	*mr):
 	                                 theShifter (100 * sampleRate) {
 int16_t	i;
 	this	-> buffer	= b;
@@ -132,7 +132,7 @@ uint8_t	spectrum;
 	binNumber = binNumber < 0 ? binNumber + Tu : binNumber;
 	for (i = 0; i < 4; i ++) 
 	   occupancyIndicator [i] = get_spectrumOccupancy (i, binNumber);
-	        
+
 	float tmp1	= 0.0;
 	for (spectrum = 1; spectrum < 4; spectrum ++) {	
 	   if (occupancyIndicator [spectrum] >= tmp1) {
@@ -140,7 +140,6 @@ uint8_t	spectrum;
 	      m -> Spectrum = spectrum;
 	   }
 	}
-	fprintf (stderr, "hier is spectrum %d\n", m -> Spectrum);
 	return true;
 }
 
@@ -170,8 +169,8 @@ float	abs_sum [Tu];
 	   int16_t jmin1 	= (j - 1) % N_symbols;
 	   int16_t jj		= j % N_symbols;
 	   for (i = 0; i < Tu; i++) {
-	      DSPCOMPLEX tmp1 = symbolBuffer [jmin1][i] *
-	                                  conj (symbolBuffer [jj][i]);
+	      std::complex<float> tmp1 = symbolBuffer [jmin1][i] *
+	                                        conj (symbolBuffer [jj][i]);
 	      correlationSum [i] += tmp1;
 	   }
 	}
@@ -265,7 +264,6 @@ DSPCOMPLEX	temp [Ts];
 int16_t		i;
 int16_t		bufMask	= bufSize - 1;
 DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
-//
 
 //	To take into account the fractional timing difference,
 //	we do some interpolation between samples in the time domain
@@ -286,6 +284,7 @@ DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
 	   angle += conj (temp [Tu + i]) * temp [i];
 //	simple averaging:
 	theAngle	= 0.9 * theAngle + 0.1 * arg (angle);
+
 
 //	offset in Hz / 100
 	float offset	= theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
@@ -314,8 +313,6 @@ DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
 	        &fft_vector [Tu / 2], Tu / 2 * sizeof (DSPCOMPLEX));
 	memcpy (&symbolBuffer [wordNumber] [Tu / 2],
 	        fft_vector , Tu / 2 * sizeof (DSPCOMPLEX));
-
-
 	return 0;
 }
 

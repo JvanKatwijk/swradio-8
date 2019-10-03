@@ -39,6 +39,7 @@
 class	frameProcessor;
 class	RadioInterface;
 class	QSettings;
+//class	IQDisplay;
 
 class drmDecoder: public virtualDecoder, private Ui_drmdecoder {
 Q_OBJECT
@@ -52,7 +53,6 @@ public:
 //
 //	For internal use:
 	void		show			(std::complex<float>);
-	void		show_stationLabel	(const QString &);
 	bool		haltSignal		(void);
 	int16_t		getAudioChannel		(void);
 	int16_t		getDataChannel		(void);
@@ -60,6 +60,7 @@ public:
 private:
 	QFrame		*myFrame;
 	frameProcessor	*my_frameProcessor;
+	RingBuffer<std::complex<float>> *iqBuffer;
 	bool		running;
 	bool		decimatorFlag;
 	bool		validFlag;
@@ -72,6 +73,9 @@ private:
 	int		currentPhase;
 	int		phaseOffset;
 public slots:
+	void		show_stationLabel	(const QString &);
+	void		show_timeLabel		(const QString &);
+	void		showIQ			(int);
 	void		show_audioMode		(QString);
 	void		sampleOut		(float, float);
 	void		show_coarseOffset	(float);

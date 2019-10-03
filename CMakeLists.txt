@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 2.8.11 )
-set (objectName swradio-8)
+set (objectName swradio-8.1)
 set (CMAKE_CXX_FLAGS "${CMAKE_XCC_FLAGS} -Wall -std=c++11 -g")
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g")
 
@@ -60,6 +60,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
         find_package (Qt5Core REQUIRED)
         find_package (Qt5Widgets REQUIRED)
         find_package (Qt5Network REQUIRED)
+	find_package (Qt5Xml REQUIRED)
         include_directories (
           ${Qt5Network_INCLUDE_DIRS}
         )
@@ -161,6 +162,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	set (${objectName}_HDRS
 	   ./radio-constants.h 
 	   ./radio.h 
+	   ./bandplan.h
 	   ./output/upconverter.h 
 	   ./output/audiosink.h 
 	   ./various/agchandler.h 
@@ -229,14 +231,12 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/utilities/qam16-metrics.h 
 	   ./decoders/drm-decoder/utilities/qam4-metrics.h 
 	   ./decoders/drm-decoder/utilities/deinterleaver.h 
-	   ./decoders/drm-decoder/parameters/msc-config.h 
-	   ./decoders/drm-decoder/parameters/fac-data.h 
-	   ./decoders/drm-decoder/parameters/channelparameters.h 
-	   ./decoders/drm-decoder/parameters/serviceparameters.h 
+	   ./decoders/drm-decoder/parameters/state-descriptor.h
 	   ./decoders/drm-decoder/parameters/puncture-tables.h 
 	   ./decoders/drm-decoder/fac/fac-processor.h 
 	   ./decoders/drm-decoder/sdc/sdc-streamer.h 
 	   ./decoders/drm-decoder/sdc/sdc-processor.h 
+	   ./decoders/drm-decoder/msc/backend-controller.h
 	   ./decoders/drm-decoder/msc/msc-processor.h 
 	   ./decoders/drm-decoder/msc/msc-handler-qam16.h 
 	   ./decoders/drm-decoder/msc/msc-handler-qam64.h 
@@ -258,6 +258,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ${${objectName}_SRCS}
 	   ./main.cpp 
 	   ./radio.cpp 
+	   ./bandplan.cpp
 	   ./output/upconverter.cpp 
 	   ./output/audiosink.cpp 
 	   ./various/agchandler.cpp 
@@ -323,14 +324,12 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/utilities/qam16-metrics.cpp 
 	   ./decoders/drm-decoder/utilities/qam4-metrics.cpp 
 	   ./decoders/drm-decoder/utilities/deinterleaver.cpp 
-	   ./decoders/drm-decoder/parameters/msc-config.cpp 
-	   ./decoders/drm-decoder/parameters/fac-data.cpp 
-	   ./decoders/drm-decoder/parameters/channelparameters.cpp 
-	   ./decoders/drm-decoder/parameters/serviceparameters.cpp 
+	   ./decoders/drm-decoder/parameters/state-descriptor.cpp
 	   ./decoders/drm-decoder/parameters/puncture-tables.cpp 
 	   ./decoders/drm-decoder/fac/fac-processor.cpp 
 	   ./decoders/drm-decoder/sdc/sdc-streamer.cpp 
 	   ./decoders/drm-decoder/sdc/sdc-processor.cpp 
+	   ./decoders/drm-decoder/msc/backend-controller.cpp
 	   ./decoders/drm-decoder/msc/msc-processor.cpp 
 	   ./decoders/drm-decoder/msc/msc-handler-qam16.cpp 
 	   ./decoders/drm-decoder/msc/msc-handler-qam64.cpp 
@@ -382,13 +381,14 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/drm-decoder.h  
 	   ./decoders/drm-decoder/input/reader.h 
 	   ./decoders/drm-decoder/frame-processor.h 
-	   ./decoders/drm-decoder/parameters/fac-data.h
 	   ./decoders/drm-decoder/freqsyncer.h
 	   ./decoders/drm-decoder/word-collector.h
 	   ./decoders/drm-decoder/signal-handling/equalizer-base.h
 	   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h
 	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h
 	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h
+	   ./decoders/drm-decoder/sdc/sdc-processor.h
+	   ./decoders/drm-decoder/msc/backend-controller.h
 	   ./decoders/drm-decoder/data/mot-data.h
 	   ./decoders/drm-decoder/data/drm-aacdecoder.h 
 	   ./decoders/drm-decoder/data/data-processor.h
@@ -439,6 +439,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 	target_link_libraries (${objectName}
                                Qt5::Widgets
+	                       Qt5::Xml
                                ${FFTW3F_LIBRARIES}
                                ${extraLibs}
                                ${CMAKE_DL_LIBS}

@@ -20,15 +20,14 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef	__MESSAGE_PROCESSOR
-#define	__MESSAGE_PROCESSOR
+#ifndef	__MESSAGE_PROCESSOR__
+#define	__MESSAGE_PROCESSOR__
 
 #include	<QObject>
 #include	"radio-constants.h"
 #include	<cstring>
 
 class	drmDecoder;
-class	mscConfig;
 class	DRM_aacDecoder;
 
 class	messageProcessor: public QObject {

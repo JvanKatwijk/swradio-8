@@ -20,20 +20,20 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef	__MSC_STREAMER
-#define	__MSC_STREAMER
+#ifndef	__MSC_STREAMER__
+#define	__MSC_STREAMER__
 
 #include	"radio-constants.h"
+#include	"puncture-tables.h"
 #include	"basics.h"
 
-class	mscConfig;
+class	stateDescriptor;
 class	viterbi_drm;
-class	punctureTables;
 class	Mapper;
 
 class	MSC_streamer {
 public:
-		MSC_streamer	(mscConfig *,		// base for config
+		MSC_streamer	(stateDescriptor *,	// base for config
 	                         int16_t,	// stream number
 	                         int16_t,	// N1 (HPP ofdm cells)
 	                         Mapper *,	// mapper used for HP
@@ -46,14 +46,14 @@ public:
 	                         uint8_t *, 	// output HPP + LPP bits
 	                         uint8_t *);	// corrected input
 private:
-	mscConfig	*msc;
+	punctureTables	dummy;
+	stateDescriptor	*theState;
 	int16_t		streamNumber;
 	int16_t		N1;		// higher protected cells
 	int32_t		N2;		// lower protected cells
 	Mapper		*hpMapper;
 	Mapper		*lpMapper;
-	viterbi_drm		*deconvolver;
-	punctureTables	*dummy;
+	viterbi_drm	*deconvolver;
 	int16_t		RX_High;
 	int16_t		RX_Low;
 	int16_t		RY_High;

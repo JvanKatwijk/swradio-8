@@ -38,6 +38,7 @@
 #include        "shifter.h"
 #include        "popup-keypad.h"
 #include        "program-list.h"
+#include	"bandplan.h"
 //
 //      devices
 #include        "device-handler.h"
@@ -112,6 +113,7 @@ QString	FrequencytoString (quint64 freq) {
 
 	RadioInterface::RadioInterface (QSettings	*sI,
 	                                QString		stationList,
+	                                bandPlan	*my_bandPlan,
 	                                int		inputRate,
 	                                int		decoderRate,
 	                                QWidget		*parent):
@@ -124,12 +126,14 @@ QString	FrequencytoString (quint64 freq) {
 	                                                       decoderRate) {
 
 	this	-> settings	= sI;
+	this	-> my_bandPlan	= my_bandPlan;
 	this	-> inputRate	= inputRate;
 	this	-> decoderRate	= decoderRate;
 	setupUi (this);
 	QPalette *p = new QPalette;
 	p -> setColor (QPalette::WindowText, Qt::white);
 	frequencyDisplay -> setPalette (*p);
+	bandLabel -> setPalette (*p);
 //      and some buffers
 //	in comes:
         inputData       = new RingBuffer<std::complex<float> > (1024 * 1024);
@@ -389,6 +393,7 @@ deviceHandler *res	= NULL;
 	if (res == NULL) {
 	   try {
 	      res	= new fileReader (this, inputRate, hfBuffer, settings);
+	      bandLabel	-> hide ();
 	   } catch (int e) {}
 	}
 
@@ -515,6 +520,7 @@ quint64	VFOFrequency	= frequency - scopeWidth / 4;
 	                                          inputRate);
 	QString ff	= FrequencytoString (frequency);
 	frequencyDisplay	-> display (ff);
+	bandLabel		-> setText (my_bandPlan -> getFrequencyLabel (frequency));
 }
 //
 //	adjustFrequency is called whenever clicking the mouse
@@ -543,10 +549,11 @@ int	currOff	= theBand. currentOffset;
 	                            inputRate);
 	}
 
-	QString ff = FrequencytoString ((quint64)
-	                                    (theDevice -> getVFOFrequency () +
-	                                    theBand. currentOffset));
+	int freq		= theDevice -> getVFOFrequency () +
+	                                    theBand. currentOffset;
+	QString ff = FrequencytoString ((quint64)freq);
 	frequencyDisplay	-> display (ff);
+	bandLabel		-> setText (my_bandPlan -> getFrequencyLabel (freq));
 }
 //
 //	just a convenience button

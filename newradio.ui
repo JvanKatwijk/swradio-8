@@ -328,6 +328,27 @@
      </rect>
     </property>
    </widget>
+   <widget class="QLabel" name="bandLabel">
+    <property name="geometry">
+     <rect>
+      <x>470</x>
+      <y>40</y>
+      <width>251</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <italic>true</italic>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
    <zorder>hfSpectrum</zorder>
    <zorder>hfScopeSlider</zorder>
    <zorder>lfSpectrum</zorder>
@@ -346,6 +367,7 @@
    <zorder>dumpButton</zorder>
    <zorder>frequencyDisplay</zorder>
    <zorder>audioSpectrum</zorder>
+   <zorder>bandLabel</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>

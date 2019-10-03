@@ -1,27 +1,18 @@
 language: c++
 compiler: gcc
 sudo: require
-dist: trusty
+dist: xenial
 
 before_install:
-    - sudo add-apt-repository ppa:beineri/opt-qt532-trusty -y
+    - sudo add-apt-repository ppa:beineri/opt-qt-5.12.2-xenial -y
     - sudo apt-get update -qq
     
 install: 
-  - sudo apt-get install qt4-qmake build-essential g++
-  - sudo apt-get install libsndfile1-dev qt4-default libfftw3-dev portaudio19-dev 
-  - sudo apt-get install zlib1g-dev libusb-1.0-0-dev mesa-common-dev
-  - sudo apt-get install libgl1-mesa-dev libqt4-opengl-dev libsamplerate-dev libqwt-dev
+    - sudo apt-get -y install qt5-qmake qt5-default libqt5opengl5-dev
+    - sudo apt-get -y qtbase5-dev libqwt-qt5-dev libsndfile1-dev librtlsdr-dev librtlsdr0 libfftw3-dev portaudio19-dev libfaad-dev zlib1g-dev rtl-sdr libusb-1.0-0-dev mesa-common-dev libgl1-mesa-dev libsamplerate-dev
+  - sudo apt-get install libtool
+  - sudo apt-get install autoconf
 
-  -  sudo apt-get install libtool
-  -  sudo apt-get install autoconf
-  -  cd faad2
-  - ./configure 
-  -  make
-  -  sudo make install
-  -  sudo ldconfig
-  -  cd ..
-  - cp CMakeLists.txt-qt4 CMakeLists.txt
   - cmake . -DCMAKE_INSTALL_PREFIX=/usr
   - make -j4
   - ls -lh .
@@ -29,9 +20,10 @@ install:
   - cp swradio-8 appdir/usr/bin/swradio-8 
   - mkdir -p appdir/usr/lib
   - mkdir -p appdir/usr/share/applications ; cp swradio.desktop appdir/usr/share/applications
-  - cp swradio.png appdir/swradio.png
+  - cp swradio.png appdir/qt-dab.png
   - touch appdir/swradio.png # Dear upstream developers, please provide an application icon
   - ls -l appdir/usr/lib
+  -cp libfaad_x64.so /appdir/usr/libfaad_drm.so
   - # after_success:
   - ls -l
   - ls -l appdir
@@ -52,5 +44,3 @@ install:
   - curl --upload-file ./swradio*.AppImage https://transfer.sh/swradio-8.$(git rev-parse --short HEAD)-x86_64.AppImage
   - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
   - bash ./upload.sh ./swradio*.AppImage
-  - ls -l /home/travis/.travis
-  - cat /home/travis/.travis/job_stages

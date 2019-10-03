@@ -22,7 +22,7 @@
 #
 #include	"data-processor.h"
 #include	"drm-decoder.h"
-#include	"msc-config.h"
+#include	"state-descriptor.h"
 #include	<stdio.h>
 #include	"fec-handler.h"
 #include	<float.h>
@@ -69,21 +69,22 @@ uint32_t y;
 	return (b & 0xFFFF);
 }
 
-	dataProcessor::dataProcessor	(mscConfig *msc,
+	dataProcessor::dataProcessor	(stateDescriptor *theState,
 	                                 drmDecoder *drm):
 	                                      my_messageProcessor (drm) ,
 	                                      my_aacDecoder (drm),
 	                                      upFilter_24000 (5, 12000, 48000),
 	                                      upFilter_12000 (5, 6000, 48000) {
 	
-	this	-> msc			= msc;
+	this	-> theState		= theState;
 	this	-> drmMaster		= drm;
 	audioChannel			= 1;
 	dataChannel			= 3;
 //
 //	do not change the order of the next two initializations
 //	although here they are dummies
-	my_packetAssembler		= new packetAssembler (msc, drm, -1);
+	my_packetAssembler		= new packetAssembler (theState,
+	                                                       drm, -1);
 	my_fecHandler			= new fecHandler (my_packetAssembler);
 	connect (this, SIGNAL (show_audioMode (QString)),
 	         drmMaster, SLOT (show_audioMode (QString)));
@@ -111,10 +112,11 @@ int16_t	startPosB	= 0;
 int16_t	new_dataChannel	= drmMaster	-> getDataChannel ();
 	audioChannel	= drmMaster	-> getAudioChannel ();
 	if (new_dataChannel != dataChannel) {
-	   uint16_t applicationId = msc -> streams [new_dataChannel]. applicationId;
+	   uint16_t applicationId = theState -> streams [new_dataChannel].
+	                                                      applicationId;
 	   delete my_packetAssembler;
 	   delete my_fecHandler;
-	   my_packetAssembler		= new packetAssembler (msc,
+	   my_packetAssembler		= new packetAssembler (theState,
 	                                                       drmMaster,
 	                                                       applicationId);
 	   my_fecHandler		= new fecHandler (my_packetAssembler);
@@ -124,13 +126,14 @@ int16_t	new_dataChannel	= drmMaster	-> getDataChannel ();
 	(void)size;
 //	we first compute the length of the HP part, which - apparently -
 //	is the start of the LP part
-	for (i = 0; i < msc -> numofStreams; i ++) 
-	   startPosB += msc -> streams [i]. lengthHigh;
+	for (i = 0; i < theState -> numofStreams; i ++) 
+	   startPosB += theState -> streams [i]. lengthHigh;
 
-	for (i = 0; i < msc -> numofStreams; i ++) {
-	   int16_t lengthA = msc -> streams [i]. lengthHigh;
-	   int16_t lengthB  = msc -> streams [i]. lengthLow;
-	   if (msc -> streams [i]. soort == mscConfig::AUDIO_STREAM &&
+	for (i = 0; i < theState -> numofStreams; i ++) {
+	   int16_t lengthA = theState -> streams [i]. lengthHigh;
+	   int16_t lengthB = theState -> streams [i]. lengthLow;
+	   if ((theState -> streams [i]. soort ==
+	                           stateDescriptor::AUDIO_STREAM) &&
 	                               (audioChannel == i)) {
 	      process_audio (v, i,
 	                     startPosA, lengthA,
@@ -139,13 +142,14 @@ int16_t	new_dataChannel	= drmMaster	-> getDataChannel ();
 	                                       8 * (startPosB + lengthB - 4));
 	   }
 	   else
-	   if (msc -> streams [i]. soort == mscConfig::DATA_STREAM &&
+	   if ((theState -> streams [i]. soort ==
+	                           stateDescriptor::DATA_STREAM) &&
 	                                (dataChannel == i)) {
 //
 //	just a reminder:
 //	if the packetmode indicator == 1 we have an asynchronous stream
 //	if 0, we have a synchronous stream which we don't handle yet
-	      if (msc -> streams [i]. packetModeInd == 1) {
+	      if (theState -> streams [i]. packetModeInd == 1) {
 	         process_packets (v, i,
 	                          startPosA, lengthA,
 	                          startPosB, lengthB);
@@ -167,7 +171,7 @@ int16_t	new_dataChannel	= drmMaster	-> getDataChannel ();
 void	dataProcessor::process_audio (uint8_t *v, int16_t mscIndex,
 	                              int16_t startHigh, int16_t lengthHigh,
 	                              int16_t startLow,  int16_t lengthLow) {
-uint8_t	audioCoding		= msc -> streams [mscIndex]. audioCoding;
+uint8_t	audioCoding		= theState -> streams [mscIndex]. audioCoding;
 
 	switch (audioCoding) {
 	   case 0:		// AAC
@@ -267,101 +271,6 @@ void	dataProcessor::process_aac (uint8_t *v, int16_t mscIndex,
 	   handle_eep_audio (v, mscIndex,  startLow, lengthLow - 4);
 }
 
-
-void	dataProcessor::handle_uep_packets (uint8_t *v, int16_t mscIndex,
-	                           int16_t startHigh, int16_t lengthHigh,
-	                           int16_t startLow, int16_t lengthLow) {
-int16_t	i;
-uint8_t dataBuffer [lengthLow + lengthHigh];
-	
-	for (i = 0; i < lengthHigh; i ++)
-	   dataBuffer [i] = get_MSCBits (v, (startHigh + i) * 8, 8);
-	for (i = 0; i < lengthLow; i ++)
-	   dataBuffer [lengthHigh + i] =
-	                    get_MSCBits (v, (startLow + i) * 8, 8);
-	if (msc -> streams [mscIndex]. FEC)
-	   handle_packets_with_FEC (dataBuffer,
-	                                lengthLow + lengthHigh, mscIndex);
-	else
-	   handle_packets (dataBuffer, lengthLow + lengthHigh, mscIndex);
-}
-
-void	dataProcessor::handle_eep_packets (uint8_t *v, int16_t mscIndex,
-	                           int16_t startLow, int16_t lengthLow) {
-uint8_t	dataBuffer [lengthLow];
-int16_t i;
-
-	for (i = 0; i < lengthLow; i ++)
-	   dataBuffer [i] = get_MSCBits (v, (startLow + i) * 8, 8);
-	if (msc -> streams [mscIndex]. FEC)
-	   handle_packets_with_FEC (dataBuffer, lengthLow, mscIndex);
-	else
-	   handle_packets (dataBuffer, lengthLow, mscIndex);
-}
-
-void	dataProcessor::handle_packets_with_FEC (uint8_t *v,
-	                                        int16_t length,
-	                                        uint8_t mscIndex) {
-uint8_t *packetBuffer;
-int16_t	packetLength = msc -> streams [mscIndex]. packetLength + 3;
-int16_t	i;
-static	int	cnt	= 0;
-//
-//	first check the RS decoder
-	my_fecHandler -> checkParameters (
-	          msc -> streams [mscIndex]. R,
-	          msc -> streams [mscIndex]. C, 
-	          msc -> streams [mscIndex]. packetLength + 3,
-	          mscIndex);
-
-	for (i = 0; i < length / packetLength; i ++) {
-	   packetBuffer = &v [i * packetLength];
-//	Fetch relevant info from the stream
-
-//	packetBuffer [0] contains the header
-	   uint8_t header	= packetBuffer [0];
-//	   uint8_t firstBit	= (header & 0x80) >> 7;
-//	   uint8_t lastBit	= (header & 0x40) >> 6;
-	   uint8_t packetId	= (header & 0x30) >> 4;
-	   uint8_t PPI		= (header & 0x8) >> 3;
-//	   uint8_t CI		= header & 0x7;
-//
-	   if ((packetId == 3) && (PPI == 0)) {
-	      my_fecHandler -> fec_packet (packetBuffer, packetLength);
-	      cnt = 0;
-	   }
-	   else 
-//	   if (packetId != 0) 
-//	      if (PPI)
-//	         fprintf (stderr, "filler with %d\n", packetBuffer [1]);
-//	      else
-//	      fprintf (stderr, "rommelpacket ertussen PPI = %d, CI = %d\n",
-//	                               PPI, CI);
-	   if (packetId == 0) {
-	      my_fecHandler -> data_packet (packetBuffer, packetLength);
-	      cnt ++;
-	   }
-	}
-}
-
-void	dataProcessor::handle_packets (uint8_t *v, int16_t length,
-	                               uint8_t mscIndex) {
-uint8_t *packetBuffer;
-int16_t	packetLength = msc -> streams [mscIndex]. packetLength + 3;
-int16_t	i;
-
-	for (i = 0; i < length / packetLength; i ++) {
-	   packetBuffer = &v [i * packetLength];
-//	Fetch relevant info from the stream
-//
-//	first a crc check
-	   if (crc16_bytewise (packetBuffer, packetLength) != 0)
-	      continue;
-
-	   my_packetAssembler -> assemble (packetBuffer,
-	                                   packetLength, mscIndex);
-	}
-}
 static
 int16_t outBuffer [8 * 960];
 static
@@ -375,7 +284,7 @@ int16_t	crcLength	= 1;
 int16_t	payloadLength;
 
 //	first the globals
-	numFrames = msc -> streams [mscIndex]. audioSamplingRate == 1 ? 5 : 10;
+	numFrames = theState -> streams [mscIndex]. audioSamplingRate == 1 ? 5 : 10;
 	headerLength = numFrames == 10 ? (9 * 12 + 4) / 8 : (4 * 12) / 8;
 	payloadLength = lengthLow + lengthHigh - headerLength - crcLength;
 	
@@ -417,6 +326,156 @@ int16_t	payloadLength;
 	}
 	playOut (mscIndex);
 }
+
+void	dataProcessor::handle_uep_packets (uint8_t *v, int16_t mscIndex,
+	                           int16_t startHigh, int16_t lengthHigh,
+	                           int16_t startLow, int16_t lengthLow) {
+int16_t	i;
+uint8_t dataBuffer [lengthLow + lengthHigh];
+	
+	for (i = 0; i < lengthHigh; i ++)
+	   dataBuffer [i] = get_MSCBits (v, (startHigh + i) * 8, 8);
+	for (i = 0; i < lengthLow; i ++)
+	   dataBuffer [lengthHigh + i] =
+	                    get_MSCBits (v, (startLow + i) * 8, 8);
+	if (theState -> streams [mscIndex]. FEC)
+	   handle_packets_with_FEC (dataBuffer,
+	                            lengthLow + lengthHigh, mscIndex);
+	else
+	   handle_packets (dataBuffer, lengthLow + lengthHigh, mscIndex);
+}
+
+void	dataProcessor::handle_eep_packets (uint8_t *v, int16_t mscIndex,
+	                                  int16_t startLow, int16_t lengthLow) {
+uint8_t	dataBuffer [lengthLow];
+int16_t i;
+
+	for (i = 0; i < lengthLow; i ++)
+	   dataBuffer [i] = get_MSCBits (v, (startLow + i) * 8, 8);
+	if (theState -> streams [mscIndex]. FEC)
+	   handle_packets_with_FEC (dataBuffer, lengthLow, mscIndex);
+	else
+	   handle_packets (dataBuffer, lengthLow, mscIndex);
+}
+
+void	dataProcessor::handle_packets_with_FEC (uint8_t *v,
+	                                        int16_t length,
+	                                        uint8_t mscIndex) {
+uint8_t *packetBuffer;
+int16_t	packetLength = theState -> streams [mscIndex]. packetLength + 3;
+int16_t	i;
+static	int	cnt	= 0;
+//
+//	first check the RS decoder
+	my_fecHandler -> checkParameters (
+	          theState -> streams [mscIndex]. R,
+	          theState -> streams [mscIndex]. C, 
+	          theState -> streams [mscIndex]. packetLength + 3,
+	          mscIndex);
+
+	for (i = 0; i < length / packetLength; i ++) {
+	   packetBuffer = &v [i * packetLength];
+//	Fetch relevant info from the stream
+
+//	packetBuffer [0] contains the header
+	   uint8_t header	= packetBuffer [0];
+//	   uint8_t firstBit	= (header & 0x80) >> 7;
+//	   uint8_t lastBit	= (header & 0x40) >> 6;
+	   uint8_t packetId	= (header & 0x30) >> 4;
+	   uint8_t PPI		= (header & 0x8) >> 3;
+//	   uint8_t CI		= header & 0x7;
+//
+	   if ((packetId == 3) && (PPI == 0)) {
+	      my_fecHandler -> fec_packet (packetBuffer, packetLength);
+	      cnt = 0;
+	   }
+	   else 
+//	   if (packetId != 0) 
+//	      if (PPI)
+//	         fprintf (stderr, "filler with %d\n", packetBuffer [1]);
+//	      else
+//	      fprintf (stderr, "rommelpacket ertussen PPI = %d, CI = %d\n",
+//	                               PPI, CI);
+	   if (packetId == 0) {
+	      my_fecHandler -> data_packet (packetBuffer, packetLength);
+	      cnt ++;
+	   }
+	}
+}
+
+void	dataProcessor::handle_packets (uint8_t *v, int16_t length,
+	                               uint8_t mscIndex) {
+uint8_t *packetBuffer;
+int16_t	packetLength = theState -> streams [mscIndex]. packetLength + 3;
+int16_t	i;
+
+	for (i = 0; i < length / packetLength; i ++) {
+	   packetBuffer = &v [i * packetLength];
+//	Fetch relevant info from the stream
+//
+//	first a crc check
+	   if (crc16_bytewise (packetBuffer, packetLength) != 0)
+	      continue;
+
+	   my_packetAssembler -> assemble (packetBuffer,
+	                                   packetLength, mscIndex);
+	}
+}
+//static
+//int16_t outBuffer [8 * 960];
+//static
+//audioFrame f [20];
+//void	dataProcessor::handle_uep_audio (uint8_t *v, int16_t mscIndex,
+//	                           int16_t startHigh, int16_t lengthHigh,
+//	                           int16_t startLow, int16_t lengthLow) {
+//int16_t	headerLength, i, j;
+//int16_t	usedLength	= 0;
+//int16_t	crcLength	= 1;
+//int16_t	payloadLength;
+//
+////	first the globals
+//	numFrames = msc -> streams [mscIndex]. audioSamplingRate == 1 ? 5 : 10;
+//	headerLength = numFrames == 10 ? (9 * 12 + 4) / 8 : (4 * 12) / 8;
+//	payloadLength = lengthLow + lengthHigh - headerLength - crcLength;
+//	
+////	Then, read the numFrames - 1 "length"s from the header:
+//	for (i = 0; i < numFrames - 1; i ++) {
+//	   f [i]. length = get_MSCBits (v, startHigh * 8 + 12 * i, 12);
+//	   if (f [i]. length < 0)
+//	      return;
+//	   usedLength += f [i]. length;
+//	}
+////	the length of the last segment is to be computed
+//	f [numFrames - 1]. length = payloadLength - usedLength;
+//
+////	OK, now it is getting complicated, we first load the part(s) from the
+////	HP part. Length for all parts is equal, i.e. LengthHigh / numFrames
+////	the audiopart is one byte shorter, due to the crc
+//	int16_t segmentinHP	= (lengthHigh - headerLength) / numFrames;
+//	int16_t audioinHP	= segmentinHP - 1;
+//	int16_t	entryinHP	= startHigh + headerLength;
+//
+//	for (i = 0; i < numFrames; i ++) {
+//	   for (j = 0; j < audioinHP; j ++)
+//	      f [i]. audio [j] = get_MSCBits (v,
+//	                        (entryinHP ++) * 8, 8);
+//	   f [i]. aac_crc = get_MSCBits (v, 
+//	                        (entryinHP ++) * 8, 8);
+//	}
+//
+////	Now what is left is the part of the frame in the LP part
+//
+//	int16_t entryinLP	= startLow;
+//	for (i = 0; i < numFrames; i ++) {
+//	   for (j = 0;
+//	        j < f [i]. length - audioinHP;
+//	        j ++)
+//	      if (entryinLP < startLow + lengthLow)
+//	         f [i]. audio [audioinHP + j] =
+//	                    get_MSCBits (v, (entryinLP++) * 8, 8);
+//	}
+//	playOut (mscIndex);
+//}
 //
 //	Processing audio, in an EEP segment, proceeds as follows
 //	first, the number of segments is determined by looking at
@@ -442,7 +501,7 @@ int16_t		crc_start;
 int16_t		payLoad_start;
 int16_t		payLoad_length = 0;
 
-	numFrames = msc -> streams [mscIndex]. audioSamplingRate == 1 ? 5 : 10;
+	numFrames = theState -> streams [mscIndex]. audioSamplingRate == 1 ? 5 : 10;
 	headerLength = numFrames == 10 ? (9 * 12 + 4) / 8 : (4 * 12) / 8;
 
 //	startLow in bytes!!
@@ -489,9 +548,12 @@ int16_t		payLoad_length = 0;
 
 void	dataProcessor::playOut (int16_t	mscIndex) {
 int16_t	i;
-uint8_t	audioSamplingRate	= msc -> streams [mscIndex]. audioSamplingRate;
-uint8_t	SBR_flag		= msc -> streams [mscIndex]. SBR_flag;
-uint8_t	audioMode		= msc -> streams [mscIndex]. audioMode;
+uint8_t	audioSamplingRate	= theState -> streams [mscIndex].
+	                                                   audioSamplingRate;
+uint8_t	SBR_flag		= theState -> streams [mscIndex].
+	                                                   SBR_flag;
+uint8_t	audioMode		= theState -> streams [mscIndex].
+	                                                   audioMode;
 
 	if (!my_aacDecoder.  checkfor (audioSamplingRate,
 	                                        SBR_flag, 
@@ -523,13 +585,15 @@ uint8_t	audioMode		= msc -> streams [mscIndex]. audioMode;
 void	dataProcessor::process_celp (uint8_t *v, int16_t mscIndex,
 	                            int16_t startHigh, int16_t lengthHigh,
 	                            int16_t startLow,  int16_t lengthLow) {
-uint8_t	audioCoding	= msc -> streams [mscIndex]. audioCoding;
-uint8_t	SBR_flag	= msc -> streams [mscIndex]. SBR_flag;
-//uint8_t	audioMode	= msc -> streams [mscIndex]. audioMode;
-//uint8_t	audioSamplingRate	= msc -> streams [mscIndex]. audioSamplingRate;
-//uint8_t	textFlag	= msc -> streams [mscIndex]. textFlag;
-//uint8_t	enhancementFlag	= msc -> streams [mscIndex]. enhancementFlag;
-//uint8_t	coderField	= msc -> streams [mscIndex]. coderField;
+uint8_t	audioCoding	= theState -> streams [mscIndex]. audioCoding;
+uint8_t	SBR_flag	= theState -> streams [mscIndex]. SBR_flag;
+//uint8_t audioMode	= theState -> streams [mscIndex]. audioMode;
+//uint8_t audioSamplingRate	= theState -> streams [mscIndex].
+//	                                                   audioSamplingRate;
+//uint8_t textFlag	= theState -> streams [mscIndex]. textFlag;
+//uint8_t enhancementFlag	= theState -> streams [mscIndex].
+//	                                                   enhancementFlag;
+//uint8_t coderField	= theState -> streams [mscIndex]. coderField;
 
 	(void)v; (void)mscIndex;
 	(void)startHigh; (void)startLow;
@@ -545,13 +609,15 @@ uint8_t	SBR_flag	= msc -> streams [mscIndex]. SBR_flag;
 void	dataProcessor::process_hvxc (uint8_t *v, int16_t mscIndex,
 	                            int16_t startHigh, int16_t lengthHigh,
 	                            int16_t startLow,  int16_t lengthLow) {
-uint8_t	audioCoding	= msc -> streams [mscIndex]. audioCoding;
-//uint8_t	SBR_flag	= msc -> streams [mscIndex]. SBR_flag;
-//uint8_t	audioMode	= msc -> streams [mscIndex]. audioMode;
-//uint8_t	audioSamplingRate	= msc -> streams [mscIndex]. audioSamplingRate;
-//uint8_t	textFlag	= msc -> streams [mscIndex]. textFlag;
-//uint8_t	enhancementFlag	= msc -> streams [mscIndex]. enhancementFlag;
-//uint8_t	coderField	= msc -> streams [mscIndex]. coderField;
+uint8_t	audioCoding	= theState -> streams [mscIndex]. audioCoding;
+//uint8_t SBR_flag	= theState -> streams [mscIndex]. SBR_flag;
+//uint8_t audioMode	= theState -> streams [mscIndex]. audioMode;
+//uint8_t audioSamplingRate	= theState -> streams [mscIndex].
+//	                                                     audioSamplingRate;
+//uint8_t textFlag	= theState -> streams [mscIndex]. textFlag;
+//uint8_t enhancementFlag	= theState -> streams [mscIndex].
+//	                                                     enhancementFlag;
+//uint8_t coderField	= theState -> streams [mscIndex]. coderField;
 	(void)v; (void)mscIndex;
 	(void)startHigh; (void)startLow;
 	(void)lengthHigh; (void)lengthLow;

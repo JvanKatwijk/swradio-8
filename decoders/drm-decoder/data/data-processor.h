@@ -20,8 +20,8 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef	__DATA_PROCESSOR
-#define	__DATA_PROCESSOR
+#ifndef	__DATA_PROCESSOR__
+#define	__DATA_PROCESSOR__
 
 #include	<QObject>
 #include	"radio-constants.h"
@@ -32,7 +32,7 @@
 #include	"message-processor.h"
 
 class	drmDecoder;
-class	mscConfig;
+class	stateDescriptor;
 class	packetAssembler;
 
 typedef	struct frame {
@@ -44,7 +44,7 @@ typedef	struct frame {
 class	dataProcessor: public QObject {
 Q_OBJECT
 public:
-		dataProcessor	(mscConfig *, drmDecoder *);
+		dataProcessor	(stateDescriptor *, drmDecoder *);
 		~dataProcessor	(void);
 	void	process		(uint8_t *, int16_t);
 enum	{
@@ -53,6 +53,7 @@ enum	{
 	void	selectDataService	(int16_t);
 	void	selectAudioService	(int16_t);
 private:
+	stateDescriptor	*theState;
 	messageProcessor my_messageProcessor;
 	DRM_aacDecoder	my_aacDecoder;
 	LowPassFIR	upFilter_24000;
@@ -61,7 +62,6 @@ private:
 	int16_t		selectedDataService;
 	int16_t		selectedAudioService;
 	fecHandler	*my_fecHandler;
-	mscConfig	*msc;
 	drmDecoder	*drmMaster;
 	packetAssembler	*my_packetAssembler;
 	int16_t		old_CI;

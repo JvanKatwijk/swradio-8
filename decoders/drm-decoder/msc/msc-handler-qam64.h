@@ -20,26 +20,26 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef	__MSC_HANDLER_QAM64
-#define	__MSC_HANDLER_QAM64
+#ifndef	__MSC_HANDLER_QAM64__
+#define	__MSC_HANDLER_QAM64__
 
 #include	"radio-constants.h"
 #include	"msc-handler.h"
 #include	"basics.h"
 #include	"qam64-metrics.h"
 
-class	mscConfig;
+class	stateDescriptor;
 class	MSC_streamer;
 class	Mapper;
 
 class	QAM64_SM_Handler : public mscHandler {
 public:
-		QAM64_SM_Handler	(mscConfig *, int8_t);
+		QAM64_SM_Handler	(stateDescriptor *, int8_t);
 		~QAM64_SM_Handler	(void);
 	void	process			(theSignal *, uint8_t *);
 private:
 
-	mscConfig	*msc;
+	stateDescriptor	*theState;
 	int8_t		qam64Roulette;
 	int16_t		lengthA;
 	int16_t		lengthB;

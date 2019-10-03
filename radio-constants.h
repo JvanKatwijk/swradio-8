@@ -61,7 +61,7 @@ using namespace std;
 #define I_Only		0102
 #define	Q_Only		0104
 
-#define	CURRENT_VERSION	"0.995"
+#define	CURRENT_VERSION	"8.1"
 
 #define	MSECFORTIMER	10
 //

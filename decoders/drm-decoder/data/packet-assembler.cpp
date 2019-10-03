@@ -23,7 +23,7 @@
 #include	"virtual-datahandler.h"
 #include	<stdio.h>
 #include	"mot-data.h"
-#include	"msc-config.h"
+#include	"state-descriptor.h"
 //
 //	The function of the packetAssembler is - as the name suggests -
 //	assembling the packets for the various application handlers.
@@ -33,11 +33,11 @@
 //	The applicationId is a parameter, the applicationhandler is
 //	local to the packetassembler
 
-	packetAssembler::packetAssembler	(mscConfig *msc,
+	packetAssembler::packetAssembler	(stateDescriptor *theState,
 	                                         drmDecoder *drm,
 	                                         uint16_t applicationId) {
 	fprintf (stderr, "applicationId = %x\n", applicationId);
-	this	-> msc	= msc;
+	this	-> theState	= theState;
 	mscIndex	= 0;
 	waitforFirst	= true;
 	old_CI		= 11;		// illegal value
@@ -96,6 +96,7 @@ int16_t	i;
 	           series [currentLength + i] = packet [base + i];
 	      }
 	      break;
+
 	   case 02:				// first Segment
 	      { int16_t addition = PPI ? packet [1] : length - 3;
 	        int16_t base = PPI ? 2 : 1;
@@ -105,6 +106,7 @@ int16_t	i;
 	        waitforFirst = false;
 	      }
 	      break;
+
 	   case 01:				// last Segment
 	      { int16_t currentLength = series. size ();
 	        int16_t	addition = PPI ? packet [1] : length - 3;
@@ -129,8 +131,8 @@ int16_t	i;
 	}
 }
 
-void	packetAssembler::add_mscDatagroup	(QByteArray &msc) {
-uint8_t *data		= (uint8_t *)(msc. data ());
+void	packetAssembler::add_mscDatagroup	(QByteArray &mscGroup) {
+uint8_t *data		= (uint8_t *)(mscGroup. data ());
 bool	extensionFlag	= data [0] & 0x80;
 bool	crcFlag		= data [0] & 0x40;
 bool	segmentFlag	= data [0] & 0x20;
@@ -146,10 +148,10 @@ uint8_t	lengthInd;
 
 	(void)CI;
 	(void)crcFlag;
-	if (msc. size () == 0)
+	if (mscGroup. size () == 0)
 	   return;
 
-//	if (crcFlag && !check_CRC_bits (data, msc.size ())) 
+//	if (crcFlag && !check_CRC_bits (data, mscGroup.size ())) 
 //	   return;
 
 	if (extensionFlag)

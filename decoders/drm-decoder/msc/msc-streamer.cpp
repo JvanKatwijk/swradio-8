@@ -21,7 +21,7 @@
  */
 #
 #include	"msc-streamer.h"
-#include	"msc-config.h"
+#include	"state-descriptor.h"
 #include	"viterbi-drm.h"
 #include	<stdio.h>
 #include	"puncture-tables.h"
@@ -32,34 +32,35 @@
 //
 //	The streamer handles the depuncturing and deconvolving
 //	of a single stream.
-	MSC_streamer::MSC_streamer (mscConfig	*msc,
+	MSC_streamer::MSC_streamer (stateDescriptor	*theState,
 	                            int16_t	streamNumber,
 	                            int16_t	N1,
 	                            Mapper	*hpMapper,
 	                            Mapper	*lpMapper) {
-	this	-> msc		= msc;
+	this	-> theState	= theState;
 	this	-> streamNumber	= streamNumber;
 	this	-> N1		= N1;
-	this	-> N2		= msc -> muxSize () - N1;
+	this	-> N2		= theState -> muxSize () - N1;
 	this	-> hpMapper	= hpMapper;
 	this	-> lpMapper	= lpMapper;
 //
 //	just a handle:
-	dummy			= new punctureTables ();
 //	
 //	From the msc description, we extract the protection levels
 //	for A and B parts
-	msc	-> protLevel (msc -> protLevelA, streamNumber,
+	theState -> protLevel (theState -> protLevelA, streamNumber,
 	                                            &RX_High, &RY_High);
-	punctureHigh	= dummy -> getPunctureTable (RX_High, RY_High);
+	punctureHigh	= dummy. getPunctureTable (RX_High, RY_High);
 //
-	msc	-> protLevel (msc -> protLevelB, streamNumber,
+	theState -> protLevel (theState -> protLevelB, streamNumber,
 	                                            &RX_Low, &RY_Low);
-	punctureLow	= dummy -> getPunctureTable (RX_Low,  RY_Low);
+//	fprintf (stderr, "RX_High = %d, RY_High = %d, RX_Low = %d, RY_High = %d\n",
+//	                  RX_High, RY_High, RX_Low, RY_Low);
+	punctureLow	= dummy. getPunctureTable (RX_Low,  RY_Low);
 //
 //	The residu tables relate to the Lower protected part
-	residuTable	= dummy -> getResiduTable   (RX_Low, RY_Low, N2);
-	residuBits	= dummy	-> getResiduBits    (RX_Low, RY_Low, N2);
+	residuTable	= dummy. getResiduTable   (RX_Low, RY_Low, N2);
+	residuBits	= dummy. getResiduBits    (RX_Low, RY_Low, N2);
 //
 //	formulas of section 7.2.1.1 are used to determine the
 //	total number of bits resulting from this stream

@@ -23,7 +23,7 @@
 //
 #include	"msc-handler-qam64.h"
 #include	"msc-streamer.h"
-#include	"msc-config.h"
+#include	"state-descriptor.h"
 #include	<cmath>
 #include	<stdio.h>
 #include	"mapper.h"
@@ -32,31 +32,32 @@
 
 //	In order to handle the A and B levels, we create a
 //	separate processor ("streamer") for the A and B parts of the stream.
-	QAM64_SM_Handler::QAM64_SM_Handler	(mscConfig	*msc,
+	QAM64_SM_Handler::QAM64_SM_Handler	(stateDescriptor *theState,
 	                                         int8_t		qam64Roulette):
-	                                          mscHandler (msc),
+	                                          mscHandler (theState),
 	                                          myDecoder () {
 int16_t	N1, N2;
 int16_t	RYlcm, i;
 float	denom	= 0;
 int32_t	highProtected, lowProtected;
 //
-	this	-> msc			= msc;
+	this	-> theState		= theState;
 	this	-> qam64Roulette	= qam64Roulette;
 	lengthA				= 0;
-	for (i = 0; i < msc -> numofStreams; i ++)
-	   lengthA += msc	-> streams [i]. lengthHigh;
+	for (i = 0; i < theState -> numofStreams; i ++)
+	   lengthA += theState	-> streams [i]. lengthHigh;
 	lengthB		= 0;
-	for (i = 0; i < msc -> numofStreams; i ++)
-	   lengthB += msc	-> streams [i]. lengthLow;
+	for (i = 0; i < theState -> numofStreams; i ++)
+	   lengthB += theState	-> streams [i]. lengthLow;
 
+	fprintf (stderr, "LengthA = %d, lengthB = %d\n", lengthA, lengthB);
 	if (lengthA != 0) {	// two real levels
-	   RYlcm = msc -> getRYlcm_64 (msc -> protLevelA);
+	   RYlcm = theState -> getRYlcm_64 (theState -> protLevelA);
 	   for (i = 0; i < 3; i ++)
-	      denom += msc -> getRp (msc -> protLevelA, i);
+	      denom += theState -> getRp (theState -> protLevelA, i);
 	   denom *= 2 * RYlcm;
 	   N1	= int16_t (ceil ((8.0 * lengthA) / denom)) * RYlcm;
-	   N2	= msc	-> muxSize () - N1;
+	   N2	= theState	-> muxSize () - N1;
 	   Y13mapper_high	= new Mapper (2 * N1, 13);
 	   Y21mapper_high	= new Mapper (2 * N1, 21);
 	   Y13mapper_low	= new Mapper (2 * N2, 13);
@@ -64,7 +65,7 @@ int32_t	highProtected, lowProtected;
 	}
 	else {
 	   N1	= 0;
-	   N2	= msc	-> muxSize ();
+	   N2	= theState	-> muxSize ();
 	   Y13mapper_high	= NULL;
 	   Y21mapper_high	= NULL;
 	   Y13mapper_low	= new Mapper (2 * N2, 13);
@@ -72,10 +73,10 @@ int32_t	highProtected, lowProtected;
 	}
 //
 //	Note that N2 is (re)computed in the streamer
-	stream_0	= new MSC_streamer (msc, 0, N1, NULL,  NULL);
-	stream_1	= new MSC_streamer (msc, 1, N1,
+	stream_0	= new MSC_streamer (theState, 0, N1, NULL,  NULL);
+	stream_1	= new MSC_streamer (theState, 1, N1,
 	                              Y13mapper_high, Y13mapper_low);
-	stream_2	= new MSC_streamer (msc, 2, N1,
+	stream_2	= new MSC_streamer (theState, 2, N1,
 	                              Y21mapper_high, Y21mapper_low);
 
 	highProtected	= stream_0 -> highBits () +
@@ -113,7 +114,6 @@ metrics m;
 	return m;
 }
 	
-	   
 void	QAM64_SM_Handler::process	(theSignal *v, uint8_t *o) {
 int16_t	highProtectedbits	= stream_0 -> highBits () +
 	                          stream_1 -> highBits () +
@@ -126,27 +126,27 @@ uint8_t	bits_0  [stream_0 -> highBits () + stream_0 -> lowBits ()];
 //uint8_t	bits_0a  [stream_0 -> highBits () + stream_0 -> lowBits ()];
 uint8_t	bits_1  [stream_1 -> highBits () + stream_1 -> lowBits ()];
 uint8_t	bits_2  [stream_2 -> highBits () + stream_2 -> lowBits ()];
-metrics Y0 [2 * msc -> muxSize ()];
-metrics Y1 [2 * msc -> muxSize ()];
-metrics Y2 [2 * msc -> muxSize ()];
+metrics Y0 [2 * theState -> muxSize ()];
+metrics Y1 [2 * theState -> muxSize ()];
+metrics Y2 [2 * theState -> muxSize ()];
 int32_t	i;
 //
-uint8_t	level_0 [2 * msc -> muxSize ()];
-uint8_t	level_1 [2 * msc -> muxSize ()];
-uint8_t	level_2 [2 * msc -> muxSize ()];
+uint8_t	level_0 [2 * theState -> muxSize ()];
+uint8_t	level_1 [2 * theState -> muxSize ()];
+uint8_t	level_2 [2 * theState -> muxSize ()];
 
 	for (i = 0; i < qam64Roulette; i ++) {
-	   myDecoder. computemetrics (v, msc -> muxSize (),
+	   myDecoder. computemetrics (v, theState -> muxSize (),
 	                                   0, Y0,
 	                                   i > 0,
 	                                   level_0, level_1, level_2);
 	   stream_0	-> process (Y0, bits_0, level_0);
-	   myDecoder. computemetrics (v, msc -> muxSize (),
+	   myDecoder. computemetrics (v, theState -> muxSize (),
 	                                   1, Y1, 
 	                                   i > 0,
 	                                   level_0, level_1, level_2);
 	   stream_1	-> process (Y1, bits_1, level_1);
-	   myDecoder. computemetrics (v, msc -> muxSize (),
+	   myDecoder. computemetrics (v, theState -> muxSize (),
 	                                   2, Y2,
 	                                   true,
 	                                   level_0, level_1, level_2);	

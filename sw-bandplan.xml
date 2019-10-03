@@ -1,0 +1,40 @@
+<bandplan>
+<Band Low=    "150"  High=    "270"    Label = "LW broadcast band" />
+<Band Low=    "472"  High=    "478"    Label = "635 m, only cw"    />
+<Band Low=    "540"  High=   "1602"    Label ="MW Broadcast band" />
+<Band Low=   "1810"  High=   "1880"    Label ="160 m amateurband" />
+<Band Low=   "3500"  High=   "3800"    Label ="80 m amateur band" />
+<Band Low=   "5350"  High=   "5450"    Label ="60 m amateur band" />
+<Band Low=   "5900"  High=   "6200"    Label ="49 m broadcast band" />
+<Band Low=   "7000"  High=   "7200"    Label ="40 m amateur band" />
+<Band Low=   "7200"  High=   "7300"    Label ="41 m broadcast band" />
+<Band Low=   "9500"  High=   "9900"    Label ="31 m broadcast band" />
+<Band Low=  "10100"  High=  "10150"    Label ="30 m amateur band" />
+<Band Low=  "11650"  High=  "12050"    Label ="25 m broadcast band" />
+<Band Low=  "13600"  High=  "13800"    Label ="22 m broadcast band" />
+<Band Low=  "14000"  High=  "14350"    Label ="20 m amateur band" />
+<Band Low=  "15100"  High=  "15600"    Label ="19 m broadcast band" />
+<Band Low=  "17550"  High=  "17900"    Label ="16 m broadcast band" />
+<Band Low=  "18068"  High=  "18168"    Label ="17 m amateur band" />
+<Band Low=  "21000"  High=  "21450"    Label ="15 m amateur band"/>
+<Band Low=  "21450"  High=  "21850"    Label ="13 m broadcast band" />
+<Band Low=  "24890"  High=  "24990"    Label ="12 m amateur band" />
+<Band Low=  "25600"  High=  "26100"    Label ="11 m broadcast band" />
+<Band Low=  "28000"  High=  "29700"    Label ="10 m amateur band"/>
+<Band Low=  "50000"  High=  "52000"    Label ="6  m amateur band" />
+<Band Low=  "65000"  High=  "74000"    Label ="OIRT FM Band (Russia)" />
+<Band Low=  "87500"  High= "108000"    Label ="FM Broadcast band" />
+<Band Low= "144000"  High= "146000"    Label ="2  m amateur band" />
+<Band Low= "176000"  High= "226000"    Label ="Broadcasting, DAB" />
+<Band Low= "430000"  High= "440000"    Label ="70 cm amateur band" />
+<Band Low= "449000"  High= "450330"    Label ="Fixed mobile services" />
+<Band Low= "456110"  High= "456470"    Label= "Mobile Dutch Police" />
+<Band Low= "458711"  High= "459050"    Label= "Mobile Dutch Police" />
+<Band Low= "890000"  High= "915000"    Label= "GSM-900 uplink" />
+<Band Low= "935000"  High= "960000"    Label ="GSM-900 downlink" />
+<Band Low= "960000"  High="121500"     Label = "Aero navigation" />
+<Band Low="1240000"  High="1300000"    Label ="23 cm amateur band" />
+<Band Low="1710000"  High="1785000"    Label ="GSM-1800 uplink" />
+<Band Low="1805000"  High="1880000"    Label= "GSM-1800 downlink" />
+<Band Low="2350000"  High="2450000"    Label ="13 cm amateur band" />
+</bandplan>

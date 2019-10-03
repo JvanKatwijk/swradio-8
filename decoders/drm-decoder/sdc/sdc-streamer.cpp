@@ -27,7 +27,7 @@
 
 #include	"sdc-streamer.h"
 #include	"mapper.h"
-#include	"puncture-tables.h"
+#include	"viterbi-drm.h"
 
 //	nrCells indicates - as suggested - the number of QAM cells
 //	so the number of "raw" bits can be derived from that
@@ -39,24 +39,23 @@
 	this	-> RY		= RY;
 	this	-> demapper	= myMapper;
 	this	-> nrCells	= nrCells;
-	this	-> pt		= new punctureTables ();
 	this	-> outLength	= RX * ((2 * nrCells - 12) / RY);
 	this	-> deconvolveLength	= 6 * (outLength + 6);
-	punctureTable		= pt	-> getPunctureTable (RX, RY);
-	residuTable		= pt	-> getResiduTable (RX, RY, nrCells);
-	residuBits		= pt	-> getResiduBits (RX, RY, nrCells);
+	punctureTable		= pt. getPunctureTable (RX, RY);
+	residuTable		= pt. getResiduTable (RX, RY, nrCells);
+	residuBits		= pt. getResiduBits (RX, RY, nrCells);
 	punctureSize		= 6 * RX;
 }
 
 	SDC_streamer::~SDC_streamer	(void) {
-//	Note: puncturetables is just a handle
 }
 
 int16_t	SDC_streamer::lengthOut (void) {
 	return outLength;
 }
 
-void	SDC_streamer::handle_stream (metrics *softBits, uint8_t *reconstr,
+void	SDC_streamer::handle_stream (metrics *softBits,
+	                             uint8_t *reconstr,
 	                             uint8_t *out, bool flag) {
 int16_t	i, Cnt	= 0;
 metrics	unmappedBits [2 * nrCells];

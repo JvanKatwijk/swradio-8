@@ -26,23 +26,25 @@
 #ifndef	__SDC_PROCESSOR
 #define	__SDC_PROCESSOR
 
+#include	<QObject>
 #include	"radio-constants.h"
 #include	"basics.h"
 #include	"mapper.h"
 #include	"checkcrc.h"
 
-class	facData;
+class	drmDecoder;
+class	stateDescriptor;
 class	prbs;
 class	SDC_streamer;
 class	qam4_metrics;
 class	qam16_metrics;
 class	Mapper;
 
-class	sdcProcessor {
+class	sdcProcessor : public QObject {
+Q_OBJECT
 public:
-		sdcProcessor	(uint8_t,
-	                 	uint8_t,
-	                        facData	*,
+		sdcProcessor	(drmDecoder	*,
+	                        stateDescriptor	*,
 	                 	int16_t);
 		~sdcProcessor	(void);
 	bool	processSDC	        (theSignal *v);
@@ -51,9 +53,17 @@ public:
 private:
 	bool	processSDC_QAM4		(theSignal *v);
 	bool	processSDC_QAM16	(theSignal *v);
+	void	interpretSDC		(uint8_t *v, int16_t size,
+                                          stateDescriptor *theState);
+	void	set_SDCData		(stateDescriptor *theState,
+                                         uint8_t *v, uint8_t afs,
+                                         uint8_t dataType,
+                                         uint8_t versionFlag,
+                                         int8_t lengthofBody);
+
+	bool	sdcCorrect;
 	qam16_metrics	*my_qam16_metrics;
 	qam4_metrics	*my_qam4_metrics;
-
 	SDC_streamer	*stream_0;
 	SDC_streamer	*stream_1;
 	checkCRC	theCRC;
@@ -61,17 +71,15 @@ private:
 	Mapper		Y21Mapper;
 	uint8_t		Mode;
 	uint8_t		Spectrum;
-	facData		*my_facDB;
+	stateDescriptor		*theState;
 	int16_t		nrCells;
 	int16_t		lengthofSDC;
 	prbs		*thePRBS;
 	uint8_t		qammode;
 	uint8_t		rmFlag;
 	uint8_t		SDCmode;
+signals:
+	void		show_stationLabel (const QString &);
+	void		show_timeLabel	(const QString &);
 };
-
-
 #endif
-
-
-	

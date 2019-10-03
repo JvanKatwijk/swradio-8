@@ -3,6 +3,18 @@
 swradio is  Software for Linux and windows for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
 
+------------------------------------------------------------------------------
+New in 8.1
+-----------------------------------------------------------------------------
+
+8.1 differs from 8 in that large parts of the drm decoder have been rewritten
+and a "band plan" option is added.
+Copy the "sw-bandplan.xml" file to the home directory and the spectrum
+display will show the band you are in.
+
+Note that it is assumed that you install yourself the support libraries
+for the hackrf and the rtlsdr device - if required.
+The sources are part of the source tree
 
 -------------------------------------------------------------------------------
 Windows

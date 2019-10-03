@@ -20,25 +20,25 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef	__MSC_HANDLERS
-#define	__MSC_HANDLERS
+#ifndef	__MSC_HANDLERS__
+#define	__MSC_HANDLERS__
 
 #include	"radio-constants.h"
 #include	"basics.h"
 #include	<cstring>
 
-class	mscConfig;
+class	stateDescriptor;
 class	prbs;
 //
 //	empty base class for the different msc Handlers
 
 class	mscHandler {
 public:
-		mscHandler 	(mscConfig *);
+		mscHandler 	(stateDescriptor *);
 virtual		~mscHandler	(void);
 virtual	void	process		(theSignal *, uint8_t *);
 protected:
-	mscConfig	*my_mscConfig;
+	stateDescriptor	*theState;
 	int16_t		muxLength;
 	prbs		*thePRBS;
 };
