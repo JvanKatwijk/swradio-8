@@ -1,20 +1,86 @@
 # swradio-8 [![Build Status](https://travis-ci.org/JvanKatwijk/swradio-8.svg?branch=master)](https://travis-ci.org/JvanKatwijk/swradio-8)
 
+------------------------------------------------------------------
+Introduction
+------------------------------------------------------------------
+
 swradio is  Software for Linux and windows for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
+The software supports hackrf devices, rtlsdr devices
+(using the rt820 tuner chip) and the SDRplay devices.
+(For the rtlsdr based devices, use was made of a special version of the
+library, the one by Oliver Jowett. Sources are included in the source tree of
+this program.)
+
+![swradio-8](/swradio-picture-1.png?raw=true)
 
 ------------------------------------------------------------------------------
-New in 8.1
+Implemented decoders
 -----------------------------------------------------------------------------
 
-8.1 differs from 8 in that large parts of the drm decoder have been rewritten
-and a "band plan" option is added.
-Copy the "sw-bandplan.xml" file to the home directory and the spectrum
-display will show the band you are in.
+*Decoders** are:
+* am
+* ssb, with selection for usb or lsb;
+* psk, with a wide selection of modes and settings and with a visual tuning aid,
+* mfsk, with a visual tuning aid,
+* rtty, with a wide selection of modes and settings;
+* cw, with (almost) automatic selection of speed and a visual tuning aid,
+* drm, limited to 10 k bandwidth;
+* amtor, with a wide selection of options;
+* weatherfax decoder, with selection of a variety of settings.
 
-Note that it is assumed that you install yourself the support libraries
-for the hackrf and the rtlsdr device - if required.
-The sources are part of the source tree
+![swradio-8](/swradio-picture-2.png?raw=true)
+
+The "main screen" shows - next to the spectrum (or, if the widget
+is touched with the right mouse button a waterfall) -the selected
+frequency (in Hz), the assumed signal strength at the selected
+frequency, and - if installed - a brief description of the band to
+which the selected frequency belongs.
+
+--------------------------------------------------------------------------
+Using the swradio
+---------------------------------------------------------------------------
+
+If a configured device is connected to the computer where the program runs,
+the device will be connected and opened. If no device is detected,
+it is assumed that file input is requested and a file selection
+menu will appear (input files in PCM format, with a 2 channel,
+96000 samples/second configuration will be accepted.)
+
+Most controls are on the main widget. Touching the frequency select
+button will cause a keypad to be shown where the frequency can be
+types in (in KHz or MHz).
+
+One may select among a number of different filterings:
+* wide, used for e.g. DRM decoding, uses the full 12 k bandwidth;
+* am, used - as the name suggests - for am decoding, uses 9 k;
+* usb, used for smallband decoding in the upper side band, has a width of 2500 Hz;
+* lsb, used for ssb decoding is the lower sideband, has a width of 2500 Hz
+
+The input can be written to a file, that file can be processed later on.
+
+Frequency presets
+can be stored, together with a user defined label (a program name).
+A table of preferred frequencies (programs) is
+maintained between program invocations.
+A selected frequency can be stored by pressing the save frequency button.
+If touched, one is asked to specify a name to be used to label that frequency.
+The pair (name, frequency) then is added to the list.
+
+Selecting such a "preferred program" is just by clicking the mouse on 
+the programname or the associated field with the frequency.
+
+Buttons and slider are equipped with a *tooltip*, touching the button or
+slider will show a brief description of the function.
+
+----------------------------------------------------------------------------
+A bandplan
+----------------------------------------------------------------------------
+
+On program startup the program reads in a file ".sw-bandplan.xml"
+with an xml encoded bandplan from the home directory (folder).
+An example bandplan file "sw-bandplan.xml" is part of the source
+distribution.
 
 -------------------------------------------------------------------------------
 Windows
@@ -39,51 +105,6 @@ it contains the required libraries and should run on any more or less recent Lin
 environment. (Note that a passwd is asked form since the software tries to install
 the udev rules for the devices).
 
-
-------------------------------------------------------------------
-Introduction
-------------------------------------------------------------------
-
-*swradio-8* is software (both Linux and Windows) for
-listening to short waves and amateur radio.
-The software supports a number of decoders,
-often used by radio amateurs, such as psk, cw and rtty.
-swradio-8 is the result of rewriting and simplifying the set
-of sdr-j-sw programs.
-
-
-The program can be configured to use the SDRplay,
-the HACKrf, RTLSDR-based dabsticks or the - soundcard based - pmsdr
-as input device, and is able to
-* dump the (decimated) input onto a file in PCM format;
-* use such a file as input.
-
-To distinguish between "fast" and "slow" input, the version for the
-pmsdr is named "swradio-pmsdr", while the regular version is
-configured to be named "swradio-8". In the build for Windows there
-is also an experimental version for use with extio plugins for soundcard
-devices called "swradio-extio".
-
-If a configured device is connected to the computer where the program runs,
-the device will be connected and opened. If no device is detected,
-it is assumed that file input is requested and a file selection menu will appear.
-
-Input files in PCM format, with a 2 channel, 96000 samples/second configuration
-will be accepted.
-
---------------------------------------------------------------------------
-Using rtlsdr based devices
---------------------------------------------------------------------------
-
-For the rtlsdr based devices, use was made of a special version of the
-library, the one by Oliver Jowett. Sources are included in the source tree of
-this program.
-This library makes it possible to use frequencies as low as 14 MHz.
-
-![swradio-8](/swradio-rtlsdr-drm.png?raw=true)
-
-It is obvious that reception will improve if some form of filtering is applied
-to the input, e.g. a tuned loop.
 
 -------------------------------------------------------------------------
 Using a pmSDR device and a soundcard
@@ -126,115 +147,6 @@ Here we need "only" 96k, it works well under Linux and at the time it worked on 
 However, it does not like Windows-10, using it under W10 leads to a crash.
 
 ![swradio-8](/swradio-pmsdr-drm.png?raw=true)
-
---------------------------------------------------------------------------
-Using extio devices with soundcard
----------------------------------------------------------------------------
-
-One of the windows versions of the swradio software is set
-to use "extio" plugins for handling the radio device.
-To keep things simple the use is limited to radio devices
-with data being sent using the soundcard. 
-
-The version is pretty experimental.
-
---------------------------------------------------------------------------
-Using the hackrf device
--------------------------------------------------------------------------
-
-The hackrf device works quite well. With this program I test it only on
-shortwave frequencies. It handles the cw as well as modes such as psk and drm
-well.
-
-![swradio-8](/swradio-hackrf.png?raw=true)
-
-
--------------------------------------------------------------------------
-Using the SDRplay
--------------------------------------------------------------------------
-
-The SDRplay provides the full band and makes it easy to receive short wave
-programs. Absolutely one of my favorites.
-
-![swradio-8](/swradio-sdrplay.png?raw=true)
-
------------------------------------------------------------------------------
-Preferred frequencies
------------------------------------------------------------------------------
-
-Preferred frequencies
-can be stored, together with a user defined label (a program name).
-A table of preferred frequencies (programs) is
-maintained between program invocations.
-A selected frequency can be stored by pressing the save frequency button.
-If touched, one is asked to specify a name to be used to label that frequency.
-The pair (name, frequency) then is added to the list.
-
-Selecting such a "preferred program" is just by clicking the mouse on 
-the programname or the associated field with the frequency.
-
-----------------------------------------------------------------------------
-Frequency selection
-----------------------------------------------------------------------------
-
-Frequency selection is with a keypad, separated from the main widget,
-that will appear when touching the Frequency select key.
-Specification  of a frequency is either in kHz or mHz.
-Fine frequency selection - up to an accuracy of 1 Hz - is with the
-mousewheel (when the main widget is activated).
-(The stepsize for the frequency changes can be set from the main widget, default is 5 Hz).
-
-Of course clicking the mouse on one of the two spectra will also select the
-selected frequency pointed to.
-
-As a "quick" help, a button "middle" is present that, when pressed - will set the oscillator such
-that the selected frequency is in the middle of the right half of the spectrum display.
-
-----------------------------------------------------------------------------
-Waterfall displays
------------------------------------------------------------------------------
-
-Note that clicking the right mouse button on any of the two displays, that display will switch from spectrum
-to waterfall display (or vice-versa).
-
-------------------------------------------------------------------------------
-Implemented decoders
------------------------------------------------------------------------------
-
-*Decoders** are:
-* am
-* ssb, with selection for usb or lsb;
-* psk, with a wide selection of modes and settings and with a visual tuning aid,
-* mfsk, with a visual tuning aid,
-* rtty, with a wide selection of modes and settings;
-* cw, with (almost) automatic selection of speed and a visual tuning aid,
-* drm, limited to 10 k bandwidth;
-* amtor, with a wide selection of options;
-* weatherfax decoder, with selection of a variety of settings.
-
-As can be seen from the pictures, the main widget has two main displays,
-and one smaller display to show the audio output.
-The top display has a width of 96k (this width can be changed in the settings)
-showing the spectrum of the incoming data,
-the bottom one width a width of 12k -
-showing the spectrum of the data sent to the decoder, i.e. after being
-filtered and shifted.
-The small display shows the spectrum of the resulting audio.
-
-One may select among a number of different filterings:
-* wide, used for e.g. DRM decoding, uses the full 12 k bandwidth;
-* am, used - as the name suggests - for am decoding, uses 9 k;
-* usb, used for smallband decoding in the upper side band, has a width of 2500 Hz;
-* lsb, used for ssb decoding is the lower sideband, has a width of 2500 Hz
-
-The input can be written to a file, that file can be processed later on.
-
-------------------------------------------------------------------
-Linux
-------------------------------------------------------------------
-
-The current version is developed under Linux (Fedora).
-For Ubuntu Linux, a description is given how to build an executable
 
 ------------------------------------------------------------------
 Ubuntu Linux
@@ -382,14 +294,6 @@ The "DESTDIR" parameter in the unix section in the ".pro" file tells where the r
 Alternatively, you could use the "cmake" route. The file CMakeLists.txt-qt5 can be used for qt-5,
 the file CMakeLists.txt-qt4 is merely used for the construction of the appImage.
 The configurations here include the three mentioned "fast" devices.
-
--------------------------------------------------------------------------
-Windows
--------------------------------------------------------------------------
-
-The releases section of the *qt-dab repository* contains a zip file with executables, among which
-an executable of swradio-8 and the required dll's. Note that the library for SDRplay support is not
-included, one has to obtain that from SDRplay.com
 
 -------------------------------------------------------------------------
 --------------------------------------------------------------------------

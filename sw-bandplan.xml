@@ -32,7 +32,7 @@
 <Band Low= "458711"  High= "459050"    Label= "Mobile Dutch Police" />
 <Band Low= "890000"  High= "915000"    Label= "GSM-900 uplink" />
 <Band Low= "935000"  High= "960000"    Label ="GSM-900 downlink" />
-<Band Low= "960000"  High="121500"     Label = "Aero navigation" />
+<Band Low= "960000"  High="1215000"    Label = "Aero navigation" />
 <Band Low="1240000"  High="1300000"    Label ="23 cm amateur band" />
 <Band Low="1710000"  High="1785000"    Label ="GSM-1800 uplink" />
 <Band Low="1805000"  High="1880000"    Label= "GSM-1800 downlink" />
