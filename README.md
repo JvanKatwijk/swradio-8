@@ -14,6 +14,15 @@ this program.)
 
 ![swradio-8](/swradio-picture-1.png?raw=true)
 
+One of the less common decoders is a *drm-decoder*, the picture shows
+the reception of Nigeria. There are not that many drm transmissions,
+but Kuwait, Tiganesti (i.e. Romenia), and Nigeria are receoved very well here.
+
+Classical decoders are - obviously - available as well. Early evening there
+is always - at least here - the "Nederlandstalig amateurnet" is well received.
+
+![swradio-8](/swradio-picture-2.png?raw=true)
+
 ------------------------------------------------------------------------------
 Implemented decoders
 -----------------------------------------------------------------------------
