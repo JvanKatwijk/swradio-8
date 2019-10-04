@@ -17,6 +17,8 @@ this program.)
 One of the less common decoders is a *drm-decoder*, the picture shows
 the reception of Nigeria. There are not that many drm transmissions,
 but Kuwait, Tiganesti (i.e. Romenia), and Nigeria are receoved very well here.
+The current version is limited to drm transmissions with a spectrum
+equal to or less than 10 KHz.
 
 Classical decoders are - obviously - available as well. Early evening there
 is always - at least here - the "Nederlandstalig amateurnet" is well received.
@@ -38,13 +40,16 @@ Implemented decoders
 * amtor, with a wide selection of options;
 * weatherfax decoder, with selection of a variety of settings.
 
-![swradio-8](/swradio-picture-2.png?raw=true)
+![swradio-8](/swradio-picture-3.png?raw=true)
 
 The "main screen" shows - next to the spectrum (or, if the widget
 is touched with the right mouse button a waterfall) -the selected
 frequency (in Hz), the assumed signal strength at the selected
 frequency, and - if installed - a brief description of the band to
 which the selected frequency belongs.
+
+Touching a screen with the right mouse button will change the view on
+the spectrum from "classical" spectrum view to "waterfall" (and back).
 
 --------------------------------------------------------------------------
 Using the swradio
