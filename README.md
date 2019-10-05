@@ -55,6 +55,7 @@ the spectrum from "classical" spectrum view to "waterfall" (and back).
 
 This feature applies to both the display showing the full spectrum as
 the display showing the "decoder" spectrum.
+
 --------------------------------------------------------------------------
 Using the swradio
 ---------------------------------------------------------------------------
