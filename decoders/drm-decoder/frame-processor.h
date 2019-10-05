@@ -67,6 +67,7 @@ public:
 			~frameProcessor (void);
 	void		stop		(void);
 private:
+        Reader          my_Reader;              // single instance during life
 	drmDecoder	*mr;
 	RingBuffer<DSPCOMPLEX> *buffer;
 	RingBuffer<std::complex<float>> *iqBuffer;
@@ -99,7 +100,6 @@ private:
 	void		addtoSuperFrame	(smodeInfo *, int16_t);
 	bool		isDatacell	(smodeInfo *,
 	                                 int16_t, int16_t, int16_t);
-        Reader          my_Reader;              // single instance during life
 
 	wordCollector	*my_wordCollector;
 	referenceFrame	*my_referenceFrame;

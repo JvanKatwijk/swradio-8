@@ -51,6 +51,10 @@ which the selected frequency belongs.
 Touching a screen with the right mouse button will change the view on
 the spectrum from "classical" spectrum view to "waterfall" (and back).
 
+![swradio-8](/swradio-picture-4.png?raw=true)
+
+This feature applies to both the display showing the full spectrum as
+the display showing the "decoder" spectrum.
 --------------------------------------------------------------------------
 Using the swradio
 ---------------------------------------------------------------------------

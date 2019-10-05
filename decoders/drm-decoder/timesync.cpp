@@ -40,7 +40,7 @@
 	this	-> nSamples	= nSymbols * Ts_of (Mode_A);
 //	Tu_of (Mode_D) is the smallest of all, so the vectors
 //	all have sufficient length
-	summedCorrelations	= new DSPCOMPLEX [nSamples - Tu_of (Mode_D)];
+	summedCorrelations	= new std::complex<float> [nSamples - Tu_of (Mode_D)];
 	summedSquares		= new float [nSamples - Tu_of (Mode_D)];
 	EPSILON			= 1.0E-10;
 }
