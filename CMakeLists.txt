@@ -212,6 +212,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/mfsk-decoder/slidingfft.h 
 	   ./decoders/mfsk-decoder/interleave.h
 	   ./decoders/drm-decoder/drm-decoder.h  
+	   ./decoders/drm-decoder/iqdisplay.h
+	   ./decoders/drm-decoder/eqdisplay.h
 	   ./decoders/drm-decoder/basics.h 
 	   ./decoders/drm-decoder/input/reader.h 
 	   ./decoders/drm-decoder/timesync.h 
@@ -305,6 +307,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/mfsk-decoder/slidingfft.cpp 
 	   ./decoders/mfsk-decoder/interleave.cpp
 	   ./decoders/drm-decoder/drm-decoder.cpp  
+	   ./decoders/drm-decoder/iqdisplay.cpp
+	   ./decoders/drm-decoder/eqdisplay.cpp
 	   ./decoders/drm-decoder/basics.cpp 
 	   ./decoders/drm-decoder/input/reader.cpp 
 	   ./decoders/drm-decoder/timesync.cpp 
@@ -380,6 +384,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-filenames.h 
 	   ./decoders/mfsk-decoder/mfsk-decoder.h 
 	   ./decoders/drm-decoder/drm-decoder.h  
+	   ./decoders/drm-decoder/iqdisplay.h 
+	   ./decoders/drm-decoder/eqdisplay.h 
 	   ./decoders/drm-decoder/input/reader.h 
 	   ./decoders/drm-decoder/frame-processor.h 
 	   ./decoders/drm-decoder/freqsyncer.h
