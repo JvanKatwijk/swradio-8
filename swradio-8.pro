@@ -5,9 +5,9 @@ TEMPLATE = app
 QT	+= widgets xml
 CONFIG	-= console
 TARGET	= swradio-8.1
-QMAKE_CFLAGS	+= -ffast-math -g
-QMAKE_CXXFLAGS	+= -ffast-math -g
-QMAKE_LFLAGS	+= -g
+QMAKE_CFLAGS	+= -flto -ffast-math 
+QMAKE_CXXFLAGS	+= -flto -ffast-math 
+QMAKE_LFLAGS	+= -flto
 RC_ICONS        =  swradio.ico
 RESOURCES       += resources.qrc
 
@@ -128,7 +128,7 @@ CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
 CONFIG		+= mfsk-decoder
 CONFIG		+= drm-decoder
-CONFIG		+= test-decoder
+#CONFIG		+= test-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
 INCLUDEPATH	+= /usr/include/qt5/qwt
@@ -381,6 +381,7 @@ drm-decoder {
 	FORMS		+= ./decoders/drm-decoder/drmdecoder.ui
 	HEADERS		+= ./decoders/drm-decoder/drm-decoder.h  \
 	                   ./decoders/drm-decoder/iqdisplay.h \
+	                   ./decoders/drm-decoder/eqdisplay.h \
 	                   ./decoders/drm-decoder/basics.h \
 	                   ./decoders/drm-decoder/input/reader.h \
 	                   ./decoders/drm-decoder/timesync.h \
@@ -424,6 +425,7 @@ drm-decoder {
 	                   ./decoders/drm-decoder/data/neaacdec_dll.h 
 
 	SOURCES		+= ./decoders/drm-decoder/drm-decoder.cpp  \
+	                   ./decoders/drm-decoder/eqdisplay.cpp \
 	                   ./decoders/drm-decoder/iqdisplay.cpp \
 	                   ./decoders/drm-decoder/basics.cpp \
 	                   ./decoders/drm-decoder/input/reader.cpp \

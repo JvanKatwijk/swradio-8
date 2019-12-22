@@ -40,10 +40,7 @@ complex<float> createExp (float s) {
 //	of the class for each of the N symbols of a frame. 
 
 //
-//	I thought to be clever and look at the DFT of the computed
-//	channel. However, the channel is only a rough approximation
-//	of the channel as applied to the pilots.
-	estimator_2::estimator_2 (DSPCOMPLEX 	**refFrame,
+	estimator_2::estimator_2 (std::complex<float> 	**refFrame,
 	                          uint8_t	Mode,
 	                          uint8_t	Spectrum,
 	                          int16_t	refSymbol):
@@ -91,7 +88,8 @@ int16_t	pilotIndex, tap;
 }
 
 //
-void	estimator_2::estimate (DSPCOMPLEX *testRow, DSPCOMPLEX *resultRow) {
+void	estimator_2::estimate (std::complex<float> *testRow,
+	                            std::complex<float> *resultRow) {
 int16_t		index;
 cx_fvec	h_td (numberofTaps);
 cx_fvec	H_fd (numberofPilots);

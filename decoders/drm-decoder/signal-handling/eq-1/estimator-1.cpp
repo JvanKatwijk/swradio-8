@@ -33,7 +33,7 @@
 //	from one symbol to the next one by passing on the channel
 //	obtained in the time domain
 //
-	estimator_1::estimator_1 (DSPCOMPLEX 	**refFrame,
+	estimator_1::estimator_1 (std::complex<float> 	**refFrame,
 	                          uint8_t	Mode,
 	                          uint8_t	Spectrum,
 	                          int16_t	refSymbol):
@@ -46,7 +46,8 @@
 	estimator_1::~estimator_1 (void) {
 }
 //
-void	estimator_1::estimate (DSPCOMPLEX *testRow, DSPCOMPLEX *resultRow) {
+void	estimator_1::estimate (std::complex<float> *testRow,
+	                               std::complex<float> *resultRow) {
 int16_t	carrier;
 
 	for (carrier = K_min; carrier <= K_max; carrier ++) {

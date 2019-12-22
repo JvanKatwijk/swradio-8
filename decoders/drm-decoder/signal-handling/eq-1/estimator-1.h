@@ -21,8 +21,8 @@
  */
 #
 #
-#ifndef	__ESTIMATOR_1
-#define	__ESTIMATOR_1
+#ifndef	__ESTIMATOR_1__
+#define	__ESTIMATOR_1__
 
 #include	"radio-constants.h"
 #include	"referenceframe.h"
@@ -33,9 +33,11 @@
 //	symbol
 class	estimator_1: public estimatorBase {
 public:
-		estimator_1	(DSPCOMPLEX **, uint8_t, uint8_t, int16_t);
+		estimator_1	(std::complex<float> **,
+	                              uint8_t, uint8_t, int16_t);
 		~estimator_1	(void);
-	void	estimate	(DSPCOMPLEX *, DSPCOMPLEX *);
+	void	estimate	(std::complex<float> *,
+	                                   std::complex<float> *);
 private:
 };
 

@@ -32,19 +32,26 @@
 #include	"basics.h"
 #include	"frame-processor.h"
 #include	"iqdisplay.h"
+#include	"eqdisplay.h"
 /*
  */
 		drmDecoder::drmDecoder (int32_t		inRate,
 	                                RingBuffer<std::complex<float> > *audioBuffer,
 	                                QSettings *s):
 	                                   virtualDecoder (inRate,
-	                                                   audioBuffer) {
+	                                                   audioBuffer),
+	                                   downFilter (41,
+	                                               6000,
+	                                               inRate,
+	                                               inRate / 12000) {
 QString	temp;
 int16_t	symbs;
 
 	(void)s;
-        myFrame                 = new QFrame;
+        myFrame                 = new QFrame (nullptr);
         setupUi (myFrame);
+	my_iqDisplay		= new IQDisplay (iqPlotter, 512);
+	my_eqDisplay		= new EQDisplay (equalizerDisplay);
         myFrame			-> show ();
 	theRate			= inRate;
 	validFlag		= false;
@@ -53,18 +60,14 @@ int16_t	symbs;
 	facSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
 	sdcSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
 	faadSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
-	if (theRate != 12000 && theRate != 24000) {
-	   QMessageBox::warning (myFrame, tr ("sdr"),
-	                        tr ("Will only work with 12 or 24 k input"));
-	   theRate = 12000;
-	}
 
-	iqBuffer	= new RingBuffer<std::complex<float>> (32768);
-	localOscillator. resize (theRate);
-	for (int i = 0; i < theRate; i ++)
+	this	-> iqBuffer	= new RingBuffer<std::complex<float>> (32768);
+	this	-> eqBuffer	= new RingBuffer<std::complex<float>> (32768);
+	localOscillator. resize (12000);
+	for (int i = 0; i < 12000; i ++)
 	   localOscillator [i] =
-	         std::complex<float> (cos ((float)i * 2 * M_PI / theRate),
-	                              sin ((float)i * 2 * M_PI / theRate));
+	         std::complex<float> (cos ((float)i * 2 * M_PI / 12000),
+	                              sin ((float)i * 2 * M_PI / 12000));
 
 	channel_1	-> hide ();
 	channel_2	-> hide ();
@@ -72,7 +75,7 @@ int16_t	symbs;
 	channel_4	-> hide ();
 
 	symbs			= 16;
-	int8_t windowDepth 	= 2;
+	int8_t windowDepth 	= 1;
 	int8_t qam64Roulette 	= 6;
 	validFlag		= true;
 	buffer			= new RingBuffer<std::complex<float> > (12000);
@@ -89,7 +92,8 @@ int16_t	symbs;
 	my_frameProcessor	= new frameProcessor (this,
 	                                              buffer,
 	                                              iqBuffer,
-	                                              theRate,
+	                                              eqBuffer,
+	                                              12000,
 	                                              symbs,
 	                                              windowDepth,
 	                                              qam64Roulette);
@@ -113,34 +117,33 @@ int16_t	symbs;
 //	work, it will read from the buffer that is filled here
 void	drmDecoder::processBuffer (std::complex<float>  *dataIn, int amount) {
 int	i;
-	if (!validFlag)
-	   return;
-
-	if (theRate != 24000 && theRate != 12000)
-	   return;
-
 	for (i = 0; i < amount; i ++) {
-	   dataIn [i] *= localOscillator [currentPhase];
-	   buffer	-> putDataIntoBuffer (&dataIn [i], 1);
+	   std::complex<float> sample;
+	   if (!downFilter. Pass (dataIn [i], &sample))
+	      continue;
+	   sample *= localOscillator [currentPhase];
+	   buffer	-> putDataIntoBuffer (&sample, 1);
 	   currentPhase -= phaseOffset;
 	   if (currentPhase < 0)
-	      currentPhase += theRate;
-	   if (currentPhase >= theRate)
-	      currentPhase -= theRate;
+	      currentPhase += 12000;
+	   if (currentPhase >= 12000)
+	      currentPhase -= 12000;
 	}
 }
 
-void	drmDecoder::process(std::complex <float> v) {
-	if (!validFlag)
-	   return;
+void	drmDecoder::process (std::complex <float> v) {
+std::complex<float> sample;
 
-	v	*= localOscillator [currentPhase];
-	buffer	-> putDataIntoBuffer (&v, 1);
+//	if (!downFilter. Pass (v, &sample))
+//	   return;
+	sample	= v;
+	sample	*= localOscillator [currentPhase];
+	buffer	-> putDataIntoBuffer (&sample, 1);
 	currentPhase -= phaseOffset;
 	if (currentPhase < 0)
-	   currentPhase += theRate;
-	if (currentPhase >= theRate)
-	   currentPhase -= theRate;
+	   currentPhase += 12000;
+	if (currentPhase >= 12000)
+	   currentPhase -= 12000;
 }
 
 bool	drmDecoder::haltSignal		(void) {
@@ -339,24 +342,6 @@ void    drmDecoder::set_phaseOffset (int f) {
 	phaseOffsetDisplay	-> display (phaseOffset);
 }
 
-void    drmDecoder::showIQ  (int amount) {
-std::complex<float> Values [amount];
-int16_t i;
-int16_t t;
-double  avg     = 0;
-//int     scopeWidth      = scopeSlider -> value();
-
-	if (iqBuffer -> GetRingBufferReadAvailable () < amount)
-	   return;
-        t = iqBuffer -> getDataFromBuffer (Values, amount);
-//        for (i = 0; i < t; i ++) {
-//           float x = abs (Values [i]);
-//           if (!std::isnan (x) && !std::isinf (x))
-//              avg += abs (Values [i]);
-//        }
-//        avg     /= t;
-//        my_iqDisplay -> DisplayIQ (Values, scopeWidth / avg);
-}
 
 void	drmDecoder::show_country (QString s) {
 	countryLabel	-> setText (s);
@@ -369,4 +354,31 @@ void	drmDecoder::show_programType (QString s) {
 void	drmDecoder::show_time	(QString s) {
 	timeLabel		-> setText (s);
 }
+
+void    drmDecoder::showIQ  (int amount) {
+std::complex<float> Values [amount];
+int16_t i;
+int16_t t;
+double  avg     = 0;
+int     scopeWidth      = scopeSlider -> value();
+
+	if (iqBuffer -> GetRingBufferReadAvailable () < amount)
+	   return;
+        t = iqBuffer -> getDataFromBuffer (Values, amount);
+	for (i = 0; i < t; i ++) {
+	   float x = abs (Values [i]);
+	   if (!std::isnan (x) && !std::isinf (x))
+	   avg += abs (Values [i]);
+	}
+	avg     /= t;
+	my_iqDisplay -> DisplayIQ (Values, scopeWidth / avg);
+}
+
+void	drmDecoder::show_eqsymbol	(int amount) {
+std::complex<float> line [amount];
+
+	eqBuffer	-> getDataFromBuffer (line, amount);
+	my_eqDisplay	-> show (line, amount);
+}
+
 

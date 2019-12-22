@@ -45,8 +45,9 @@
 //	size of the window used for equalization and the
 //	number of iterations for the multi-level decoding
 	frameProcessor::frameProcessor (drmDecoder	*mr,
-	                                RingBuffer<DSPCOMPLEX> *buffer,
-	                                RingBuffer<DSPCOMPLEX> *iqBuffer,
+	                                RingBuffer<std::complex<float>> *buffer,
+	                                RingBuffer<std::complex<float>> *iqBuffer,
+	                                RingBuffer<std::complex<float>> *eqBuffer,
 	                                int32_t		sampleRate,
 	                                int16_t		nSymbols,
 	                                int8_t		windowDepth,
@@ -61,6 +62,7 @@ int16_t	i;
 	this	-> mr 		= mr;
 	this	-> buffer	= buffer;
 	this	-> iqBuffer	= iqBuffer;
+	this	-> eqBuffer	= eqBuffer;
 	this	-> sampleRate	= sampleRate;
 	this	-> nSymbols	= nSymbols;
 	this	-> windowDepth	= windowDepth;
@@ -70,17 +72,17 @@ int16_t	i;
 	modeInf. Mode		= 1;
 	modeInf. Spectrum	= 3;
 	modeInf. timeOffset_fractional = 0;
-	my_Equalizer		= NULL;
-	my_wordCollector	= NULL;
+	my_Equalizer		= nullptr;
+	my_wordCollector	= nullptr;
 
 //	inbank and outbank have dimensions satisfying the need of the
 //	most "hungry" modes. We do not know the actual mode yet
-	inbank		= new DSPCOMPLEX *[symbolsperFrame (Mode_C)];
+	inbank		= new std::complex<float> *[symbolsperFrame (Mode_C)];
 	for (i = 0; i < symbolsperFrame (Mode_C); i ++) {
 	   int16_t t	= Kmax (Mode_A, modeInf. Spectrum) -
 	                        Kmin (Mode_A, modeInf. Spectrum) + 1;
-	   inbank [i]	= new DSPCOMPLEX [t];
-	   memset (inbank [i], 0, t * sizeof (DSPCOMPLEX));
+	   inbank [i]	= new std::complex<float> [t];
+	   memset (inbank [i], 0, t * sizeof (std::complex<float>));
 	}
 
 	outbank		= new theSignal *[symbolsperFrame (Mode_C)];
@@ -119,9 +121,9 @@ int16_t	i;
 	taskMayRun. store (false);
 	while (isRunning ())
 	   usleep (100);
-	if (my_Equalizer != NULL)
+	if (my_Equalizer != nullptr)
 	   delete	my_Equalizer;
-	my_Equalizer = NULL;
+	my_Equalizer = nullptr;
 
 	for (i = 0; i < symbolsperFrame (Mode_C); i ++) {
 	   delete [] inbank [i];
@@ -183,6 +185,7 @@ restart:
 
 	   if (!taskMayRun. load ())
 	      throw (0);
+
 	   fprintf (stderr, "found: Mode = %d, time_offset = %f, sampleoff = %f freqoff = %f\n",
 	        modeInf. Mode,
 	        modeInf. timeOffset,
@@ -207,14 +210,16 @@ restart:
 //	   fprintf (stderr, "restarting with Mode %d (%d)\n",
 //	                        modeInf. Mode, modeInf. Spectrum);
 //	sadly, we have to delete the various processors
-	   if (my_Equalizer != NULL)
+	   if (my_Equalizer != nullptr)
 	      delete	my_Equalizer;
 	   theState. Mode	= modeInf. Mode;
 	   theState. Spectrum	= modeInf. Spectrum;
-	   my_Equalizer		= new equalizer_1 (modeInf. Mode,
+	   my_Equalizer		= new equalizer_1 (mr,
+	                                           modeInf. Mode,
 	                                           modeInf. Spectrum,
-	                                                   windowDepth);
-	   if (my_wordCollector != NULL)
+	                                           windowDepth,
+	                                           eqBuffer);
+	   if (my_wordCollector != nullptr)
 	      delete my_wordCollector;
 	   my_wordCollector     = new wordCollector (&my_Reader,
 	                                             sampleRate,
@@ -325,6 +330,7 @@ restart:
 	   }
 //
 //	Wow, it seems we have a valid FAC
+//	and we can run for a while the while enchillada
 	   bool	firstTime	= true;
 	   if (!taskMayRun. load ())
 	      throw (21);
@@ -601,24 +607,12 @@ uint8_t val = f -> getSpectrumBits ();
 }
 //
 //	just a handle
-float	frameProcessor::getCorr (smodeInfo *m, DSPCOMPLEX *v) {
+float	frameProcessor::getCorr (smodeInfo *m, std::complex<float> *v) {
 	return timeCorrelate (v, m ->  Mode, m -> Spectrum);
 }
 
-DSPCOMPLEX frameProcessor::facError (DSPCOMPLEX *src,
-	                             DSPCOMPLEX *ref,
-	                             int16_t amount) {
-int16_t	i;
-DSPCOMPLEX ldist	= DSPCOMPLEX (0, 0);
-
-	for (i = 0; i < amount; i ++) {
-	   ldist += src [i] / ref [i];
-	}
-	return cdiv (ldist, amount);
-}
-
 bool	frameProcessor::processFac (float	meanEnergy,
-	                            DSPCOMPLEX **H) {
+	                            std::complex<float> **H) {
 theSignal	facVector [100];
 float		sqrdNoiseSeq [100];
 float		sqrdWeightSeq [100];

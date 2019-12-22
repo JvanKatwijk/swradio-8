@@ -34,10 +34,10 @@ using namespace	arma;
 //	symbol
 class	estimator_2: public estimatorBase {
 public:
-		estimator_2 (DSPCOMPLEX **,
-	                     uint8_t, uint8_t, int16_t);
-		~estimator_2 (void);
-	void	estimate	(DSPCOMPLEX *, DSPCOMPLEX *);
+		estimator_2	(std::complex<float> **,
+	                         uint8_t, uint8_t, int16_t);
+		~estimator_2	();
+	void	estimate	(std::complex<float> *, std::complex<float> *);
 private:
 	int16_t		numberofCarriers;
 	int16_t		numberofPilots;
@@ -47,7 +47,7 @@ private:
 	cx_fmat		F_p;
 	cx_fmat		S_p;
 	cx_fmat		F_p_inv;
-	DSPCOMPLEX	*pilotVector;
+	std::complex<float>	*pilotVector;
 	int16_t		*pilotTable;
 };
 

@@ -53,6 +53,7 @@
 #include	"referenceframe.h"
 #include	"basics.h"
 #include	"equalizer-1.h"
+#include	"drm-decoder.h"
 #include	"estimator-base.h"
 #ifdef	ESTIMATOR_1
 #include	"estimator-1.h"
@@ -65,17 +66,24 @@
 
 #define	realSym(x)	((x + symbolsinFrame)% symbolsinFrame)
 
-		equalizer_1::equalizer_1 (uint8_t	Mode,
+		equalizer_1::equalizer_1 (drmDecoder	*parent,
+	                                  uint8_t	Mode,
 	                                  uint8_t	Spectrum,
-	                                  int8_t	strength):
+	                                  int8_t	strength,
+	                                  RingBuffer<std::complex<float>> *b):
 	                                     equalizer_base (Mode, Spectrum) {
 int16_t	i, window;
 float	sigmaq_noise_list [] = {16.0, 14.0, 14.0, 12.0};
 float	sigmaq_noise	= pow (10.0, - sigmaq_noise_list [Mode - Mode_A] / 10.0);
 float	**PHI;
 float	*THETA;
+
+	this	-> parent	= parent;
+	this	-> eqBuffer	= b;
+	connect	(this, SIGNAL (show_eqsymbol (int)),
+	         parent, SLOT (show_eqsymbol (int)));
 //	Based on table 92 ETSI ES 201980
-//
+
 //	Just for experimentation, we added some alternatives
 int16_t		symbols_per_window_list_0 []	= {6, 4, 4, 6};
 int16_t		symbols_per_window_list_1 []	= {10, 6, 8, 6};
@@ -104,13 +112,15 @@ int16_t		symbols_per_window_list_5 []	= {15, 15, 15, 6};
 	Ts			= Ts_of (Mode);
 	Tu			= Tu_of (Mode);
 	Tg			= Tg_of	(Mode);
+//
+//	we kunnen het aantal trainers redelijk schatten door
+//	het aantal pilots per symbol te benaderen (carriers / afstand)
+//	en te vermenigvuldigen met  het aantal symbols per window
 
-	theTrainers		= new trainer *[windowsinFrame];
-	for (i = 0; i < windowsinFrame; i ++) 
-	   theTrainers [i] = new trainer [1000];	// not nice, but large
-	pilotEstimates		= new DSPCOMPLEX *[symbolsinFrame];
+	theTrainers		. resize (windowsinFrame);
+	pilotEstimates		. resize (symbolsinFrame);
 	for (i = 0; i < symbolsinFrame; i ++)
-	   pilotEstimates [i] = new DSPCOMPLEX [carriersinSymbol];
+	   pilotEstimates. at (i). resize (carriersinSymbol);
 
 //	precompute 2-D-Wiener filter-matrix w.r.t. power boost
 //	Reference: Peter Hoeher, Stefan Kaiser, Patrick Robertson:
@@ -145,13 +155,12 @@ int16_t		symbols_per_window_list_5 []	= {15, 15, 15, 6};
 //	In the second one - a large loop - we build the filters
 //	
 //	We build up the "trainers" as relative addresses of the pilots
-	for (window = 0; window < windowsinFrame; window ++) 
-	   trainers_per_window [window] = 
-	                  buildTrainers (window, theTrainers [window]);
-
 	for (window = 0; window < windowsinFrame; window ++) {
+	   buildTrainers (window);
+	   trainers_per_window [window] = theTrainers. at (window). size ();
+
 	   int16_t	trainers_in_window	= trainers_per_window [window];
-	   trainer	*currentTrainers	= theTrainers [window];
+	   trainer	*currentTrainers	= theTrainers [window] . data ();
 	   int16_t	trainer_1, trainer_2, carrier;
 //
 	   W_symbol_blk [window]	= new double  *[carriersinSymbol];
@@ -187,8 +196,8 @@ int16_t		symbols_per_window_list_5 []	= {15, 15, 15, 6};
 	   for (trainer_1 = 0; trainer_1 < trainers_in_window; trainer_1++) {
 	      int16_t sym	= currentTrainers [trainer_1]. symbol;
 	      int16_t car	= currentTrainers [trainer_1]. carrier;
-	      DSPCOMPLEX v = getPilotValue (Mode, Spectrum,
-	                                    sym + window, car);
+	      std::complex<float> v = getPilotValue (Mode, Spectrum,
+	                                             sym + window, car);
 	      float amp = real (v * conj (v));
 	      PHI [trainer_1][trainer_1] += sigmaq_noise * 2.0 / amp;
 	   }
@@ -247,31 +256,34 @@ int16_t		symbols_per_window_list_5 []	= {15, 15, 15, 6};
 
 		equalizer_1::~equalizer_1 (void) {
 int16_t	i;
-	for (i = 0; i < windowsinFrame; i ++) 
-	   delete [] theTrainers [i];
-	delete []	theTrainers;
-	for (i = 0; i < symbolsinFrame; i ++)
-	   delete [] pilotEstimates [i];
-	delete [] pilotEstimates;
 	for (i = 0; i < symbolsinFrame; i ++)
 	   delete Estimators [i];
 	delete [] Estimators;
+//
+//	W_symbol_blk is a matrix with three dimensions
+	for (int window = 0; window < windowsinFrame; window ++) { 
+	   for (i = 0; i < carriersinSymbol; i ++)
+	      delete W_symbol_blk [window][i];
+	   delete W_symbol_blk [window];
+	}
 }
 //
 //	The "trainers" are built over the "regular" pilots, i.e.
 //	those pilots that appear in the regular pilot pattern.
 //	"Trainers" are encoded as a pair, with the symbol relative
 //	to the start of the window
-int16_t		equalizer_1::buildTrainers (int16_t window, trainer *v) {
+int16_t		equalizer_1::buildTrainers (int16_t window) {
 int16_t symbol, carrier;
 int16_t	myCount	= 0;
-
+	theTrainers. at (window). resize (0);
 	for (symbol = window;
 	     symbol < window + symbols_per_window; symbol ++) {
 	   for (carrier = K_min; carrier <= K_max; carrier ++) {
 	      if (isPilotCell (Mode, symbol, carrier)) {
-	         v [myCount]. symbol = symbol - window;
-	         v [myCount]. carrier = carrier;
+	         trainer temp;
+	         temp. symbol	= symbol - window;
+	         temp. carrier	= carrier;
+	         theTrainers. at (window). push_back (temp);
 	         myCount ++;
 	      }
 	   }
@@ -279,9 +291,7 @@ int16_t	myCount	= 0;
 	return myCount;
 }
 
-//
-
-bool	equalizer_1::equalize (DSPCOMPLEX *testRow,
+bool	equalizer_1::equalize (std::complex<float> *testRow,
 	                       int16_t	newSymbol,
 	                       theSignal **outFrame,
 	                       int16_t	*offset_integer,
@@ -298,8 +308,8 @@ int16_t	i;
 //
 //	Tracking the freqency offset is done by looking at the
 //	phase difference of frequency pilots in subsequent words
-	DSPCOMPLEX	offs1	= DSPCOMPLEX (0, 0);
-	DSPCOMPLEX	offs2	= DSPCOMPLEX (0, 0);
+	std::complex<float>	offs1	= std::complex<float> (0, 0);
+	std::complex<float>	offs2	= std::complex<float> (0, 0);
 	float		offsa	= 0;
 	int		offs3	= 0;
 	int		offsb	= 0;
@@ -308,10 +318,10 @@ int16_t	i;
 	for (carrier = K_min; carrier <= K_max; carrier ++) {
 	   if (carrier == 0)
 	      continue;
-	   DSPCOMPLEX oldValue	= 
+	   std::complex<float> oldValue	= 
 	                  testFrame [newSymbol][indexFor (carrier)];
 	   testFrame [newSymbol][indexFor (carrier)] = 
-	                  testRow [indexFor (carrier)];
+	                                 testRow [indexFor (carrier)];
 //
 //	apply formula 5.40 from the Tsai book to get the SCO
 	   if (isPilotCell (Mode, newSymbol, carrier)) {
@@ -335,9 +345,11 @@ int16_t	i;
 //	symbols with the same pilot layout
 	   if (isPilotCell (Mode, newSymbol, carrier)) {
 	      int16_t helpme = realSym (newSymbol - periodforSymbols);
-	      DSPCOMPLEX f1 = testFrame [newSymbol][indexFor (carrier)] *
+	      std::complex<float> f1 =
+	               testFrame [newSymbol][indexFor (carrier)] *
 	                   conj (getPilotValue (Mode, Spectrum, newSymbol, carrier));
-	      DSPCOMPLEX f2 = testFrame [helpme][indexFor (carrier)] *
+	      std::complex<float> f2 =
+	               testFrame [helpme][indexFor (carrier)] *
 	                   conj (getPilotValue (Mode, Spectrum, helpme, carrier));
 	      offs7 += f1 * conj (f2);
 	   }
@@ -346,8 +358,8 @@ int16_t	i;
 //	For an estimate of the residual sample time offset (includes
 //	the phase offset of the LO), we look at the average of the
 //	phase offsets of the subsequent pilots in the current symbol
-	DSPCOMPLEX prev_1 = DSPCOMPLEX (0, 0);
-	DSPCOMPLEX prev_2 = DSPCOMPLEX (0, 0);
+	std::complex<float> prev_1 = std::complex<float> (0, 0);
+	std::complex<float> prev_2 = std::complex<float> (0, 0);
 	for (carrier = K_min; carrier <= K_max; carrier ++) {
 	   if (isPilotCell (Mode, newSymbol, carrier)) {
 //	Formula 5.26 (page 99, Tsai et al), average phase offset
@@ -363,9 +375,10 @@ int16_t	i;
 	}
 //
 //	the SCO is then
-//	 arg (offsa) / symbolsinFrame / (2 * M_PI * Ts / Tu * offsb)) * Ts;
+//	arg (offsa) / symbolsinFrame / (2 * M_PI * Ts / Tu * offsb)) * Ts;
 //	The measured offset is in radials
 	*sampleclockOffset = offsa / (2 * M_PI * (float (Ts) / Tu) * offsb);
+
 //	still wondering about the scale
 	*offset_integer		= 0;
 	*offset_fractional	= arg (offs2) / (2 * M_PI * periodforPilots);
@@ -374,16 +387,16 @@ int16_t	i;
 //	offs1 means using the frequency pilots over N symbols
 //	offs7 means using all pilots over two near symbols with the same
 //	pilot layout
-//	*delta_freq_offset	=  arg (offs1);
+	*delta_freq_offset	=  arg (offs1);
 //	*delta_freq_offset	=  arg (offs7) / periodforSymbols;
-	*delta_freq_offset	= (arg (offs1) + arg (offs7) / periodforSymbols) / 2;
+//	*delta_freq_offset	= (arg (offs1) + arg (offs7) / periodforSymbols) / 2;
 //	fprintf (stderr, "freq error: freq pilots = %f, all pilots  = %f\n",
 //	                 arg (offs1) / (3 * (symbolsinFrame - 1)),
 //	                 arg (offs7) / periodforSymbols);
 //
 	Estimators [newSymbol] ->
 	              estimate (testFrame [newSymbol],
-	                        pilotEstimates [newSymbol]);
+	                        pilotEstimates [newSymbol]. data ());
 
 //	For equalizing symbol X, we need the pilotvalues
 //	from the symbols X - symbols_to_delay .. X + symbols_to_delay - 1
@@ -398,8 +411,8 @@ int16_t	i;
 	return symbol_to_process == symbolsinFrame - 1;
 }
 //
-//	This overloaded version is not used now
-bool	equalizer_1::equalize (DSPCOMPLEX *testRow, int16_t newSymbol,
+bool	equalizer_1::equalize (std::complex<float> *testRow,
+	                       int16_t newSymbol,
 	                       theSignal **outFrame) {
 int16_t	carrier;
 int16_t	symbol_to_process;
@@ -445,7 +458,7 @@ int16_t	windowBase		= realSym (symbol +
 	                                   symbols_per_window + 1);
 int16_t	ntwee			= windowBase % windowsinFrame;
 int16_t	nrTrainers		= trainers_per_window [ntwee];
-trainer *currentTrainers	= theTrainers [ntwee];
+trainer *currentTrainers	= theTrainers [ntwee]. data ();
 int16_t	currentTrainer;
 int16_t	carrier;
 
@@ -481,16 +494,24 @@ int16_t	carrier;
 	   refFrame [symbol][indexFor (carrier)] =
 	                cdiv (refFrame [symbol][indexFor (carrier)], sum);
 	}
-//
+
+	if (symbol == 0) {
+	   eqBuffer -> putDataIntoBuffer (refFrame [symbol],
+	                                  K_max - K_min + 1);
+	   show_eqsymbol (K_max - K_min + 1);
+	}
+	   
 //	The transfer function is now there, stored in the appropriate
 //	entry in the refFrame, so let us equalize
 	for (carrier = K_min; carrier <= K_max; carrier ++) {
-	   DSPCOMPLEX temp	=
+	   std::complex<float> temp	=
 	                   refFrame [symbol] [indexFor (carrier)];
 	   if (carrier == 0)
-	      outVector [indexFor (0)]. signalValue = DSPCOMPLEX (0, 0);
+	      outVector [indexFor (0)]. signalValue = 
+	                                     std::complex<float> (0, 0);
 	   else {
-	      DSPCOMPLEX qq = testFrame [symbol][indexFor (carrier)] / temp;
+	      std::complex<float> qq =
+	                 testFrame [symbol][indexFor (carrier)] / temp;
 	      outVector [indexFor (carrier)] . signalValue = qq;
 	   }
 	   outVector [indexFor (carrier)]. rTrans = abs (temp);

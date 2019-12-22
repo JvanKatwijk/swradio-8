@@ -32,6 +32,7 @@
 #include	<vector>
 #include	"radio-constants.h"
 #include	"virtual-decoder.h"
+#include	"fir-filters.h"
 #include	"ui_drmdecoder.h"
 #include	"ringbuffer.h"
 #include	<QLabel>
@@ -39,7 +40,8 @@
 class	frameProcessor;
 class	RadioInterface;
 class	QSettings;
-//class	IQDisplay;
+class	IQDisplay;
+class	EQDisplay;
 
 class drmDecoder: public virtualDecoder, private Ui_drmdecoder {
 Q_OBJECT
@@ -61,6 +63,10 @@ private:
 	QFrame		*myFrame;
 	frameProcessor	*my_frameProcessor;
 	RingBuffer<std::complex<float>> *iqBuffer;
+	RingBuffer<std::complex<float>> *eqBuffer;
+	decimatingFIR	downFilter;
+	IQDisplay	*my_iqDisplay;
+	EQDisplay	*my_eqDisplay;
 	bool		running;
 	bool		decimatorFlag;
 	bool		validFlag;
@@ -76,6 +82,7 @@ public slots:
 	void		show_stationLabel	(const QString &);
 	void		show_timeLabel		(const QString &);
 	void		showIQ			(int);
+	void		show_eqsymbol		(int);
 	void		show_audioMode		(QString);
 	void		sampleOut		(float, float);
 	void		show_coarseOffset	(float);
@@ -91,6 +98,7 @@ public slots:
 	void		show_country		(QString);
 	void		show_programType	(QString);
 	void		show_time		(QString);
+
 private slots:
 	void		executeTimeSync		(bool);
 	void		executeFACSync		(bool);

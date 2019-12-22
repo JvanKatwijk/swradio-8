@@ -76,6 +76,9 @@
       <height>20</height>
      </rect>
     </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
     <property name="maximum">
      <number>100</number>
     </property>

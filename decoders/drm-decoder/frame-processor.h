@@ -33,12 +33,10 @@
 #include	"timesync.h"
 #include	"reader.h"
 #include	"backend-controller.h"
-#include	"fac-processor.h"
 #include	"state-descriptor.h"
 
 class	equalizer_base;
 class	referenceFrame;
-class	facProcessor;
 class	drmDecoder;
 class	wordCollector;
 
@@ -60,6 +58,7 @@ public:
 			frameProcessor	(drmDecoder *,
 	                                 RingBuffer<DSPCOMPLEX> *,
 	                                 RingBuffer<DSPCOMPLEX> *,
+	                                 RingBuffer<DSPCOMPLEX> *,
 	                                 int32_t,	// samplerate
 	                                 int16_t,	// number of symbs
 	                                 int8_t,	// windowDepth
@@ -71,8 +70,8 @@ private:
 	drmDecoder	*mr;
 	RingBuffer<DSPCOMPLEX> *buffer;
 	RingBuffer<std::complex<float>> *iqBuffer;
+	RingBuffer<std::complex<float>> *eqBuffer;
 	backendController	my_backendController;
-	facProcessor	my_facProcessor;
 	int16_t		nSymbols;
 	int32_t		sampleRate;
 	int8_t		windowDepth;
@@ -83,8 +82,6 @@ private:
 	void		frequencySync 		(drmDecoder *mr,
                                        	         Reader *my_Reader,
 	                                         smodeInfo *m);
-	DSPCOMPLEX	facError		(DSPCOMPLEX *,
-	                                         DSPCOMPLEX *, int16_t);
 	void		set_sdcCells		(smodeInfo *modeInf);
 	std::vector<sdcCell> sdcTable;
 	void		run		(void);

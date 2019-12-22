@@ -23,23 +23,27 @@
 #ifndef	__EQUALIZER_BASE__
 #define	__EQUALIZER_BASE__
 
+#include	<QObject>
 #include	<QString>
+#include	"basics.h"
 #include	"radio-constants.h"
-#include	"drm-decoder.h"
 
-class	equalizer_base {
+class	equalizer_base: public QObject {
+Q_OBJECT
 public:
-			equalizer_base 	(uint8_t Mode,
-	                                 uint8_t Spectrum);
+			equalizer_base 	(uint8_t Mode, uint8_t Spectrum);
 virtual			~equalizer_base	(void);
-virtual	bool		equalize	(DSPCOMPLEX *, int16_t, theSignal **);
-virtual	bool		equalize	(DSPCOMPLEX *,
+virtual	bool		equalize	(std::complex<float> *,
+	                                 int16_t, theSignal **);
+virtual	bool		equalize	(std::complex<float> *,
 	                                 int16_t, theSignal **,
 	                                 int16_t *, float *, float *, float *);
 	void		getEq		(int16_t, DSPCOMPLEX *);
 	int16_t		indexFor	(int16_t);
 	DSPCOMPLEX	**getChannels	(void);
 	float		getMeanEnergy	(void);
+signals:
+	void		show_eqsymbol	(int);
 protected:
 	DSPCOMPLEX	**testFrame;
 	DSPCOMPLEX	**refFrame;

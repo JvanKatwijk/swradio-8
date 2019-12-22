@@ -20,36 +20,44 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef	__EQUALIZER_1
-#define	__EQUALIZER_1
+#ifndef	__EQUALIZER_1__
+#define	__EQUALIZER_1__
 
 #include	"equalizer-base.h"
 #include	<fftw3.h>
+#include	"ringbuffer.h"
+#include	<vector>
 class		estimatorBase;
+class		drmDecoder;
 
 typedef	struct {
 	int16_t	symbol;
-	int16_t	carrier;} trainer;
+	int16_t	carrier;
+} trainer;
 
 class	equalizer_1: public equalizer_base {
 public:
-			equalizer_1 	(uint8_t	Mode,
+			equalizer_1 	(drmDecoder	*parent,
+	                                 uint8_t	Mode,
 	                                 uint8_t	Spectrum,
-	                                 int8_t		strength = 2);
+	                                 int8_t		strength,
+	                                 RingBuffer<std::complex<float>> *);
 			~equalizer_1 	(void);
-	bool		equalize	(DSPCOMPLEX *,
+	bool		equalize	(std::complex<float> *,
 	                                 int16_t,
 	                                 theSignal **,
 	                                 int16_t *,
 	                                 float *,
 	                                 float *,
 	                                 float *);
-	bool		equalize	(DSPCOMPLEX *,
+	bool		equalize	(std::complex<float> *,
 	                                 int16_t,
 	                                 theSignal **);
 private:
+	drmDecoder	*parent;
+	RingBuffer<std::complex<float>>	*eqBuffer;
 	void		getRelAddress	(int16_t, int16_t *, int16_t *);
-	int16_t		buildTrainers	(int16_t, trainer *);
+	int16_t		buildTrainers	(int16_t);
 	int16_t		rndcnt;
 	estimatorBase	**Estimators;
 	int16_t		windowsinFrame;
@@ -58,8 +66,8 @@ private:
 	double		**W_symbol_blk [10];
 	float		f_cut_t;
 	float		f_cut_k;
-	trainer		**theTrainers;
-	DSPCOMPLEX	**pilotEstimates;
+	std::vector<std::vector<trainer>> theTrainers;
+	std::vector<std::vector<std::complex<float>>> pilotEstimates;
 	int16_t		trainers_per_window [10];
 	int16_t		symbols_to_delay;
 	int16_t		symbols_per_window;

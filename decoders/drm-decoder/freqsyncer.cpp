@@ -68,10 +68,10 @@ int16_t	i;
 	this	-> k_pilot3 = k_pilot [2] + Tu / 2;
 
 	this	-> bufferIndex	= 0;
-	this	-> symbolBuffer	= new DSPCOMPLEX *[N_symbols];
+	this	-> symbolBuffer	= new std::complex<float> *[N_symbols];
 	for (i = 0; i < N_symbols; i ++)
-	   symbolBuffer [i] = new DSPCOMPLEX [Tu_of (Mode)];
-	fft_vector		= (DSPCOMPLEX *)
+	   symbolBuffer [i] = new std::complex<float> [Tu_of (Mode)];
+	fft_vector		= (std::complex<float> *)
 	                               fftwf_malloc (Tu_of (Mode) *
 	                                            sizeof (fftwf_complex));
 	hetPlan			= fftwf_plan_dft_1d (Tu_of (Mode),
@@ -148,20 +148,21 @@ uint8_t	spectrum;
 //	It uses the two dimensional array "symbolBuffer" with
 //	in the rows the computed spectra of the last N_symbols ofdm words,
 //	starting at start (i.e. circular)
-//
+
 int32_t	freqSyncer::get_zeroBin (int16_t start) {
 int16_t i, j;
-DSPCOMPLEX correlationSum [Tu];
+std::complex<float> correlationSum [Tu];
 float	abs_sum [Tu];
-
-//	accumulate phase diffs of all carriers 
-//	we know that the correlation for the (frequency) pilot values
-//	in subsequent symbols should be high, while
-//	random correlations have low correlation.
-//	Alternatively, we could add up the abs vales of the "bin"s
-//	and look for the highest (near the carriers where the pilots
-//	are assumed to be). Still not sure what is the best
-	memset (correlationSum, 0, Tu * sizeof (DSPCOMPLEX));
+//
+//
+//	assuming we do not have freq sync pilots, it is possible to
+//	compute the coarse frequency offset, i.e. the "null" carrier
+//	by looking at pilot carriers at corresponding places,
+//	shifted one window.
+//	Problem is of course that we do not know the "first"
+//	symbol.
+//
+	memset (correlationSum, 0, Tu * sizeof (std::complex<float>));
 	memset (abs_sum, 0, Tu * sizeof (float));
 
 //	accumulate phase diffs of all carriers in subsequent symbols
@@ -255,15 +256,15 @@ int16_t K_max_ = Kmax (Mode, spectrum);
 //	No reduction of the output to the Kmin .. Kmax useful
 //	carriers is made, but the order of the low-high freqencies
 //	is change to reflect the "lower .. higher" frequencies in order.
-int16_t	freqSyncer::getWord (DSPCOMPLEX		*buffer,
+int16_t	freqSyncer::getWord (std::complex<float> *buffer,
 	                     int32_t		bufSize,
 	                     int32_t		theIndex,
 	                     int16_t		wordNumber,
 	                     float		offsetFractional) {
-DSPCOMPLEX	temp [Ts];
+std::complex<float> temp [Ts];
 int16_t		i;
 int16_t		bufMask	= bufSize - 1;
-DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
+std:;complex<float> angle	= std::complex<float> (0, 0);
 
 //	To take into account the fractional timing difference,
 //	we do some interpolation between samples in the time domain
@@ -273,8 +274,8 @@ DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
 	   f -= 1;
 	}
 	for (i = 0; i < Ts; i ++) {
-	   DSPCOMPLEX een = buffer [(f + i) & bufMask];
-	   DSPCOMPLEX twee = buffer [(f + i + 1) & bufMask];
+	   std::complex<float> een = buffer [(f + i) & bufMask];
+	   std::complex<float> twee = buffer [(f + i + 1) & bufMask];
 	   temp [i] = cmul (een, 1 - offsetFractional) +
 	              cmul (twee, offsetFractional);
 	}
@@ -284,7 +285,6 @@ DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
 	   angle += conj (temp [Tu + i]) * temp [i];
 //	simple averaging:
 	theAngle	= 0.9 * theAngle + 0.1 * arg (angle);
-
 
 //	offset in Hz / 100
 	float offset	= theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
@@ -306,13 +306,13 @@ DSPCOMPLEX	angle	= DSPCOMPLEX (0, 0);
 	   theShifter. do_shift (temp, Ts, -offset);
 
 //	and extract the Tu set of samples for fft processsing
-	memcpy (fft_vector, &temp [Tg], Tu * sizeof (DSPCOMPLEX));
+	memcpy (fft_vector, &temp [Tg], Tu * sizeof (std::complex<float>));
 
 	fftwf_execute (hetPlan);
 	memcpy (symbolBuffer [wordNumber],
-	        &fft_vector [Tu / 2], Tu / 2 * sizeof (DSPCOMPLEX));
+	        &fft_vector [Tu / 2], Tu / 2 * sizeof (std::complex<float>));
 	memcpy (&symbolBuffer [wordNumber] [Tu / 2],
-	        fft_vector , Tu / 2 * sizeof (DSPCOMPLEX));
+	        fft_vector , Tu / 2 * sizeof (std::complex<float>));
 	return 0;
 }
 
