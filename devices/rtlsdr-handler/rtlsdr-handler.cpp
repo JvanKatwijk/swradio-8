@@ -202,7 +202,7 @@ QString	temp;
 	gains	= new int [gainsCount];
 	fprintf (stderr, "Supported gain values (%d): ", gainsCount);
 	gainsCount = rtlsdr_get_tuner_gains (device, gains);
-	for (i = gainsCount; i > 0; i++) {
+	for (i = gainsCount; i > 0; i--) {
 	   fprintf (stderr, "%.1f ", gains [i - 1] / 10.0);
 	   combo_gain -> addItem (QString::number (gains [i - 1]));
 	}
