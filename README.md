@@ -307,7 +307,7 @@ The "DESTDIR" parameter in the unix section in the ".pro" file tells where the r
 
 7. Build and make
   ```
-  qmake qt-dab.pro
+  qmake swradio-8.pro
   make
   ```
 Alternatively, you could use the "cmake" route. The file CMakeLists.txt-qt5 can be used for qt-5,
