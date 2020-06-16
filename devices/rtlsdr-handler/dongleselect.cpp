@@ -4,17 +4,16 @@
 #include	<QVBoxLayout>
 
 	dongleSelect::dongleSelect (void) {
-	toptext	= new QLabel (this);
-	toptext	-> setText ("Select a dongle");
+	toptext		= new QLabel (this);
+	toptext		-> setText ("Select a dongle");
 	selectorDisplay	= new QListView (this);
 	QVBoxLayout	*layOut = new QVBoxLayout;
-	layOut	-> addWidget (selectorDisplay);
-	layOut	-> addWidget (toptext);
+	layOut		-> addWidget (selectorDisplay);
+	layOut		-> addWidget (toptext);
 	setWindowTitle (tr("dongle select"));
 	setLayout (layOut);
 
-	dongleList. setStringList (Dongles);
-	Dongles = QStringList ();
+	Dongles		= QStringList ();
 	dongleList. setStringList (Dongles);
 	selectorDisplay	-> setModel (&dongleList);
 	connect (selectorDisplay, SIGNAL (clicked (QModelIndex)),
@@ -22,13 +21,12 @@
 	selectedItem	= -1;
 }
 
-	dongleSelect::~dongleSelect (void) {
+	dongleSelect::~dongleSelect () {
 }
 
-void	dongleSelect::addtoDongleList (const char *v) {
-QString s (v);
+void	dongleSelect::addtoDongleList (const QString &v) {
 
-	Dongles << s;
+	Dongles << v;
 	dongleList. setStringList (Dongles);
 	selectorDisplay	-> setModel (&dongleList);
 	selectorDisplay	-> adjustSize ();

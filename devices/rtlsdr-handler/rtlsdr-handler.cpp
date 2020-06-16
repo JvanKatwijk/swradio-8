@@ -2,12 +2,9 @@
 /*
  *    Copyright (C) 2010, 2011, 2012, 2013
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
  *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -103,10 +100,10 @@ void	dll_driver::run (void) {
 //	to keep things simple, we just load the osmocom function
 //	dynamically
 	rtlsdrHandler::rtlsdrHandler (RadioInterface *mr,
-                                      int32_t        outputRate,
-                                      RingBuffer<DSPCOMPLEX> *r,
-                                      QSettings      *s):
-                                               deviceHandler (mr) {
+	                              int32_t        outputRate,
+	                              RingBuffer<DSPCOMPLEX> *r,
+	                              QSettings      *s):
+	                                       deviceHandler (mr) {
 int	res;
 int16_t	deviceIndex;
 int16_t	i;
@@ -116,9 +113,9 @@ QString	temp;
 
 	this	-> myFrame	= new QFrame (NULL);
 	setupUi (this -> myFrame);
-        this    -> myFrame -> show ();
-        this    -> _I_Buffer   = r;
-        this    -> rtlsdrSettings        = s;
+	this    -> myFrame -> show ();
+	this    -> _I_Buffer   = r;
+	this    -> rtlsdrSettings        = s;
 //
 //	The mapping from 8 bit samples  to floats is done, using a
 //	simple mapping table, after all, only 256 entries are needed
@@ -173,8 +170,13 @@ QString	temp;
 	if (deviceCount > 1) {
 	   dongleSelector	= new dongleSelect ();
 	   for (deviceIndex = 0; deviceIndex < deviceCount; deviceIndex ++) {
+	      char manuf [256], product [256], serial [256];
+	      rtlsdr_get_device_usb_strings (deviceIndex, manuf, product, serial);
+	      QString temp = QString (manuf) + ":" + QString (product) + ":" +
+	                                                QString (serial);
 	      dongleSelector ->
-	           addtoDongleList (rtlsdr_get_device_name (deviceIndex));
+	           addtoDongleList (temp);
+//	           addtoDongleList (rtlsdr_get_device_name (deviceIndex));
 	   }
 	   deviceIndex = dongleSelector -> QDialog::exec ();
 	   delete dongleSelector;
@@ -211,11 +213,11 @@ QString	temp;
 
 	temp =
 	        rtlsdrSettings -> value ("externalGain", "10"). toString ();
-        k       = combo_gain -> findText (temp);
-        if (k != -1) {
-           combo_gain   -> setCurrentIndex (k);
-           theGain      = temp. toInt ();
-        }
+	k       = combo_gain -> findText (temp);
+	if (k != -1) {
+	   combo_gain   -> setCurrentIndex (k);
+	   theGain      = temp. toInt ();
+	}
 	else {
 	   combo_gain	-> setCurrentIndex (gainsCount / 2);
 	   theGain	= (combo_gain -> currentText ()). toInt ();
@@ -355,8 +357,8 @@ void	rtlsdrHandler::stopReader	(void) {
 void	rtlsdrHandler::setExternalGain	(const QString &s) {
 	if (!open || !libraryLoaded)
 	   return;
-        theGain         = s. toInt ();
-        rtlsdr_set_tuner_gain (device, theGain);
+	theGain         = s. toInt ();
+	rtlsdr_set_tuner_gain (device, theGain);
 }
 //
 
@@ -379,6 +381,21 @@ bool	rtlsdrHandler::load_rtlFunctions (void) {
 	                     GETPROCADDRESS (Handle, "rtlsdr_close");
 	if (rtlsdr_close == NULL) {
 	   fprintf (stderr, "Could not find rtlsdr_close\n");
+	   return false;
+	}
+
+	rtlsdr_get_device_usb_strings =
+	                         (pfnrtlsdr_get_device_usb_strings)
+	                    GETPROCADDRESS (Handle, "rtlsdr_get_device_usb_strings");
+	if (rtlsdr_get_device_usb_strings == nullptr) {
+	   fprintf (stderr, "Could not find rtlsdr_get_device_usb_strings\n");
+	   return false;
+	}
+
+	rtlsdr_get_usb_strings = (pfnrtlsdr_get_usb_strings)
+	                    GETPROCADDRESS (Handle, "rtlsdr_get_usb_strings");
+	if (rtlsdr_get_usb_strings == nullptr) {
+	   fprintf (stderr, "Could not find rtlsdr_get_usb_strings\n");
 	   return false;
 	}
 

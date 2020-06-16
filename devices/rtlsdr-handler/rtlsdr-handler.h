@@ -45,9 +45,12 @@ typedef	struct rtlsdr_dev rtlsdr_dev_t;
 #ifndef	RTLSDR_API
 #define	RTLSDR_API
 #endif
+extern "C" {
 typedef RTLSDR_API 	void (*rtlsdr_read_async_cb_t) (uint8_t *buf, uint32_t len, void *ctx);
-typedef RTLSDR_API 	 int (*  pfnrtlsdr_open )(rtlsdr_dev_t **, uint32_t);
+typedef RTLSDR_API	int (*  pfnrtlsdr_open )(rtlsdr_dev_t **, uint32_t);
 typedef RTLSDR_API 	int (*  pfnrtlsdr_close) (rtlsdr_dev_t *);
+typedef RTLSDR_API	int (*  pfnrtlsdr_get_usb_strings) (rtlsdr_dev_t *, char *, char *, char *);
+typedef RTLSDR_API	int (*  pfnrtlsdr_get_device_usb_strings) (int, char *, char *, char *);
 typedef RTLSDR_API	const char * (*pfnrtlsdr_get_device_name)(uint32_t);
 typedef RTLSDR_API 	int (*  pfnrtlsdr_set_center_freq) (rtlsdr_dev_t *, uint32_t);
 typedef RTLSDR_API	uint32_t (*  pfnrtlsdr_get_center_freq) (rtlsdr_dev_t *);
@@ -68,6 +71,7 @@ typedef RTLSDR_API  int (*  pfnrtlsdr_cancel_async) (rtlsdr_dev_t *);
 typedef RTLSDR_API  int (*  pfnrtlsdr_set_direct_sampling) (rtlsdr_dev_t *, int);
 typedef RTLSDR_API  uint32_t (*  pfnrtlsdr_get_device_count) (void);
 typedef RTLSDR_API 	int (* pfnrtlsdr_set_freq_correction)(rtlsdr_dev_t *, int);
+}
 
 
 #include	"ui_rtlsdr-widget.h"
@@ -135,6 +139,8 @@ private:
 	bool		load_rtlFunctions	(void);
 	pfnrtlsdr_open	rtlsdr_open;
 	pfnrtlsdr_close	rtlsdr_close;
+	pfnrtlsdr_get_usb_strings rtlsdr_get_usb_strings;
+	pfnrtlsdr_get_device_usb_strings rtlsdr_get_device_usb_strings;
 	pfnrtlsdr_get_device_name rtlsdr_get_device_name;
 	pfnrtlsdr_set_center_freq rtlsdr_set_center_freq;
 	pfnrtlsdr_get_center_freq rtlsdr_get_center_freq;
