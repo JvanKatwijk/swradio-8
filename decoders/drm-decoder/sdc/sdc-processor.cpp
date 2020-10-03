@@ -1,35 +1,36 @@
 #
 /*
- *    Copyright (C) 2013
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the drm receiver
+ *
+ *    drm receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
 #include	"sdc-processor.h"
 #include	"drm-decoder.h"
 #include	"state-descriptor.h"
+#include	"referenceframe.h"
 #include	"prbs.h"
 #include	"sdc-include.h"
 #include	"sdc-streamer.h"
 #include	"qam16-metrics.h"
 #include	"qam4-metrics.h"
 #include	"viterbi-drm.h"
-#include	"drm-decoder.h"
 //
 //	the "processor" for extracting the SDC values from the
 //	(first) frame of a superframe encoded in QAM4/QAM16
@@ -53,7 +54,6 @@ int16_t table_56 [] = {
 	-1,	-1,	-1,	15,	-1
 };
 
-
 extern	int16_t	table_56 [];
 
 static	inline
@@ -64,42 +64,37 @@ int16_t	index;
 	return 4 + 8 * table_56 [index] + 16;
 }
 
-//static	inline
-//int16_t	getLengthofSDCData (uint8_t Mode, uint8_t Spectrum, uint8_t SDCMode) {
-//int16_t	index;
-//	index = (Mode - 1) * 10 + (SDCMode == 1 ? 5 : 0) + Spectrum;
-//	return table_56 [index];
-//}
 //
 //	Mode and Spectrum are given now. nrCells is
 //	determined by Mode and spectrum and stateDescriptor
 //	refers to the database structure
-	sdcProcessor::sdcProcessor (drmDecoder *master,
-	                            stateDescriptor	*theState,
-	                            int16_t 	nrCells):
+
+	sdcProcessor::sdcProcessor (drmDecoder	*master,
+	                            smodeInfo	*modeInf,
+	                            std::vector<sdcCell> * sdcTable,
+	                            stateDescriptor	*theState):
 	                                  theCRC (16, crcPolynome),
-	                                  Y13Mapper (2 * nrCells, 13),
-	                                  Y21Mapper (2 * nrCells, 21) {
+	                                  Y13Mapper (2 * sdcTable -> size (), 13),
+	                                  Y21Mapper (2 * sdcTable -> size () ,21) {
+	this	-> sdcTable	= sdcTable;
+	this	-> nrCells	= sdcTable	-> size ();
 	this	-> Mode		= theState	-> Mode;
 	this	-> Spectrum	= theState	-> Spectrum;
 	this	-> theState	= theState;
-	this	-> nrCells	= nrCells;
 //
-	connect (this, SIGNAL (show_stationLabel (const QString &)),
-	         master, SLOT (show_stationLabel (const QString &)));
+	connect (this, SIGNAL (show_stationLabel (const QString &, int)),
+	         master, SLOT (show_stationLabel (const QString &, int)));
 	connect (this, SIGNAL (show_timeLabel    (const QString &)),
 	         master, SLOT (show_timeLabel    (const QString &)));
-	rmFlag	= getRMflag ();
-	SDCmode	= getSDCmode ();
-	qammode	= (rmFlag == 0 && SDCmode == 0) ? stateDescriptor::QAM16 :
-	                                          stateDescriptor::QAM4;
-	if (qammode == stateDescriptor::QAM4) {
+	rmFlag	= theState	-> RMflag;
+	SDCmode	= theState	-> sdcMode;
+	qammode	= (rmFlag == 0 && SDCmode == 0) ? QAM16 : QAM4;
+	if (qammode == QAM4) {
 //	   fprintf (stderr, "qammode = QAM4\n");
 	   my_qam4_metrics	= new qam4_metrics ();
 	   stream_0		= new SDC_streamer (1, 2, &Y21Mapper, nrCells);
+	   stream_1		= nullptr;
 	   lengthofSDC          = getLengthofSDC (Mode, Spectrum, SDCmode);
-
-	   stream_1		= NULL;
 	   thePRBS		= new prbs (stream_0 -> lengthOut ());
 	}
 	else {
@@ -116,7 +111,7 @@ int16_t	index;
 	sdcProcessor::~sdcProcessor (void) {
 	delete	thePRBS;
 	delete	stream_0;
-	if (qammode == stateDescriptor::QAM16) {
+	if (qammode == QAM16) {
 	   delete	my_qam16_metrics;
 	   delete	stream_1;
 	}
@@ -125,12 +120,21 @@ int16_t	index;
 }
 
 //	actual processing of a SDC block. 
-bool	sdcProcessor::processSDC (theSignal *v) {
+bool	sdcProcessor::processSDC (myArray<theSignal> *outbank) {
+int16_t valueIndex      = 0;
+theSignal sdcVector [sdcTable -> size ()];
 
-	if (qammode == stateDescriptor::QAM4) 
-	   return processSDC_QAM4 (v);
+        for (int i = 0; i < sdcTable -> size (); i ++) {
+           int symbol   = (*sdcTable) [i]. symbol;
+           int carrier  = (*sdcTable) [i]. carrier;
+           sdcVector [valueIndex ++] =
+                  outbank -> element (symbol)[carrier - Kmin (Mode, Spectrum)];
+        }
+
+	if (qammode == QAM4) 
+	   return processSDC_QAM4 (sdcVector);
 	else
-	   return processSDC_QAM16 (v);
+	   return processSDC_QAM16 (sdcVector);
 }
 
 bool	sdcProcessor::processSDC_QAM4 (theSignal *v) {
@@ -194,14 +198,6 @@ int16_t i;
 }
 //
 
-uint8_t	sdcProcessor::getSDCmode	(void) {
-	return theState	-> getSDCmode ();
-}
-
-uint8_t	sdcProcessor::getRMflag		(void) {
-	return theState	-> getRMflag ();
-}
-
 //
 //	The data in the SDC vector is organised as
 //	4 bits are zero (just inserted for the CRC)
@@ -217,6 +213,7 @@ uint8_t	sdcProcessor::getRMflag		(void) {
 //	number of bytes in the datafield requires subtracting
 //	the 4 bits (put before the afs field) and the 16 crc bits
 //	and dividing by the number of bits per byte.
+
 void	sdcProcessor::interpretSDC (uint8_t *v, int16_t size,
 	                                  stateDescriptor *theState) {
 uint8_t	afs	= (v [4] << 3) | (v [5] << 2) | (v [6] << 1) | v [7];
@@ -237,8 +234,10 @@ int16_t	lengthofDatafield	= (size - 16 - 4) / 8;
 	   if ((dataType == 0) && (lengthofBody == 0))
 	      break;
 	   if (index + lengthofBody < lengthofDatafield * 8 + 8) // sanity check
-	      set_SDCData (theState, &v [index], afs,
-	                               dataType, versionFlag, lengthofBody);
+	      set_SDCData (theState,
+	                   &v [index],
+	                   afs,
+	                   dataType, versionFlag, lengthofBody);
 //
 //	   step over contents
 //	   Note that, according to std 6.4.3, the length of the body
@@ -296,6 +295,7 @@ uint8_t	language [3], country [2];
 	                                theState -> streams [i]. lengthLow;
 	         theState	-> dataHigh	+=
 	                                theState -> streams [i]. lengthHigh;
+	         theState	-> streams [i]. inUse = true;
 	      }
 	      return;
 
@@ -308,7 +308,11 @@ uint8_t	language [3], country [2];
 	      for (i = 0; i < lengthofBody; i ++) 
 	          s. append (get_SDCBits (v, 4 + 8 * i, 8));
 	      s. append (char (0));
-	      show_stationLabel (QString (s));
+	      if (lengthofBody > 1) {
+	         char *s2 = s. toLatin1 (). data ();
+	         strcpy (theState -> streams [shortId]. serviceName, s2);
+	      }
+	      show_stationLabel (QString (s), shortId);
 	      return;
 
 	   case 2:	// conditional access parameters
@@ -453,6 +457,4 @@ uint8_t	language [3], country [2];
 	      return;
 	}
 }
-//
-
 

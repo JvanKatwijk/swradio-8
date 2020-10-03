@@ -4,23 +4,24 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
+ *    This file is part of the drm receiver
+ *
  *    Many of the ideas as implemented in SDR-J are derived from
  *    other work, made available through the GNU general Public License. 
  *    All copyrights of the original authors are recognized.
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    drm receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -28,6 +29,7 @@
 #define	__DRM_DECODER__
 #
 
+#include	<QObject>
 #include	<complex>
 #include	<vector>
 #include	"radio-constants.h"
@@ -43,7 +45,7 @@ class	QSettings;
 class	IQDisplay;
 class	EQDisplay;
 
-class drmDecoder: public virtualDecoder, private Ui_drmdecoder {
+class drmDecoder:public virtualDecoder, private Ui_drmdecoder {
 Q_OBJECT
 public:
 			drmDecoder		(int32_t,
@@ -60,26 +62,28 @@ public:
 	int16_t		getDataChannel		(void);
 	bool		isSelectedDataChannel	(int16_t);
 private:
-	QFrame		*myFrame;
+	QFrame		myFrame;
+	RingBuffer<std::complex<float>> iqBuffer;
+	RingBuffer<std::complex<float>> eqBuffer;
+	RingBuffer<std::complex<float>> buffer;
+	LowPassFIR	Filter_10;
+	Basic_FIR	*theFilter;
 	frameProcessor	*my_frameProcessor;
-	RingBuffer<std::complex<float>> *iqBuffer;
-	RingBuffer<std::complex<float>> *eqBuffer;
-	decimatingFIR	downFilter;
 	IQDisplay	*my_iqDisplay;
 	EQDisplay	*my_eqDisplay;
 	bool		running;
 	bool		decimatorFlag;
-	bool		validFlag;
 	int16_t		Length;
-	RingBuffer<std::complex<float> > *buffer;
 
 	int16_t		bufferLength;
 	int32_t		theRate;
 	std::vector<std::complex<float> > localOscillator;
 	int		currentPhase;
 	int		phaseOffset;
+	int32_t		workingRate;
+	RingBuffer<std::complex<float>> *audioOut;
 public slots:
-	void		show_stationLabel	(const QString &);
+	void		show_stationLabel	(const QString &, int);
 	void		show_timeLabel		(const QString &);
 	void		showIQ			(int);
 	void		show_eqsymbol		(int);
@@ -98,6 +102,7 @@ public slots:
 	void		show_country		(QString);
 	void		show_programType	(QString);
 	void		show_time		(QString);
+	void		show_datacoding		(QString);
 
 private slots:
 	void		executeTimeSync		(bool);
@@ -114,6 +119,11 @@ private slots:
 	void		selectChannel_4		(void);
 
 	void		set_phaseOffset		(int);
+
+signals:
+	void		audioAvailable		(int, int);
+	void		setDetectorMarker	(int);
+	void		adjustFrequency		(int);
 };
 
 typedef	struct distances {

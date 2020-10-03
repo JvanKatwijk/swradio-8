@@ -4,7 +4,8 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
+ *    This file is part of the drm decoder
+ *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
@@ -34,20 +35,17 @@
 #include	"reader.h"
 #include	"backend-controller.h"
 #include	"state-descriptor.h"
+#include        "equalizer-1.h"
+#include        "freqsyncer.h"
+#include        "word-collector.h"
 
-class	equalizer_base;
 class	referenceFrame;
 class	drmDecoder;
-class	wordCollector;
 
-typedef struct {
-	int	symbol;
-	int	carrier;
-} sdcCell;
-struct facElement {
-	int16_t	symbol;
-	int16_t	carrier;
-};
+//typedef struct {
+//	int	symbol;
+//	int	carrier;
+//} sdcCell;
 
 extern	
 bool	isGaincell	(uint8_t, int16_t, int16_t);
@@ -67,18 +65,16 @@ public:
 	void		stop		(void);
 private:
         Reader          my_Reader;              // single instance during life
-	drmDecoder	*mr;
-	RingBuffer<DSPCOMPLEX> *buffer;
+	drmDecoder	*theDecoder;
+	RingBuffer<std::complex<float>> *buffer;
 	RingBuffer<std::complex<float>> *iqBuffer;
 	RingBuffer<std::complex<float>> *eqBuffer;
 	backendController	my_backendController;
 	int16_t		nSymbols;
 	int32_t		sampleRate;
 	int8_t		windowDepth;
-	int8_t		qam64Roulette;
 	smodeInfo       modeInf;
-        std::atomic<bool> taskMayRun;
-        void            getMode                 (Reader *, smodeInfo *);
+	void		getMode			(Reader *, smodeInfo *);
 	void		frequencySync 		(drmDecoder *mr,
                                        	         Reader *my_Reader,
 	                                         smodeInfo *m);
@@ -87,31 +83,20 @@ private:
 	void		run		(void);
 	uint8_t		getSpectrum	(stateDescriptor *);
 	int16_t		sdcCells	(smodeInfo *);
-	bool		is_bestIndex	(smodeInfo *, int16_t);
-	float	getCorr		(smodeInfo *, DSPCOMPLEX *);
 	bool		isFirstFrame	(stateDescriptor *);
 	bool		isLastFrame	(stateDescriptor *);
 	bool		isSDCcell	(smodeInfo *, int16_t, int16_t);
 	bool		isFACcell	(smodeInfo *, int16_t, int16_t);
-	bool		processFac	(float, DSPCOMPLEX **);
-	void		addtoSuperFrame	(smodeInfo *, int16_t);
+//	bool		processFac	(float, DSPCOMPLEX **, myArray<theSignal> *);
+	void		addtoSuperFrame	(smodeInfo *,
+	                                 int16_t, myArray<theSignal> *);
 	bool		isDatacell	(smodeInfo *,
 	                                 int16_t, int16_t, int16_t);
 
-	wordCollector	*my_wordCollector;
 	referenceFrame	*my_referenceFrame;
-	int16_t		symbolsinFrame;
-	equalizer_base	*my_Equalizer;
 	stateDescriptor theState;
-	float		corrBank [30];
-	DSPCOMPLEX	**inbank;
-	theSignal	**outbank;
-	DSPCOMPLEX	**refBank;
-//
-	bool	processSDC	(smodeInfo *modeInf,
-	                         theSignal	**theRawData,
-                                 stateDescriptor *my_facData);
-	void	computeBlock	(smodeInfo *);
+	int16_t		getnrAudio	(stateDescriptor *);
+	int16_t		getnrData	(stateDescriptor *);
 signals:
 	void		setTimeSync	(bool);
 	void		setFACSync	(bool);

@@ -29,6 +29,7 @@
 #include	"mapper.h"
 #include	"basics.h"
 #include	"prbs.h"
+#include	"protlevels.h"
 //
 //	For each of the "levels" (qam16 => 2 levels), we create a
 //	separate handler. From "samples to bitstreams" is done here
@@ -56,14 +57,17 @@ float	denom;
 	if (lengthA != 0) {	// two real levels
 //	apply formula from section 7.2.1. to compute the number
 //	of MSC cells for the higher protected part given in bytes
-	   RYlcm	= theState -> getRYlcm_16 (theState -> protLevelA);
+//	   RYlcm	= theState -> getRYlcm_16 (theState -> protLevelA);
+	   RYlcm	= getRYlcm_16 (theState -> protLevelA);
 	   denom	= 0;
 	   for (i = 0; i < 2; i ++)
-	      denom += theState -> getRp (theState -> protLevelA, i);
+//	      denom += theState -> getRp (theState -> protLevelA, i);
+//	      denom += theState -> getRp_qam16 (theState -> protLevelA, i);
+	      denom += getRp_qam16 (theState -> protLevelA, i);
 	   denom	*= 2 * RYlcm;
 	   N1		= int16_t (ceil (8.0 * lengthA / denom) * RYlcm);
 //	   fprintf (stderr, "N1 = %d (lengthA = %d)\n", N1, lengthA);
-	   N2		= theState	-> muxSize () - N1;
+	   N2			= theState -> muxSize - N1;
 	   Y13mapper_high	= new Mapper (2 * N1, 13);
 	   Y21mapper_high	= new Mapper (2 * N1, 21);
 	   Y13mapper_low	= new Mapper (2 * N2, 13);
@@ -71,7 +75,7 @@ float	denom;
 	}
 	else {
 	   N1	= 0;
-	   N2	= theState	-> muxSize ();
+	   N2			= theState -> muxSize;
 	   Y13mapper_high	= NULL;
 	   Y21mapper_high	= NULL;
 	   Y13mapper_low	= new Mapper (2 * N2, 13);
@@ -111,16 +115,16 @@ uint8_t	bitsOut [highProtectedbits + lowProtectedbits];
 uint8_t	bits_0 [stream_0 -> highBits () + stream_0 -> lowBits ()];
 uint8_t	bits_1 [stream_1 -> highBits () + stream_1 -> lowBits ()];
 
-metrics Y0	[2 * theState -> muxSize ()];
-metrics Y1	[2 * theState -> muxSize ()];
-uint8_t	level_0	[theState -> muxSize ()];
-uint8_t	level_1	[theState -> muxSize ()];
+metrics Y0	[2 * theState -> muxSize];
+metrics Y1	[2 * theState -> muxSize];
+uint8_t	level_0	[theState -> muxSize];
+uint8_t	level_1	[theState -> muxSize];
 //
 //	First the "normal" decoding. leading to two bit rows
-	myDecoder. computemetrics (v, theState -> muxSize (), 0, Y0,
+	myDecoder. computemetrics (v, theState -> muxSize, 0, Y0,
 	                                   false, level_0, level_1);
 	stream_0	-> process	(Y0, bits_0, level_0);
-	myDecoder. computemetrics (v, theState -> muxSize (), 1, Y1,
+	myDecoder. computemetrics (v, theState -> muxSize, 1, Y1,
 	                                   false, level_0, level_1);
 	stream_1	-> process	(Y1, bits_1, level_1); 
 //

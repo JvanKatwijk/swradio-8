@@ -26,9 +26,10 @@
 /*
  *    Copyright (C) 2015
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J
+ *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
@@ -136,12 +137,13 @@ int16_t		symbols_per_window_list_5 []	= {15, 15, 15, 6};
 //
 //	values taken from diorama
 	f_cut_t = 0.0675 / symbols_to_delay;
-	f_cut_k = 1.75 * (float) Tg_of (Mode) / (float) Tu;
+	f_cut_k = 1.75 * (float) Tg / (float) Tu;
+	f_cut_k = 0.5 * (float) Tg / (float) Tu;
 //	1.75 seems a little large and has as effect that in the equalizatiom
 //	a dip will appear, so we take a smaller value
-	f_cut_k = (Mode == Mode_A ? 2.25 :
-	           Mode == Mode_B ? 1.25 :
-	           0.50) * (float) Tg_of (Mode) / (float) Tu_of (Mode);
+//	f_cut_k = (Mode == Mode_A ? 2.25 :
+//	           Mode == Mode_B ? 1.25 :
+//	           0.50) * (float) Tg_of (Mode) / (float) Tu_of (Mode);
 //
 //	This code is based on the diorama Matlab code, and a
 //	(complete)rewrite of the C translation of this Matlab code by Ties Bos.
@@ -293,8 +295,7 @@ int16_t	myCount	= 0;
 
 bool	equalizer_1::equalize (std::complex<float> *testRow,
 	                       int16_t	newSymbol,
-	                       theSignal **outFrame,
-	                       int16_t	*offset_integer,
+	                       myArray<theSignal>*outFrame,
 	                       float	*offset_fractional,
 	                       float	*delta_freq_offset,
 	                       float	*sampleclockOffset) {
@@ -380,14 +381,13 @@ int16_t	i;
 	*sampleclockOffset = offsa / (2 * M_PI * (float (Ts) / Tu) * offsb);
 
 //	still wondering about the scale
-	*offset_integer		= 0;
 	*offset_fractional	= arg (offs2) / (2 * M_PI * periodforPilots);
 //	the frequency error we measure in radials
 //	we may choose here between two ways of computing
 //	offs1 means using the frequency pilots over N symbols
 //	offs7 means using all pilots over two near symbols with the same
 //	pilot layout
-	*delta_freq_offset	=  arg (offs1);
+	*delta_freq_offset	=  arg (offs1) / (3 * (symbolsinFrame - 1));
 //	*delta_freq_offset	=  arg (offs7) / periodforSymbols;
 //	*delta_freq_offset	= (arg (offs1) + arg (offs7) / periodforSymbols) / 2;
 //	fprintf (stderr, "freq error: freq pilots = %f, all pilots  = %f\n",
@@ -405,7 +405,8 @@ int16_t	i;
 //	the symbol "symbols_to_delay" back.
 //	
 	symbol_to_process = realSym (newSymbol - symbols_to_delay);
-	processSymbol (symbol_to_process, outFrame [symbol_to_process]);
+	processSymbol (symbol_to_process,
+	                      outFrame -> element (symbol_to_process));
 
 //	If we have a frame full of output: return true
 	return symbol_to_process == symbolsinFrame - 1;
@@ -413,7 +414,7 @@ int16_t	i;
 //
 bool	equalizer_1::equalize (std::complex<float> *testRow,
 	                       int16_t newSymbol,
-	                       theSignal **outFrame) {
+	                       myArray<theSignal>*outFrame) {
 int16_t	carrier;
 int16_t	symbol_to_process;
 
@@ -441,7 +442,8 @@ int16_t	symbol_to_process;
 //	the symbol "symbols_to_delay - 1" back.
 //	
 	symbol_to_process = realSym (newSymbol - symbols_to_delay);
-	processSymbol (symbol_to_process, outFrame [symbol_to_process]);
+	processSymbol (symbol_to_process,
+	                      outFrame -> element (symbol_to_process));
 //	If we have a frame full of output: return true
 	return symbol_to_process == symbolsinFrame - 1;
 }

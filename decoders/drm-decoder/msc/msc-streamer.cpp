@@ -4,7 +4,8 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
+ *    This file is part of the drm receiver
+ *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
@@ -26,6 +27,7 @@
 #include	<stdio.h>
 #include	"puncture-tables.h"
 #include	"mapper.h"
+#include	"protlevels.h"
 
 //	streamhandler, invoked for each of the streams of
 //	the Standard Method with QAM16 or QAM64
@@ -40,7 +42,7 @@
 	this	-> theState	= theState;
 	this	-> streamNumber	= streamNumber;
 	this	-> N1		= N1;
-	this	-> N2		= theState -> muxSize () - N1;
+	this	-> N2		= theState -> muxSize - N1;
 	this	-> hpMapper	= hpMapper;
 	this	-> lpMapper	= lpMapper;
 //
@@ -48,12 +50,29 @@
 //	
 //	From the msc description, we extract the protection levels
 //	for A and B parts
-	theState -> protLevel (theState -> protLevelA, streamNumber,
-	                                            &RX_High, &RY_High);
-	punctureHigh	= dummy. getPunctureTable (RX_High, RY_High);
+//	theState	-> get_protLevel (theState -> protLevelA, streamNumber,
+//	                                                    &RX_High, &RY_High);
+//	punctureHigh	= dummy. getPunctureTable (RX_High, RY_High);
+////
+//	theState	-> get_protLevel (theState -> protLevelB, streamNumber,
+//	                                                     &RX_Low, &RY_Low);
+	if (theState -> QAMMode == QAM16) {
+	   protLevel_qam16 (theState -> protLevelA, streamNumber,
+	                                                    &RX_High, &RY_High);
+	   punctureHigh	= dummy. getPunctureTable (RX_High, RY_High);
 //
-	theState -> protLevel (theState -> protLevelB, streamNumber,
-	                                            &RX_Low, &RY_Low);
+	   protLevel_qam16 (theState -> protLevelB, streamNumber,
+	                                                     &RX_Low, &RY_Low);
+	}
+	else {		// assume QAM64
+	   protLevel_qam64 (theState -> protLevelA, streamNumber,
+	                                                    &RX_High, &RY_High);
+	   punctureHigh	= dummy. getPunctureTable (RX_High, RY_High);
+//
+	   protLevel_qam64 (theState -> protLevelB, streamNumber,
+	                                                     &RX_Low, &RY_Low);
+	}
+	   
 //	fprintf (stderr, "RX_High = %d, RY_High = %d, RX_Low = %d, RY_High = %d\n",
 //	                  RX_High, RY_High, RX_Low, RY_Low);
 	punctureLow	= dummy. getPunctureTable (RX_Low,  RY_Low);

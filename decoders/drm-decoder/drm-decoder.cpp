@@ -1,22 +1,23 @@
 #
 /*
- *    Copyright (C) 2013
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J 
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the drm receiver
+ *
+ *    drm receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 //	
@@ -40,29 +41,31 @@
 	                                QSettings *s):
 	                                   virtualDecoder (inRate,
 	                                                   audioBuffer),
-	                                   downFilter (41,
-	                                               6000,
-	                                               inRate,
-	                                               inRate / 12000) {
+	                                   myFrame (nullptr),
+	                                   iqBuffer (32768),
+	                                   eqBuffer (32768),
+	                                   buffer   (12000),
+	                                   Filter_10 (21, 5500, inRate) {
+
 QString	temp;
 int16_t	symbs;
 
+	this			-> workingRate	= inRate;
+	this			-> audioOut	= audioBuffer;
 	(void)s;
-        myFrame                 = new QFrame (nullptr);
-        setupUi (myFrame);
+        setupUi (&myFrame);
 	my_iqDisplay		= new IQDisplay (iqPlotter, 512);
 	my_eqDisplay		= new EQDisplay (equalizerDisplay);
-        myFrame			-> show ();
+        myFrame. show ();
 	theRate			= inRate;
-	validFlag		= false;
 	decimatorFlag		= false;
 	timeSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
 	facSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
 	sdcSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
 	faadSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
 
-	this	-> iqBuffer	= new RingBuffer<std::complex<float>> (32768);
-	this	-> eqBuffer	= new RingBuffer<std::complex<float>> (32768);
+	
+
 	localOscillator. resize (12000);
 	for (int i = 0; i < 12000; i ++)
 	   localOscillator [i] =
@@ -75,10 +78,8 @@ int16_t	symbs;
 	channel_4	-> hide ();
 
 	symbs			= 16;
-	int8_t windowDepth 	= 1;
+	int8_t windowDepth 	= 2;
 	int8_t qam64Roulette 	= 6;
-	validFlag		= true;
-	buffer			= new RingBuffer<std::complex<float> > (12000);
 	connect (channel_1, SIGNAL (clicked (void)),
 	         this, SLOT (selectChannel_1 (void)));
 	connect (channel_2, SIGNAL (clicked (void)),
@@ -87,12 +88,13 @@ int16_t	symbs;
 	         this, SLOT (selectChannel_3 (void)));
 	connect (channel_4, SIGNAL (clicked (void)),
 	         this, SLOT (selectChannel_4 (void)));
+	theFilter	= &Filter_10;
 	running			= true;
 
 	my_frameProcessor	= new frameProcessor (this,
-	                                              buffer,
-	                                              iqBuffer,
-	                                              eqBuffer,
+	                                              &buffer,
+	                                              &iqBuffer,
+	                                              &eqBuffer,
 	                                              12000,
 	                                              symbs,
 	                                              windowDepth,
@@ -109,41 +111,16 @@ int16_t	symbs;
 	while (my_frameProcessor -> isRunning ())
 	   usleep (10);
 	delete	my_frameProcessor;
-	delete	buffer;
-	delete	myFrame;
 }
 
 //	Basically a simple approach. The "frameProcessor" does the
 //	work, it will read from the buffer that is filled here
 void	drmDecoder::processBuffer (std::complex<float>  *dataIn, int amount) {
-int	i;
-	for (i = 0; i < amount; i ++) {
-	   std::complex<float> sample;
-	   if (!downFilter. Pass (dataIn [i], &sample))
-	      continue;
-	   sample *= localOscillator [currentPhase];
-	   buffer	-> putDataIntoBuffer (&sample, 1);
-	   currentPhase -= phaseOffset;
-	   if (currentPhase < 0)
-	      currentPhase += 12000;
-	   if (currentPhase >= 12000)
-	      currentPhase -= 12000;
-	}
 }
 
 void	drmDecoder::process (std::complex <float> v) {
-std::complex<float> sample;
-
-//	if (!downFilter. Pass (v, &sample))
-//	   return;
-	sample	= v;
-	sample	*= localOscillator [currentPhase];
-	buffer	-> putDataIntoBuffer (&sample, 1);
-	currentPhase -= phaseOffset;
-	if (currentPhase < 0)
-	   currentPhase += 12000;
-	if (currentPhase >= 12000)
-	   currentPhase -= 12000;
+std::complex<float> x = theFilter -> Pass (v);
+	buffer. putDataIntoBuffer (&x, 1);
 }
 
 bool	drmDecoder::haltSignal		(void) {
@@ -205,8 +182,26 @@ void	drmDecoder::executeSDCSync	(bool f) {
 	}
 }
 
-void	drmDecoder::show_stationLabel (const QString &s) {
-	stationLabel -> setText (s);
+void	drmDecoder::show_stationLabel (const QString &s, int stream) {
+	switch (stream) {
+	   default:
+	   case 0:
+	      channel_1	-> setText (s);
+	      channel_1	-> show ();
+	      break;
+	   case 1:
+	      channel_2	-> setText (s);
+	      channel_2	-> show ();
+	      break;
+	   case 2:
+	      channel_3	-> setText (s);
+	      channel_3	-> show ();
+	      break;
+	   case 3:
+	      channel_4	-> setText (s);
+	      channel_4	-> show ();
+	      break;
+	}
 }
 
 void	drmDecoder::show_timeLabel	(const QString &s) {
@@ -219,7 +214,7 @@ void	drmDecoder::execute_showMode		(int l) {
 }
 
 void	drmDecoder::execute_showSpectrum	(int l) {
-	if (0 <= l && l < 4)
+	if (0 <= l && l < 6)
 	   spectrumIndicator	-> setText (QString (char ('0' + l)));
 }
 
@@ -362,9 +357,9 @@ int16_t t;
 double  avg     = 0;
 int     scopeWidth      = scopeSlider -> value();
 
-	if (iqBuffer -> GetRingBufferReadAvailable () < amount)
+	if (iqBuffer. GetRingBufferReadAvailable () < amount)
 	   return;
-        t = iqBuffer -> getDataFromBuffer (Values, amount);
+        t = iqBuffer. getDataFromBuffer (Values, amount);
 	for (i = 0; i < t; i ++) {
 	   float x = abs (Values [i]);
 	   if (!std::isnan (x) && !std::isinf (x))
@@ -377,8 +372,11 @@ int     scopeWidth      = scopeSlider -> value();
 void	drmDecoder::show_eqsymbol	(int amount) {
 std::complex<float> line [amount];
 
-	eqBuffer	-> getDataFromBuffer (line, amount);
+	eqBuffer. getDataFromBuffer (line, amount);
 	my_eqDisplay	-> show (line, amount);
 }
 
+void	drmDecoder::show_datacoding	(QString s) {
+	datacoding -> setText (s);
+}
 

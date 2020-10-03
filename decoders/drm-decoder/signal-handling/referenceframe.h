@@ -33,7 +33,6 @@ DSPCOMPLEX	getFreqRef	(uint8_t, int16_t, int16_t);
 DSPCOMPLEX	getTimeRef	(uint8_t, int16_t, int16_t);
 DSPCOMPLEX	getGainRef	(uint8_t, int16_t, int16_t);
 DSPCOMPLEX	getPilotValue	(uint8_t, uint8_t, int16_t, int16_t);
-float		timeCorrelate	(DSPCOMPLEX *, uint8_t, uint8_t);
 float		init_gain_ref_cells (int16_t *cells_k,
 	                             DSPCOMPLEX *cells_v, int16_t *cnt);
 #endif

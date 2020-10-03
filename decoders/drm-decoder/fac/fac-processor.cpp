@@ -4,23 +4,25 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the drm receiver
+ *
+ *    drm receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
 #include	"fac-processor.h"
+#include	"fac-tables.h"
 #include	"state-descriptor.h"
 #include	"drm-decoder.h"
 #include	"basics.h"
@@ -44,11 +46,20 @@ const uint16_t crcPolynome [] = {
 //	complex values, constituing the FAC code in the current frame.
 //	If no valid FAC can be found, return false
 //
-	facProcessor::facProcessor ():
+	facProcessor::facProcessor (drmDecoder	*theDecoder,
+	                            smodeInfo	*modeInfo):
 	                            myMapper (2 * FAC_SAMPLES, 21),
 	                            thePRBS   (FAC_BITS + FAC_CRC),
 	                            theCRC   (8, crcPolynome),
 	                            deconvolver (FAC_BITS + FAC_CRC) {
+	this	-> theDecoder	= theDecoder;
+	this	-> modeInf	= modeInfo;
+	this	-> Mode		= modeInfo -> Mode;
+	this	-> Spectrum	= modeInfo -> Spectrum;
+	this	-> facTable	= getFacTableforMode (Mode);
+
+	connect (this, SIGNAL (showSNR (float)),
+	         theDecoder, SLOT (showSNR (float)));
 }
 
 	facProcessor::~facProcessor (void) {
@@ -74,9 +85,37 @@ uint8_t punctureTable [] = {
 //	5. dispersion
 //	6. CRC checking, resulting in 64 nice bits
 //
-bool	facProcessor:: processFAC (theSignal *facVector,
+bool	facProcessor:: processFAC (float	meanEnergy,
+	                           std::complex<float> **H,
+	                           myArray<theSignal> *outbank,
 	                           stateDescriptor *theState) {
+theSignal       facVector [100];
+float           sqrdNoiseSeq [100];
+float           sqrdWeightSeq [100];
+int16_t         i;
+float   sum_WMERFAC     = 0;
+float   sum_weight_FAC  = 0;
+int16_t nFac            = 0;
+float   WMERFAC;
 uint8_t	 facBits [2 * (FAC_BITS + FAC_CRC)];
+
+	for (i = 0; facTable [i]. symbol != -1; i ++) {
+	   int16_t symbol	= facTable [i]. symbol;
+	   int16_t index	= facTable [i]. carrier -
+	                               Kmin (Mode, Spectrum);
+	   facVector [i]	= outbank -> element (symbol)[index];
+	   sqrdNoiseSeq [i]	= abs (facVector [i]. signalValue) - sqrt (0.5);
+	   sqrdNoiseSeq [i]	*= sqrdNoiseSeq [i];
+	   sqrdWeightSeq [i]	= real (H [symbol][index] *
+	                                    conj (H [symbol][index]));
+	   sum_WMERFAC		+= sqrdNoiseSeq [i] * 
+	                                (sqrdWeightSeq [i] + 1.0E-10);
+	   sum_weight_FAC	+= sqrdWeightSeq [i];
+	}
+	nFac		= i;
+	WMERFAC		= -10 * log10 (sum_WMERFAC /
+	                     (meanEnergy * (sum_weight_FAC + nFac * 1.0E-10)));
+	showSNR (WMERFAC);
 
 	fromSamplestoBits (facVector, facBits);
 //	first: dispersion
@@ -87,6 +126,8 @@ uint8_t	 facBits [2 * (FAC_BITS + FAC_CRC)];
 	   return false;
 	}
 
+	theState	-> mscCells	= mscCells (Mode, Spectrum);
+	theState	-> muxSize	= theState -> mscCells / 3;
 	interpretFac (facBits, theState);
 	return true;
 }
@@ -135,32 +176,28 @@ void	facProcessor::interpretFac (uint8_t *v, stateDescriptor *st) {
 }
 
 void	facProcessor::set_channelParameters (uint8_t *v, stateDescriptor *st) {
-	st	-> FrameIdentity = (v [1] << 1) | v [2];
+	st	-> frameIdentity = (v [1] << 1) | v [2];
 	st	-> RMflag	= v [3]& 01;
 	st	-> spectrumBits	= (v [4] << 2) | (v [5] << 1) | v [6];
-	if (st -> RMflag) 
-	   st -> interleaverDepth	=  (v [7] == 0) ? 5 : 1;
-	else
-	   if (v [0] == 0)
-	   st -> interleaving = (v [7] == 0) ? 600 : -1;
+	st -> interleaverDepth	=  (v [7] == 0) ? 5 : 1;
 
 	if (st -> RMflag == 0) {
 	   switch ((v [8] << 1) | (v [9])) {
 	      default:		// cannot happen
 	      case 0:
-	         st -> QAMMode	= stateDescriptor::QAM64;
+	         st -> QAMMode	= QAM64;
 	         st -> mscMode	= stateDescriptor::SM;
 	         break;
 	      case 1:
-	         st -> QAMMode	= stateDescriptor::QAM64;
+	         st -> QAMMode	= QAM64;
 	         st -> mscMode	= stateDescriptor::HMI;
 	         break;
 	      case 2:
-	         st -> QAMMode	= stateDescriptor::QAM64;
+	         st -> QAMMode	= QAM64;
 	         st -> mscMode	= stateDescriptor::HMIQ;
 	         break;
 	      case 3:
-	         st -> QAMMode	= stateDescriptor::QAM16;
+	         st -> QAMMode	= QAM16;
 	         st -> mscMode	= stateDescriptor::SM;
 	   }
 	}
@@ -168,13 +205,13 @@ void	facProcessor::set_channelParameters (uint8_t *v, stateDescriptor *st) {
 	   switch ((v [8] << 1) | (v [9])) {
 	      default:		// cannot happen
 	      case 0:
-	         st -> QAMMode	= stateDescriptor::QAM16;
+	         st -> QAMMode	= QAM16;
 	         st -> mscMode	= stateDescriptor::SM;
 	      case 1: ;
 	   }
 	}
 
-	st -> SDCMode		= v [10] & 01;
+	st -> sdcMode		= v [10] & 01;
 
 	uint8_t val = (v [11] << 3) | (v [12] << 2) | (v [13] << 1) | v [14];
 	switch (val) {
@@ -212,57 +249,86 @@ void	facProcessor::set_channelParameters (uint8_t *v, stateDescriptor *st) {
 }
 
 void	facProcessor::set_serviceParameters (uint8_t *v, stateDescriptor *st) {
-        set_serviceLanguage (&v [27], st);
-        st    -> AudioService = v [31] == 0;
-        set_programType (&v [32], st);
+int serviceId	= 0;
+uint8_t shortId		= (v [24] << 1) | v [25];
+
+	for (int i = 0; i < 24; i ++) {
+	   serviceId <<= 1;
+	   serviceId |= v [i];
+	}
+
+	st	-> streams [shortId]. serviceId = serviceId;
+	st	-> streams [shortId]. shortId	= shortId;
+
+        set_serviceLanguage	(shortId, &v [27], st);
+	st	-> streams [shortId]. isAudio = v [31] == 0;
+        set_serviceDescriptor	(shortId, &v [32], st);
 }
 
 //	Language is a 4 bit field
-void	facProcessor::set_serviceLanguage (uint8_t *v, stateDescriptor *st) {
+void	facProcessor::set_serviceLanguage (int shortId,
+	                                   uint8_t *v, stateDescriptor *st) {
 uint16_t val = (v [0] << 3) | (v [1] << 2) | (v [2] << 1) | v [3];
 
 	switch (val) {
 	   default:		// cannot happen
 	   case 0:
-	      st -> theLanguage	= "No language specified"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "No language specified"; break;
 	   case 1:
-	      st -> theLanguage	= "Arabic"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Arabic"; break;
 	   case 2:
-	      st -> theLanguage	= "Bengali"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Bengali"; break;
 	   case 3:
-	      st -> theLanguage	= "Chinese"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Chinese"; break;
 	   case 4:
-	      st -> theLanguage	= "Dutch"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Dutch"; break;
 	   case 5:
-	      st -> theLanguage	= "English"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "English"; break;
 	   case 6:
-	      st -> theLanguage	= "French"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "French"; break;
 	   case 7:
-	      st -> theLanguage	= "German"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "German"; break;
 	   case 8:
-	      st -> theLanguage	= "Hindi"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Hindi"; break;
 	   case 9:
-	      st -> theLanguage	= "Japanese"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Japanese"; break;
 	   case 10:
-	      st -> theLanguage	= "Javanese"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Javanese"; break;
 	   case 11:
-	      st -> theLanguage	= "Korean"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Korean"; break;
 	   case 12:
-	      st -> theLanguage	= "Portugese"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Portugese"; break;
 	   case 13:
-	      st -> theLanguage	= "Russian"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Russian"; break;
 	   case 14:
-	      st -> theLanguage	= "Spanish"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Spanish"; break;
 	   case 15:
-	      st -> theLanguage	= "Other Language"; break;
+	      st -> streams [shortId]. theLanguage	=
+	                                "Other Language"; break;
 	}
 //	fprintf (stderr, " Language = %s\n", theLanguage);
 }
 
-void	facProcessor::set_programType (uint8_t *v, stateDescriptor *st) {
+void	facProcessor::set_serviceDescriptor (int shortId,
+	                                     uint8_t *v, stateDescriptor *st) {
 uint8_t val	= 0;
 int16_t	i;
-	if (!st -> AudioService)
+	if (!st -> streams [shortId]. isAudio)
 	   return;		// apparently data service, skip for now
 
 	for (i = 0; i < 5; i ++)
@@ -272,69 +338,131 @@ int16_t	i;
 	switch (val) {
 	   default:		// cannot happen
 	   case 0:
-	      st -> theProgrammeType	= "no program type"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "no program type"; break;
 	   case 1:
-	      st -> theProgrammeType	= "News"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "News"; break;
 	   case 2:
-	      st -> theProgrammeType	= "Current Affairs"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Current Affairs"; break;
 	   case 3:
-	      st -> theProgrammeType	= "Information"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Information"; break;
 	   case 4:
-	      st -> theProgrammeType	= "Sport"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Sport"; break;
 	   case 5:
-	      st -> theProgrammeType	= "Education"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Education"; break;
 	   case 6:
-	      st -> theProgrammeType	= "Drama"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Drama"; break;
 	   case 7:
-	      st -> theProgrammeType	= "Culture"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Culture"; break;
 	   case 8:
-	      st -> theProgrammeType	= "Science"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Science"; break;
 	   case 9:
-	      st -> theProgrammeType	= "Varied"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Varied"; break;
 	   case 10:
-	      st -> theProgrammeType	= "Pop Music"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Pop Music"; break;
 	   case 11:
-	      st -> theProgrammeType	= "Rock Music"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Rock Music"; break;
 	   case 12:
-	      st -> theProgrammeType	= "Easy Listening"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Easy Listening"; break;
 	   case 13:
-	      st -> theProgrammeType	= "Light Classical"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Light Classical"; break;
 	   case 14:
-	      st -> theProgrammeType	= "Serious Classical"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Serious Classical"; break;
 	   case 15:
-	      st -> theProgrammeType	= "Other Music"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Other Music"; break;
 	   case 16:
-	      st -> theProgrammeType	= "Wheather"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Wheather"; break;
 	   case 17:
-	      st -> theProgrammeType	= "Finance/Business"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Finance/Business"; break;
 	   case 18:
-	      st -> theProgrammeType	= "Children\'s programmes"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Children\'s programmes"; break;
 	   case 19:
-	      st -> theProgrammeType	= "Social Affairs"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Social Affairs"; break;
 	   case 20:
-	      st -> theProgrammeType	= "Religion"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Religion"; break;
 	   case 21:
-	      st -> theProgrammeType	= "Phone In"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Phone In"; break;
 	   case 22:
-	      st -> theProgrammeType	= "Travel"; break;
+	      st -> streams [shortId]. theProgrammeType =
+	                                       "Travel"; break;
 	   case 23:
-	      st -> theProgrammeType	= "Leisure"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Leisure"; break;
 	   case 24:
-	      st -> theProgrammeType	= "Jazz Music"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Jazz Music"; break;
 	   case 25:
-	      st -> theProgrammeType	= "Country Music"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Country Music"; break;
 	   case 26:
-	      st -> theProgrammeType	= "National Music"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "National Music"; break;
 	   case 27:
-	      st -> theProgrammeType	= "Oldies Music"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Oldies Music"; break;
 	   case 28:
-	      st -> theProgrammeType	= "Folk Music"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Folk Music"; break;
 	   case 29:
-	      st -> theProgrammeType	= "Documentary"; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "Documentary"; break;
 	   case 30:
 	   case 31:
-	      st -> theProgrammeType	= "   "; break;
+	      st -> streams [shortId]. theProgrammeType	=
+	                                       "   "; break;
 	}
-//	fprintf (stderr, "programme type = %s\n", theProgrammeType);
+}
+
+int16_t facProcessor::mscCells  (uint8_t Mode, uint8_t Spectrum) {
+	switch (Mode) {
+	   case 1:
+	      switch (Spectrum) {
+	         case	0:	return 3778;
+	         case	1:	return 4268;
+//	         case	1:	return 4368;
+	         case	2:	return 7897;
+	         default:
+	         case	3:	return 8877;
+	         case	4:	return 16394;
+	      }
+
+	   default:
+	   case 2:
+	      switch (Spectrum) {
+	         case	0:	return 2900;
+	         case	1:	return 3330;
+	         case	2:	return 6153;
+	         default:
+	         case	3:	return 7013;
+	         case	4:	return 12747;
+	      }
+
+	   case 3:
+	      return 5532;
+
+	   case 4:
+	      return 3679;
+	}
 }
 

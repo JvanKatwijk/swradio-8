@@ -20,9 +20,10 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef	__FAC_PROCESSOR
-#define	__FAC_PROCESSOR
+#ifndef	__FAC_PROCESSOR__
+#define	__FAC_PROCESSOR__
 
+#include	<QObject>
 #include	"radio-constants.h"
 #include	"basics.h"
 #include	"mapper.h"
@@ -30,28 +31,43 @@
 #include	"prbs.h"
 #include	"checkcrc.h"
 #include	"viterbi-drm.h"
+#include	"my-array.h"
 
+class	drmDecoder;
 class	stateDescriptor;
 class	equalizer;		// very bad name
 
-class	facProcessor {
+class	facProcessor : public QObject {
+Q_OBJECT
 public:
-	                facProcessor	();
+	                facProcessor	(drmDecoder *, smodeInfo *);
 			~facProcessor	(void);
-	bool		processFAC	(theSignal *, stateDescriptor *);
+	bool		processFAC	(float        meanEnergy,
+                                         std::complex<float> **H,
+                                         myArray<theSignal> *outbank,
+                                         stateDescriptor *theState);
+
 private:
+	drmDecoder	*theDecoder;
+	smodeInfo	*modeInf;
+	uint8_t		Mode;
+	uint8_t		Spectrum;
+	struct facElement	*facTable;
 	Mapper		myMapper;
 	prbs		thePRBS;
 	checkCRC	theCRC;
 	qam4_metrics	myMetrics;
 	viterbi_drm	deconvolver;
-	void		fromSamplestoBits (theSignal *, uint8_t *);
-	void		fac_Metrics	(theSignal *, int32_t, metrics *);
-	void		interpretFac	(uint8_t *, stateDescriptor *);
-	void		set_programType	(uint8_t *, stateDescriptor *);
-	void		set_serviceLanguage (uint8_t *, stateDescriptor *);
-	void		set_serviceParameters (uint8_t *, stateDescriptor *);
-	void		set_channelParameters (uint8_t *, stateDescriptor *);
+	void		fromSamplestoBits	(theSignal *, uint8_t *);
+//	void		fac_Metrics		(theSignal *, int32_t, metrics *);
+	void		interpretFac		(uint8_t *, stateDescriptor *);
+	void		set_serviceParameters	(uint8_t *, stateDescriptor *);
+	void		set_channelParameters	(uint8_t *, stateDescriptor *);
+	void		set_serviceLanguage	(int, uint8_t *, stateDescriptor *);
+	void		set_serviceDescriptor	(int, uint8_t *, stateDescriptor *);
+	int16_t		mscCells		(uint8_t, uint8_t);
+signals:
+	void		showSNR		(float);
 };
 
 #endif

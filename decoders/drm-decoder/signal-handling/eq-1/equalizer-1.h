@@ -27,6 +27,7 @@
 #include	<fftw3.h>
 #include	"ringbuffer.h"
 #include	<vector>
+#include	"my-array.h"
 class		estimatorBase;
 class		drmDecoder;
 
@@ -45,14 +46,13 @@ public:
 			~equalizer_1 	(void);
 	bool		equalize	(std::complex<float> *,
 	                                 int16_t,
-	                                 theSignal **,
-	                                 int16_t *,
+	                                 myArray<theSignal>*,
 	                                 float *,
 	                                 float *,
 	                                 float *);
 	bool		equalize	(std::complex<float> *,
 	                                 int16_t,
-	                                 theSignal **);
+	                                 myArray<theSignal>*);
 private:
 	drmDecoder	*parent;
 	RingBuffer<std::complex<float>>	*eqBuffer;

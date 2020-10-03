@@ -1,22 +1,23 @@
 #
 /*
- *    Copyright (C) 2013
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the drm receiver
+ *
+ *    drm receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
@@ -48,18 +49,18 @@
 	this	-> QAMMode	= theState	-> QAMMode;
 	my_dataProcessor	= new dataProcessor (theState, drmMaster);
 
-	this	-> muxsampleLength	= theState -> mscCells  () / 3;
+	this	-> muxsampleLength	= theState -> mscCells / 3;
 	this	-> muxsampleBuf	= new theSignal [muxsampleLength];
 	this	-> tempBuffer	= new theSignal [muxsampleLength];
-	if (theState -> muxDepth () > 1)
+	if (theState -> interleaverDepth > 1)
 	   this -> my_deInterleaver =
-	                     new deInterleaver_long (muxsampleLength,
-	                                             theState -> muxDepth ());
+	                     new deInterleaver_long (muxsampleLength, 
+	                                             theState -> interleaverDepth);
 	else
 	   this -> my_deInterleaver =
 	                     new deInterleaver (muxsampleLength);
 
-	if (QAMMode == stateDescriptor::QAM64) {
+	if (QAMMode == QAM64) {
 	   switch (mscMode) {
 	      case stateDescriptor::SM:
 	         my_mscHandler = new QAM64_SM_Handler (theState,
@@ -74,7 +75,7 @@
 	   }
 	}
 	else
-	if (QAMMode == stateDescriptor::QAM16) 	// mscMode == SM
+	if (QAMMode == QAM16) 	// mscMode == SM
 	   my_mscHandler	= new QAM16_SM_Handler (theState);
 	else
 	   my_mscHandler	= new mscHandler (theState);
@@ -126,9 +127,9 @@ void	mscProcessor::newFrame		(stateDescriptor *theState) {
 //	At the end of a superframe, this function is called.
 //	simple check:
 void	mscProcessor::endofFrame	(void) {
-	if (theState -> mscCells () != 3 * muxsampleLength + bufferP)
+	if (theState -> mscCells != 3 * muxsampleLength + bufferP)
 	   fprintf (stderr, " E R R O R %d %d %d\n",
-	                   theState -> mscCells (),
+	                   theState -> mscCells,
 	                   3 * muxsampleLength + bufferP,
 	                   bufferP);
 	bufferP	= 0;

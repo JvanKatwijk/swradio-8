@@ -28,7 +28,7 @@
 
 	mscHandler::mscHandler	(stateDescriptor *theState) {
 	this	-> theState	= theState;
-	muxLength		= theState	-> mscCells () / 3;
+	muxLength		= theState	-> mscCells / 3;
 }
 
 	mscHandler::~mscHandler	(void) {

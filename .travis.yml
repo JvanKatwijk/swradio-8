@@ -17,36 +17,37 @@ install:
     - sudo apt-get -y install mesa-common-dev libgl1-mesa-dev libsamplerate-dev
     - sudo apt-get install libtool
     - sudo apt-get install autoconf
+    - sudo apt-get install libfdk-aac-dev
 
-    - tar zxvf faad2-2.8.8.tar.gz
-    - cd faad2-2.8.8
-    - ./configure
-    - make
-    - sudo make install
-    - sudo ldconfig
-    - cd ..
-    - rm -rf faad2-2.8.8
+    -# tar zxvf faad2-2.8.8.tar.gz
+    -# cd faad2-2.8.8
+    -# ./configure
+    -# make
+    -# sudo make install
+    -# sudo ldconfig
+    -# cd ..
+    -# rm -rf faad2-2.8.8
 
-    - tar zxvf rtl-sdr.tgz
-    - cd rtl-sdr
-    - mkdir build
-    - cd build
-    - cmake .. -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON
-    - make
-    - sudo make install
-    - cd ../..
-    - rm -rf rtl-sdr
+    -  tar zxvf rtl-sdr.tgz
+    -  cd rtl-sdr
+    -  mkdir build
+    -  cd build
+    -  cmake .. -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON
+    -  make
+    -  sudo make install
+    -  cd ../..
+    -  rm -rf rtl-sdr
 
-    - ls -l
-    - tar zxvf hackrf.tgz
-    - cd host
-    - mkdir build
-    - cd build
-    - cmake .. -DINSTALL_UDEV_RULES=ON
-    - make
-    - sudo make install
-    - cd ../..
-    - rm -rf host
+    -  ls -l
+    -  tar zxvf hackrf.tgz
+    -  cd host
+    -  mkdir build
+    -  cd build
+    -  cmake .. -DINSTALL_UDEV_RULES=ON
+    -  make
+    -  sudo make install
+    -  cd ../..
+    -  rm -rf host
 
 script:
     - cmake . -DCMAKE_INSTALL_PREFIX=/usr

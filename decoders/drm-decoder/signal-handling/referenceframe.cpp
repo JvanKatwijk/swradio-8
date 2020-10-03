@@ -2,21 +2,22 @@
 /*
  *    Copyright (C) 2013
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the drm receiver
+ *
+ *    drm receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
@@ -451,16 +452,3 @@ int16_t	phase	= (4 * Z_256 (Mode, n , m) + p * W_1024 (Mode, n, m) +
 	   return valueFor (sqrt (2.0), phase);
 
 }
-
-float timeCorrelate (std::complex<float> *vec,
-	             uint8_t Mode, uint8_t Spectrum) {
-struct timeCells *ref = tableforMode (Mode);
-int16_t	i;
-DSPCOMPLEX	sum	= 0;
-
-	for (i = 0; ref [i]. index != -1; i ++)
-	   sum +=  vec [ref [i]. index - Kmin (Mode, Spectrum)] *
-	                   conj (valueFor (sqrt (2), ref [i]. phase));
-	return real (sum * conj (sum));
-}
-//

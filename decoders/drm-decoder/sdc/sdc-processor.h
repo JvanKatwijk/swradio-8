@@ -4,19 +4,20 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the drm receiver
+ *
+ *    drm receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
@@ -31,6 +32,7 @@
 #include	"basics.h"
 #include	"mapper.h"
 #include	"checkcrc.h"
+#include	"my-array.h"
 
 class	drmDecoder;
 class	stateDescriptor;
@@ -44,12 +46,11 @@ class	sdcProcessor : public QObject {
 Q_OBJECT
 public:
 		sdcProcessor	(drmDecoder	*,
-	                        stateDescriptor	*,
-	                 	int16_t);
+	                         smodeInfo	*,
+	                         std::vector<sdcCell> *,
+	                         stateDescriptor	*);
 		~sdcProcessor	(void);
-	bool	processSDC	        (theSignal *v);
-	uint8_t	getSDCmode		(void);
-	uint8_t	getRMflag		(void);
+	bool	processSDC	        (myArray<theSignal>  *);
 private:
 	bool	processSDC_QAM4		(theSignal *v);
 	bool	processSDC_QAM16	(theSignal *v);
@@ -60,7 +61,7 @@ private:
                                          uint8_t dataType,
                                          uint8_t versionFlag,
                                          int8_t lengthofBody);
-
+        std::vector<sdcCell> *sdcTable;
 	bool	sdcCorrect;
 	qam16_metrics	*my_qam16_metrics;
 	qam4_metrics	*my_qam4_metrics;
@@ -79,7 +80,7 @@ private:
 	uint8_t		rmFlag;
 	uint8_t		SDCmode;
 signals:
-	void		show_stationLabel (const QString &);
+	void		show_stationLabel (const QString &, int);
 	void		show_timeLabel	(const QString &);
 };
 #endif

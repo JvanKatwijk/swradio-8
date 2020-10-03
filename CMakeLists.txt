@@ -67,11 +67,17 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
         )
 	find_package(QWT REQUIRED)
 
+	find_package (FDKAAC)
+	if (NOT FDKAAC_FOUND)
+	   message (FATAL "please install FDKAAC")
+	endif ()
+	include_directories ( ${FDKAAC_INCLUDE_DIRS})
+	list (APPEND extraLibs ${FDKAAC_LIBRARIES})
+
         find_package(FFTW3f)
         if (NOT FFTW3F_FOUND)
             message(FATAL_ERROR "please install FFTW3")
         endif ()
-
 
 	find_package(Qwt)
         if (NOT QWT_FOUND)
@@ -148,7 +154,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	           decoders/fax-decoder 
 	           decoders/mfsk-decoder
 	         ./decoders/drm-decoder 
-	         ./decoders/drm-decoder/ 
+	         ./decoders/drm-decoder/ofdm
+	         ./decoders/drm-decoder/support
 	         ./decoders/drm-decoder/signal-handling 
 	         ./decoders/drm-decoder/signal-handling/eq-1 
 	         ./decoders/drm-decoder/utilities 
@@ -212,40 +219,48 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/mfsk-decoder/slidingfft.h 
 	   ./decoders/mfsk-decoder/interleave.h
 	   ./decoders/drm-decoder/drm-decoder.h  
-	   ./decoders/drm-decoder/iqdisplay.h
-	   ./decoders/drm-decoder/eqdisplay.h
+	   ./decoders/drm-decoder/iqdisplay.h 
+	   ./decoders/drm-decoder/eqdisplay.h 
 	   ./decoders/drm-decoder/basics.h 
-	   ./decoders/drm-decoder/input/reader.h 
-	   ./decoders/drm-decoder/timesync.h 
-	   ./decoders/drm-decoder/freqsyncer.h 
-	   ./decoders/drm-decoder/word-collector.h 
 	   ./decoders/drm-decoder/frame-processor.h 
+	   ./decoders/drm-decoder/ofdm/reader.h 
+	   ./decoders/drm-decoder/ofdm/correlator.h 
+	   ./decoders/drm-decoder/ofdm/timesync.h 
+	   ./decoders/drm-decoder/ofdm/freqsyncer.h 
+	   ./decoders/drm-decoder/ofdm/word-collector.h 
 	   ./decoders/drm-decoder/signal-handling/referenceframe.h 
 	   ./decoders/drm-decoder/signal-handling/equalizer-base.h 
-	   ./decoders/drm-decoder/signal-handling/matrix2.h 
 	   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h 
 	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h 
 	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h 
-	   ./decoders/drm-decoder/utilities/viterbi-drm.h 
-	   ./decoders/drm-decoder/utilities/mapper.h 
-	   ./decoders/drm-decoder/utilities/prbs.h 
-	   ./decoders/drm-decoder/utilities/checkcrc.h 
-	   ./decoders/drm-decoder/utilities/qam64-metrics.h 
-	   ./decoders/drm-decoder/utilities/qam16-metrics.h 
-	   ./decoders/drm-decoder/utilities/qam4-metrics.h 
-	   ./decoders/drm-decoder/utilities/deinterleaver.h 
-	   ./decoders/drm-decoder/parameters/state-descriptor.h
+	   ./decoders/drm-decoder/support/my-array.h 
+	   ./decoders/drm-decoder/support/viterbi-drm.h 
+	   ./decoders/drm-decoder/support/mapper.h 
+	   ./decoders/drm-decoder/support/prbs.h 
+	   ./decoders/drm-decoder/support/checkcrc.h 
+	   ./decoders/drm-decoder/support/qam64-metrics.h 
+	   ./decoders/drm-decoder/support/qam16-metrics.h 
+	   ./decoders/drm-decoder/support/qam4-metrics.h 
+	   ./decoders/drm-decoder/support/deinterleaver.h 
+	   ./decoders/drm-decoder/support/matrix2.h 
+	   ./decoders/drm-decoder/support/protlevels.h 
+	   ./decoders/drm-decoder/parameters/state-descriptor.h 
 	   ./decoders/drm-decoder/parameters/puncture-tables.h 
+	   ./decoders/drm-decoder/fac/fac-tables.h 
 	   ./decoders/drm-decoder/fac/fac-processor.h 
 	   ./decoders/drm-decoder/sdc/sdc-streamer.h 
 	   ./decoders/drm-decoder/sdc/sdc-processor.h 
-	   ./decoders/drm-decoder/msc/backend-controller.h
+	   ./decoders/drm-decoder/msc/backend-controller.h 
 	   ./decoders/drm-decoder/msc/msc-processor.h 
 	   ./decoders/drm-decoder/msc/msc-handler-qam16.h 
 	   ./decoders/drm-decoder/msc/msc-handler-qam64.h 
 	   ./decoders/drm-decoder/msc/msc-streamer.h 
 	   ./decoders/drm-decoder/msc/msc-handler.h 
 	   ./decoders/drm-decoder/data/data-processor.h 
+#	   ./decoders/drm-decoder/data/aac-processor-faad.h 
+	   ./decoders/drm-decoder/data/aac-processor-fdk.h 
+	   ./decoders/drm-decoder/data/xheaac-processor.h 
+#	   ./decoders/drm-decoder/data/drm-aacdecoder.h 
 	   ./decoders/drm-decoder/data/fec-handler.h 
 	   ./decoders/drm-decoder/data/galois.h 
 	   ./decoders/drm-decoder/data/reed-solomon.h 
@@ -253,8 +268,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/data/packet-assembler.h 
 	   ./decoders/drm-decoder/data/virtual-datahandler.h 
 	   ./decoders/drm-decoder/data/mot-data.h 
-	   ./decoders/drm-decoder/data/drm-aacdecoder.h 
-	   ./decoders/drm-decoder/data/neaacdec_dll.h
 	)
 
 	set (${objectName}_SRCS
@@ -307,40 +320,47 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/mfsk-decoder/slidingfft.cpp 
 	   ./decoders/mfsk-decoder/interleave.cpp
 	   ./decoders/drm-decoder/drm-decoder.cpp  
-	   ./decoders/drm-decoder/iqdisplay.cpp
-	   ./decoders/drm-decoder/eqdisplay.cpp
+	   ./decoders/drm-decoder/eqdisplay.cpp 
+	   ./decoders/drm-decoder/iqdisplay.cpp 
 	   ./decoders/drm-decoder/basics.cpp 
-	   ./decoders/drm-decoder/input/reader.cpp 
-	   ./decoders/drm-decoder/timesync.cpp 
-	   ./decoders/drm-decoder/word-collector.cpp 
-	   ./decoders/drm-decoder/freqsyncer.cpp 
 	   ./decoders/drm-decoder/frame-processor.cpp 
+	   ./decoders/drm-decoder/ofdm/reader.cpp 
+	   ./decoders/drm-decoder/ofdm/correlator.cpp 
+	   ./decoders/drm-decoder/ofdm/timesync.cpp 
+	   ./decoders/drm-decoder/ofdm/freqsyncer.cpp 
+	   ./decoders/drm-decoder/ofdm/word-collector.cpp 
 	   ./decoders/drm-decoder/signal-handling/referenceframe.cpp 
 	   ./decoders/drm-decoder/signal-handling/equalizer-base.cpp 
-	   ./decoders/drm-decoder/signal-handling/matrix2.cpp 
 	   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.cpp 
 	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.cpp 
 	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.cpp 
-	   ./decoders/drm-decoder/utilities/viterbi-drm.cpp 
-	   ./decoders/drm-decoder/utilities/mapper.cpp 
-	   ./decoders/drm-decoder/utilities/prbs.cpp 
-	   ./decoders/drm-decoder/utilities/checkcrc.cpp 
-	   ./decoders/drm-decoder/utilities/qam64-metrics.cpp 
-	   ./decoders/drm-decoder/utilities/qam16-metrics.cpp 
-	   ./decoders/drm-decoder/utilities/qam4-metrics.cpp 
-	   ./decoders/drm-decoder/utilities/deinterleaver.cpp 
-	   ./decoders/drm-decoder/parameters/state-descriptor.cpp
+	   ./decoders/drm-decoder/support/viterbi-drm.cpp 
+	   ./decoders/drm-decoder/support/mapper.cpp 
+	   ./decoders/drm-decoder/support/prbs.cpp 
+	   ./decoders/drm-decoder/support/checkcrc.cpp 
+	   ./decoders/drm-decoder/support/qam64-metrics.cpp 
+	   ./decoders/drm-decoder/support/qam16-metrics.cpp 
+	   ./decoders/drm-decoder/support/qam4-metrics.cpp 
+ 	   ./decoders/drm-decoder/support/deinterleaver.cpp 
+	   ./decoders/drm-decoder/support/matrix2.cpp 
+	   ./decoders/drm-decoder/support/protlevels.cpp 
+	   ./decoders/drm-decoder/parameters/state-descriptor.cpp 
 	   ./decoders/drm-decoder/parameters/puncture-tables.cpp 
+	   ./decoders/drm-decoder/fac/fac-tables.cpp 
 	   ./decoders/drm-decoder/fac/fac-processor.cpp 
 	   ./decoders/drm-decoder/sdc/sdc-streamer.cpp 
 	   ./decoders/drm-decoder/sdc/sdc-processor.cpp 
-	   ./decoders/drm-decoder/msc/backend-controller.cpp
+	   ./decoders/drm-decoder/msc/backend-controller.cpp 
 	   ./decoders/drm-decoder/msc/msc-processor.cpp 
 	   ./decoders/drm-decoder/msc/msc-handler-qam16.cpp 
 	   ./decoders/drm-decoder/msc/msc-handler-qam64.cpp 
 	   ./decoders/drm-decoder/msc/msc-streamer.cpp 
 	   ./decoders/drm-decoder/msc/msc-handler.cpp 
 	   ./decoders/drm-decoder/data/data-processor.cpp 
+#	   ./decoders/drm-decoder/data/aac-processor-faad.cpp 
+	   ./decoders/drm-decoder/data/aac-processor-fdk.cpp 
+	   ./decoders/drm-decoder/data/xheaac-processor.cpp 
+#	   ./decoders/drm-decoder/data/drm-aacdecoder.cpp 
 	   ./decoders/drm-decoder/data/fec-handler.cpp 
 	   ./decoders/drm-decoder/data/galois.cpp 
 	   ./decoders/drm-decoder/data/reed-solomon.cpp 
@@ -348,7 +368,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/data/packet-assembler.cpp 
 	   ./decoders/drm-decoder/data/virtual-datahandler.cpp 
 	   ./decoders/drm-decoder/data/mot-data.cpp 
-	   ./decoders/drm-decoder/data/drm-aacdecoder.cpp
 	)
 
 	set (${objectName}_MOCS
@@ -386,10 +405,12 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/drm-decoder.h  
 	   ./decoders/drm-decoder/iqdisplay.h 
 	   ./decoders/drm-decoder/eqdisplay.h 
-	   ./decoders/drm-decoder/input/reader.h 
 	   ./decoders/drm-decoder/frame-processor.h 
-	   ./decoders/drm-decoder/freqsyncer.h
-	   ./decoders/drm-decoder/word-collector.h
+	   ./decoders/drm-decoder/fac/fac-processor.h
+	   ./decoders/drm-decoder/sdc/sdc-processor.h
+	   ./decoders/drm-decoder/ofdm/reader.h
+	   ./decoders/drm-decoder/ofdm/freqsyncer.h
+	   ./decoders/drm-decoder/ofdm/word-collector.h
 	   ./decoders/drm-decoder/signal-handling/equalizer-base.h
 	   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h
 	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h
@@ -397,8 +418,9 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/sdc/sdc-processor.h
 	   ./decoders/drm-decoder/msc/backend-controller.h
 	   ./decoders/drm-decoder/data/mot-data.h
-	   ./decoders/drm-decoder/data/drm-aacdecoder.h 
 	   ./decoders/drm-decoder/data/data-processor.h
+	   ./decoders/drm-decoder/data/aac-processor-fdk.h
+	   ./decoders/drm-decoder/data/xheaac-processor.h
 	   ./decoders/drm-decoder/data/message-processor.h
 	)
 

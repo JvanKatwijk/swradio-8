@@ -4,37 +4,39 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the drm receiver
+
+ *    drm receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 #
 #include	"basics.h"
 #include	<math.h>
+#define	KK	1
 
 int16_t	Ts_of (uint8_t Mode) {
 	switch (Mode) {
 	   default:
 	   case Mode_A:
 	   case Mode_B:
-	      return 320;
+	      return KK * 320;
 
 	   case Mode_C:
-	      return 240;
+	      return KK * 240;
+
 	   case Mode_D:
-	      return 200;
+	      return KK * 200;
 	}
 }
 
@@ -42,16 +44,16 @@ int16_t	Tg_of (uint8_t Mode) {
 	switch (Mode) {
 	   default:
 	   case Mode_A:
-	      return 32;
+	      return KK * 32;
 
 	   case Mode_B:
-	      return 64;
+	      return KK * 64;
 
 	   case Mode_C:
-	      return 64;
+	      return KK * 64;
 
 	   case Mode_D:
-	      return 88;
+	      return KK * 88;
 	}
 }
 
