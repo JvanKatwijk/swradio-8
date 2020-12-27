@@ -31,6 +31,8 @@
 	                 drmParameters *drm) {
 std::vector<uint8_t> codecInfo;
 	handle = aacDecoder_Open (TT_DRM, 3);
+	fprintf (stderr, "handle for aacDecoder %s\n", 
+	                     handle == nullptr ? "fout" : "goed");
 	if (handle == nullptr) {
 	   throw (44);
 	}
@@ -123,12 +125,12 @@ uint32_t	bytesValid	= 0;
 	      buffer [2 * i + 1] = localBuffer [2 * i + i];
 	   }
 	}
-#if 0
+#if 1
 	fprintf (stderr, "frameSize %d, samplerate %d\n",
 	               fdk_info -> frameSize, fdk_info -> sampleRate);
 #endif
-//	fprintf (stderr, "channel config %d (rate %d)\n",
-//	           fdk_info -> channelConfig, fdk_info -> sampleRate);
+	fprintf (stderr, "channel config %d (rate %d)\n",
+	           fdk_info -> channelConfig, fdk_info -> sampleRate);
 	*samples	= fdk_info	-> frameSize;
 	*pcmRate	= fdk_info	-> sampleRate;
 	*conversionOK	= true;

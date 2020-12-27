@@ -2,5 +2,8 @@
 .*.swp
 build
 linux-bin
+Makefile
+.qmake.stash 
+
 
 

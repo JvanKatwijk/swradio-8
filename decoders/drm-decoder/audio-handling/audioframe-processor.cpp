@@ -40,11 +40,14 @@
 	this	-> shortId	= shortId;
 	this	-> streamId	= streamId;
 
+	fprintf (stder,"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 #ifdef  __WITH_FDK_AAC__
+	fprintf (stderr, "er is een fdkAAC gealloceerd\n");
         my_aacDecoder           = new fdkAAC    (drm, params);
 #elif   __WITH_FAAD__
         my_aacDecoder           = new DRM_aacDecoder (drm, params);
 #else
+	fprintf (stderr, "een lege decoderbase?\n");
         my_aacDecoder           = new decoderBase ();
 #endif
 

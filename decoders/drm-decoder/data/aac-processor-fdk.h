@@ -25,7 +25,8 @@
 #define	__AAC_PROCESSOR_FDK__
 
 #include	<QObject>
-#include	<fdk-aac/aacdecoder_lib.h>
+#include	<aacdecoder_lib.h>
+//#include	<fdk-aac/aacdecoder_lib.h>
 #include	<stdio.h>
 #include	<stdint.h>
 #include	<cstring>

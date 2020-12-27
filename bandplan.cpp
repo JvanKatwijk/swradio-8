@@ -14,10 +14,11 @@ const
 QString	bandPlan::getFrequencyLabel (uint32_t Frequency) {
 int	freq	= Frequency / 1000;
 
-	for (int i = 0; i < labelTable. size (); i ++)
+	for (int i = 0; i < labelTable. size (); i ++) {
 	   if ((labelTable. at (i). low <= freq) &&
 	       (freq <= labelTable. at (i). high))
 	      return QString (labelTable. at (i). label);
+	}
 
 	return QString ("");
 }

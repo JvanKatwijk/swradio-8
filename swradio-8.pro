@@ -131,7 +131,7 @@ CONFIG		+= drm-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
 INCLUDEPATH	+= /usr/include/qt5/qwt
-LIBS		+= -lqwt-qt5 -lrt -lsndfile -lfdk-aac -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
+LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
 }
 
 win32 {
@@ -355,10 +355,11 @@ fax-decoder {
 drm-decoder {
 	DEFINES		+= HAVE_DRM_DECODER
 	DEFINES		+= ESTIMATOR_1
+	DEFINES		+=  __WITH_FDK_AAC__
 #	LIBS		+= -lfaad_drm
 #	LIBS		+= -lfaad_drm -larmadillo
-	LIBS		+= -L/usr/lib64/fdk-aac -lfdk-aac
-	INCLUDEPATH	+= /usr/include/fdk-aac
+	LIBS		+= -lfdk-aac
+	INCLUDEPATH	+= ./fdk-aac
 	DEPENDPATH	+= ./decoders/drm-decoder/ \
 	                   ./decoders/drm-decoder/ofdm \
 	                   ./decoders/drm-decoder/signal-handling \
@@ -597,6 +598,7 @@ drm-decoder-yy {
 	                   ./decoders/drm-decoder/data/mot-data.cpp \
 	                   ./decoders/drm-decoder/data/drm-aacdecoder.cpp 
 }
+
 drm-decoder-old {
 	DEFINES		+= HAVE_DRM_DECODER
 	DEFINES		+= ESTIMATOR_1
