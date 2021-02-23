@@ -37,7 +37,7 @@ Implemented decoders
 * rtty, with a wide selection of modes and settings;
 * cw, with (almost) automatic selection of speed and a visual tuning aid,
 * drm, limited to 10 k bandwidth;
-* amtor, with a wide selection of options;
+* navtex (amtor), with a wide selection of options;
 * weatherfax decoder, with selection of a variety of settings.
 
 ![swradio-8](/swradio-picture-3.png?raw=true)
@@ -203,7 +203,7 @@ following steps.
 
    ```
 
-3. Create the faad_drm library if you want to use the drm decoder.
+4. Create the faad_drm library if you want to use the drm decoder.
    To make life easy, the sources for the faad library are included
    in the source tree (packed).
 
