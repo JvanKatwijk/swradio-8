@@ -29,9 +29,12 @@
 #include	<cstring>
 #include	"fec-handler.h"
 #include	"fir-filters.h"
-//#include	"aac-processor-faad.h"
+#ifdef	__WITH_FDK_AAC__
 #include	"aac-processor-fdk.h"
 #include	"xheaac-processor.h"
+#else
+#include	"aac-processor-faad.h"
+#endif
 #include	"message-processor.h"
 
 class	drmDecoder;
@@ -51,9 +54,12 @@ private:
 	stateDescriptor	*theState;
 	drmDecoder	*drmMaster;
 	messageProcessor my_messageProcessor;
+#ifdef	__WITH_FDK_AAC__
 	aacProcessor_fdk	my_aacProcessor;
 	xheaacProcessor		my_xheaacProcessor;
-//	aacProcessor	my_aacProcessor;
+#else
+	aacProcessor_faad	my_aacProcessor;
+#endif
 	int16_t		numFrames;
 	int16_t		selectedDataService;
 	int16_t		selectedAudioService;

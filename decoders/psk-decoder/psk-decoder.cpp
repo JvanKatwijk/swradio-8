@@ -39,7 +39,7 @@
 #define	PSK63_SPEED		62.50
 #define	PSK125_SPEED		125.0
 
-#define	PSK_IF			800
+#define	PSK_IF			000
 #define	PSKRATE			2000
 
 /*
@@ -61,7 +61,7 @@
 	myFrame		-> show ();
 
 	setup_pskDecoder (rate);
-	screenwidth	= 128;
+	screenwidth	= 256;
 	x_axis		= new double [screenwidth];
 	for (int i = 0; i < screenwidth; i ++)
 	   x_axis [i] = - screenwidth / 2 + i;

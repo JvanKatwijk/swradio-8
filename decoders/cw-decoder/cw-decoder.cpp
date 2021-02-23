@@ -34,7 +34,7 @@
 
 #define	CW_DOT_REPRESENTATION	'.'
 #define	CW_DASH_REPRESENTATION	'_'
-#define	CW_IF			800
+#define	CW_IF			0
 /*
  * 	The standard morse wordlength (i.e.
  * 	PARIS) is 50 bits, then for a wpm of 1,
@@ -58,7 +58,7 @@ extern const char *const codetable [];
 	myFrame         -> show (); //
 	workingRate     = 2000;
 	setup_cwDecoder (workingRate);
-	screenwidth     = 128;
+	screenwidth     = workingRate / 4;
         x_axis          = new double [screenwidth];
         for (int i = 0; i < screenwidth; i ++)
            x_axis [i] = - screenwidth / 2 + i;
@@ -67,8 +67,8 @@ extern const char *const codetable [];
 	fillP		= 0;
         theFilter       = new decimatingFIR (35, screenwidth / 2, workingRate, 8);
         cwViewer       = new waterfallScope (cwScope,
-                                             screenwidth, 30);
-        the_fft         = new common_fft (workingRate / 8);
+                                             screenwidth, 15);
+        the_fft         = new common_fft (workingRate / 4);
         fftBuffer       = the_fft -> getVector ();
 
 	connect (cwViewer, SIGNAL (clickedwithLeft (int)),
@@ -252,7 +252,7 @@ int i;
 char	buffer [4];
 std::complex<float>	s;
 std::complex<float> res;
-std::complex<float>v [250];
+std::complex<float>v [2000];
 
 	s	= cw_BandPassFilter	-> Pass (s);
 	s	= localShifter. do_shift (z, cw_IF * 10);
@@ -260,17 +260,17 @@ std::complex<float>v [250];
 
 	if (theFilter -> Pass (s, &res)) {
 	   fftBuffer [fillP ++] = res;
-	   if (fillP >= workingRate / 16) {
-              for (i = fillP; i < workingRate / 8; i ++)
-                 fftBuffer [i] = std::complex<float> (0, 0);
+	   if (fillP >= workingRate / 8) {
+	      for (int i = 0; i < workingRate / 8; i ++)
+	         fftBuffer [workingRate / 8 + i] = std::complex<float> (0, 0);
               the_fft -> do_FFT ();
-              for (i = 0; i < workingRate / 16; i ++) {
-                 v [i] = fftBuffer [workingRate / 16 + i];
-                 v [workingRate / 16 + i] = fftBuffer [i];
+              for (i = 0; i < workingRate / 8; i ++) {
+                 v [i] = fftBuffer [workingRate / 8 + i];
+                 v [workingRate / 8 + i] = fftBuffer [i];
               }
               for (i = 0; i < screenwidth; i ++)
                  y_values [i] =
-                        abs (v [workingRate / 16 - screenwidth / 2 + i]);
+                        abs (v [i]);
               cwViewer -> display (x_axis, y_values,
                                  amplitudeSlider -> value (), 0, 0);
               fillP     = 0;
@@ -573,7 +573,8 @@ void    cwDecoder::cw_adjustFrequency (int f) {
 }
 
 void    cwDecoder::handleClick (int a) {
-        adjustFrequency (a);
+	fprintf (stderr, "adjusting with %d\n", a);
+        adjustFrequency (a / 2);
 }
 
 

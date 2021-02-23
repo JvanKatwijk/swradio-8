@@ -4,7 +4,7 @@
 Introduction
 ------------------------------------------------------------------
 
-swradio is  Software for Linux and windows for listening to short wave radio.
+swradio is software for Linux and windows for listening to short wave radio.
 It is a rewrite and simplification of sdr-j-sw.
 The software supports hackrf devices, rtlsdr devices
 (using the rt820 tuner chip) and the SDRplay devices.
@@ -16,7 +16,7 @@ this program.)
 
 One of the less common decoders is a *drm-decoder*, the picture shows
 the reception of Nigeria. There are not that many drm transmissions,
-but Kuwait, Tiganesti (i.e. Romenia), and Nigeria are receoved very well here.
+but Kuwait, Tiganesti (i.e. Romenia), and Nigeria are received very well here.
 The current version is limited to drm transmissions with a spectrum
 equal to or less than 10 KHz.
 
@@ -55,6 +55,19 @@ the spectrum from "classical" spectrum view to "waterfall" (and back).
 
 This feature applies to both the display showing the full spectrum as
 the display showing the "decoder" spectrum.
+
+Many typical amateur signals have a small bandwidth, making tuning harder.
+Take as example Bpsk32, the width of the signal is just a couple of tens of Hz.
+
+Some decoders are therefore equipped with an additional "scope" widget, just
+showing the signal in the contex of a few hundred Hz.
+
+![swradio-8](/swradio-loupe.png?raw=true)
+
+Clicking with the mouse on a location on such a window will adapt
+the frequency.
+The picture shows the "magnifying glass" for psk. It shows that the
+actual width of the received signal is less than 50 Hz.
 
 --------------------------------------------------------------------------
 Using the swradio

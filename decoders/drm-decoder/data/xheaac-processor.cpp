@@ -54,7 +54,6 @@ uint16_t        res     = 0;
 	                                    theCRC (8, crcPolynome),
 	                                    upFilter_24000 (5, 12000, 48000),
                                             upFilter_12000 (5, 6000, 48000) {
-
 	this	-> theState	= theState;
 	this	-> parent	= drm;
 	this	-> handle	= aacDecoder_Open (TT_DRM, 3);
@@ -378,6 +377,7 @@ uint32_t	bytesValid	= 0;
 	*pcmRate	= fdk_info	-> sampleRate;
 	*conversionOK	= true;
 }
+
 std::vector<uint8_t>
 	xheaacProcessor::getAudioInformation (stateDescriptor *theState,
 	                                                int streamId) {

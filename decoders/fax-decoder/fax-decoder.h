@@ -29,11 +29,13 @@
 #include	<QImage>
 #include	<QSettings>
 #include	<QPoint>
+#include	<vector>
+#include	<mutex>
 #include	"utilities.h"
 #include	"ui_fax-decoder.h"
 #include	"radio-constants.h"
 #include	"virtual-decoder.h"
-#include	"fax-scroller.h"
+#include        "fax-scroller.h"
 #include	"fir-filters.h"
 #include	"fax-params.h"
 #include	"shifter.h"
@@ -43,16 +45,19 @@ class	RadioInterface;
 class	common_fft;
 class	faxDemodulator;
 class	faxImage;
-class	faxFilenames;
-
 /*
  *	states:
  *	we look at the bits
  */
 #define	APTSTART		0001
-#define	FAX_PHASING		0002
-#define	FAX_IMAGING		0004
-#define	FAX_DONE		0010
+#define	WAITING_FOR_START	0002
+#define	START_RECOGNIZED	0004
+#define	WAITING_FOR_PHASE	0010
+#define	READ_PHASE		0020
+#define	SYNCED			0040
+#define	FAX_DONE		0100
+#define	WAITER			0200
+
 
 class	faxDecoder: public virtualDecoder, public Ui_fax_decoder {
 Q_OBJECT
@@ -77,60 +82,46 @@ public:
 private:
 	QSettings	*faxSettings;
 	int32_t		theRate;
-	QFrame		*myFrame;
+	QFrame		myFrame;
 	void		setup_faxDecoder	(QSettings *);
-	void		initPhasing		(void);
-	common_fft	*myfft;
-	std::complex<float>	*fftVector;
 	int32_t		getFreq			(std::complex<float> *);
 	faxParams	*getFaxParams		(QString);
 	shifter		localMixer;
+	faxScroller	faxContainer;
+	void		fax_displayImage	(QImage, int, int);
+        void		fax_displayImage	(QImage);
+	void		addtoImage		(int16_t);
+        void            addSampletoImage        (float, int32_t, int32_t);
+	faxImage	*theImage;
+	QString		saveName;
+
 private slots:
 	void		reset			(void);
 	void		fax_setIOC		(const QString &);
 	void		fax_setMode		(const QString &);
 	void		fax_setPhase		(const QString &);
 	void		fax_setColor		(const QString &);
-	void		fax_setDeviation	(int);
-	void		fax_setSkip		(void);
-	void		fax_setLPM		(int);
-	void		fax_setstartFreq	(int);
-	void		fax_setstopFreq		(int);
-	void		fax_setCarrier		(int);
-	void		fax_setsavingonDone	(void);
-	void		fax_setClicked		(int, int);
-	void		fax_setautoContinue	(void);
+	void		fax_setDeviation	(const QString &);
+	void		fax_setsavingonDone	();
 private:
-	void		correctWidth		(int16_t);
-	void		addtoPhasing		(int16_t);
-	void		addtoImage		(int16_t);
-	void		endReception		(void);
-	bool		weFoundaValidPhaseline	(void);
-	void		correctLPM		(float);
-	void		fax_saveFile		(QImage, bool);
-	void		fax_displayImage	(QImage, int, int);
-	void		fax_displayImage	(QImage);
-	void		fax_setLPM		(float);
-
-	faxFilenames	*nameGenerator;
-	faxScroller	*faxContainer;
-
+	bool		checkStart		(int);
+	int		checkPhase		(int, float);
+	bool		checkPhaseLine		(int, float);
+	int		findPhaseLine		(int, int, float);
+	int		nrBlanks		();
+	int		shiftBuffer		(int, int);
+	void		processBuffer		();
+	bool		checkStop		(int);
+	int		toRead;
+	int		alarmCount;
+	mutex		locker;
 	RingBuffer<std::complex<float>> *audioOut;
-	int		faxCycleCounter;
-	bool		savingRequested;
-	void		set_savingRequested	(bool);
-	bool		autoContinue;
-	void		set_autoContinue	(bool);
-	void		addSampletoImage	(float, int32_t, int32_t);
-	int32_t		delayCounter;
-	faxImage	*theImage;
 	faxDemodulator	*myDemodulator;
 	LowPassFIR	*faxLowPass;
 	average		*faxAverager;
 	QByteArray	rawData;
 	uint8_t		faxState;
-	int32_t		currentSampleIndex;
-	std::complex<float>	fax_oldz;
+	int		currentSampleIndex;
 	int16_t		fax_IOC;
 	float		lpm;
 	float		f_lpm;
@@ -139,29 +130,24 @@ private:
 	int16_t		apt_upCrossings;
 	int16_t		aptStartFreq;
 	int16_t		aptStopFreq;
-	int16_t		txLPM;
 	bool		phaseInvers;
 	uint8_t		faxColor;
-	double		lpmSum;
 	bool		whiteSide;
-	int16_t		currPhaseLength;
-	int16_t		whiteLength;
-	int16_t		phaseLines;
-	int16_t		noPhasingLines;
 	int16_t		carrier;
 	uint8_t		faxMode;
 	int32_t		samplesperLine;
 	int16_t		numberofColums;
 	int16_t		currentColumn;
+	int		nrLines;
 	int16_t		lastRow;
 	int32_t		pixelValue;
 	float		pixelSamples;
-	int16_t		currentValue;
-	bool		savingFlag;
-//	for adjusting, we need
-	QPoint		slant1;
-	QPoint		slant2;
-	bool		pointNeeded;
+	std::vector<int>	faxBuffer;
+	int		bufferP;
+	int		bufferSize;
+	int		linesRecognized;
+	bool		savingRequested;
+	int		stoppers;
 };
 
 #endif

@@ -74,9 +74,12 @@ uint32_t y;
 	dataProcessor::dataProcessor	(stateDescriptor *theState,
 	                                 drmDecoder *drm):
 	                                   my_messageProcessor (drm) ,
-	                                   my_aacProcessor (theState, drm),
-	                                   my_xheaacProcessor (theState,
-	                                                                drm) {
+	                                   my_aacProcessor (theState, drm)
+#ifdef	__WITH_FDK_AAC__
+	                                   ,my_xheaacProcessor (theState,
+	                                                                drm)
+#endif
+	{
 	this	-> theState		= theState;
 	this	-> drmMaster		= drm;
 	audioChannel			= 1;
@@ -205,9 +208,11 @@ uint8_t	audioCoding		= theState -> streams [mscIndex]. audioCoding;
 
 	   case 3:
 	      show_audioMode (QString ("xHE-AAC"));
+#ifdef	__WITH_FDK_AAC__
 	      my_xheaacProcessor. process_usac (v, mscIndex,
 	                                        startHigh, lengthHigh,
 	                                        startLow, lengthLow);
+#endif
 	      return;
 
 	   default:

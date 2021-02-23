@@ -26,7 +26,7 @@
 #include	"utilities.h"
 #include	"fir-filters.h"
 
-#define	RTTY_IF		800
+#define	RTTY_IF		00
 
 #define	StaysInBand(x)	(((RTTY_IF - rttyShift / 10) < (x)) && ((x) < RTTY_IF + rttyShift / 10))
 
@@ -373,7 +373,7 @@ char letters [32] = {
 	'\0',	'E',	'\n',	'A',	' ',	'S',	'I',	'U',
 	'\r',	'D',	'R',	'J',	'N',	'F',	'C',	'K',
 	'T',	'Z',	'L',	'W',	'H',	'Y',	'P',	'Q',
-	'O',	'B',	'G',	'·',	'M',	'X',	'V',	'·'
+	'O',	'B',	'G',	'\·',	'M',	'X',	'V',	'·'
 };
 
 ///*
