@@ -151,6 +151,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="cheatButton">
+       <property name="text">
+        <string>cheat</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLCDNumber" name="lineNumber">
        <property name="lineWidth">
         <number>0</number>

@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = faxdecoder1.0.0
-DISTDIR = /usr/shared/systems/swradio-8/decoders/fax-decoder/.tmp/faxdecoder1.0.0
+DISTDIR = /home/jan/Downloads/swradio-8/decoders/fax-decoder/.tmp/faxdecoder1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1 -shared
 LIBS          = $(SUBLIBS) /usr/lib64/libQt5Widgets.so /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Core.so -lGL -lpthread   
@@ -411,15 +411,16 @@ moc_fax-decoder.cpp: fax-decoder.h \
 		../../ui_fax-decoder.h \
 		../../radio-constants.h \
 		../virtual-decoder.h \
+		fax-scroller.h \
 		fax-params.h \
 		moc_predefs.h \
 		/../lib64/qt5/bin/moc
-	/../lib64/qt5/bin/moc $(DEFINES) --include /usr/shared/systems/swradio-8/decoders/fax-decoder/moc_predefs.h -I/../lib64/qt5/mkspecs/linux-g++ -I/usr/shared/systems/swradio-8/decoders/fax-decoder -I/usr/shared/systems/swradio-8/decoders/fax-decoder -I/usr/shared/systems/swradio-8/decoders -I/usr/shared/systems/swradio-8 -I/usr/shared/systems/swradio-8/decoders/decoder-utils -I/usr/shared/systems/includes -I/usr/shared/systems/includes/filters -I/usr/shared/systems/includes/various -I/usr/include/qt5/qwt -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/10 -I/usr/include/c++/10/x86_64-redhat-linux -I/usr/include/c++/10/backward -I/usr/lib/gcc/x86_64-redhat-linux/10/include -I/usr/local/include -I/usr/include fax-decoder.h -o moc_fax-decoder.cpp
+	/../lib64/qt5/bin/moc $(DEFINES) --include /home/jan/Downloads/swradio-8/decoders/fax-decoder/moc_predefs.h -I/../lib64/qt5/mkspecs/linux-g++ -I/home/jan/Downloads/swradio-8/decoders/fax-decoder -I/home/jan/Downloads/swradio-8/decoders/fax-decoder -I/home/jan/Downloads/swradio-8/decoders -I/home/jan/Downloads/swradio-8 -I/home/jan/Downloads/swradio-8/decoders/decoder-utils -I/home/jan/Downloads/includes -I/home/jan/Downloads/includes/filters -I/home/jan/Downloads/includes/various -I/usr/include/qt5/qwt -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/10 -I/usr/include/c++/10/x86_64-redhat-linux -I/usr/include/c++/10/backward -I/usr/lib/gcc/x86_64-redhat-linux/10/include -I/usr/local/include -I/usr/include fax-decoder.h -o moc_fax-decoder.cpp
 
 moc_fax-scroller.cpp: fax-scroller.h \
 		moc_predefs.h \
 		/../lib64/qt5/bin/moc
-	/../lib64/qt5/bin/moc $(DEFINES) --include /usr/shared/systems/swradio-8/decoders/fax-decoder/moc_predefs.h -I/../lib64/qt5/mkspecs/linux-g++ -I/usr/shared/systems/swradio-8/decoders/fax-decoder -I/usr/shared/systems/swradio-8/decoders/fax-decoder -I/usr/shared/systems/swradio-8/decoders -I/usr/shared/systems/swradio-8 -I/usr/shared/systems/swradio-8/decoders/decoder-utils -I/usr/shared/systems/includes -I/usr/shared/systems/includes/filters -I/usr/shared/systems/includes/various -I/usr/include/qt5/qwt -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/10 -I/usr/include/c++/10/x86_64-redhat-linux -I/usr/include/c++/10/backward -I/usr/lib/gcc/x86_64-redhat-linux/10/include -I/usr/local/include -I/usr/include fax-scroller.h -o moc_fax-scroller.cpp
+	/../lib64/qt5/bin/moc $(DEFINES) --include /home/jan/Downloads/swradio-8/decoders/fax-decoder/moc_predefs.h -I/../lib64/qt5/mkspecs/linux-g++ -I/home/jan/Downloads/swradio-8/decoders/fax-decoder -I/home/jan/Downloads/swradio-8/decoders/fax-decoder -I/home/jan/Downloads/swradio-8/decoders -I/home/jan/Downloads/swradio-8 -I/home/jan/Downloads/swradio-8/decoders/decoder-utils -I/home/jan/Downloads/includes -I/home/jan/Downloads/includes/filters -I/home/jan/Downloads/includes/various -I/usr/include/qt5/qwt -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/10 -I/usr/include/c++/10/x86_64-redhat-linux -I/usr/include/c++/10/backward -I/usr/lib/gcc/x86_64-redhat-linux/10/include -I/usr/local/include -I/usr/include fax-scroller.h -o moc_fax-scroller.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -446,8 +447,10 @@ fax-decoder.o: fax-decoder.cpp fax-decoder.h \
 		../../ui_fax-decoder.h \
 		../../radio-constants.h \
 		../virtual-decoder.h \
+		fax-scroller.h \
 		fax-params.h \
 		fax-demodulator.h \
+		fax-filenames.h \
 		fax-image.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o fax-decoder.o fax-decoder.cpp
 
@@ -456,6 +459,7 @@ fax-demodulator.o: fax-demodulator.cpp fax-demodulator.h \
 		fax-decoder.h \
 		../../ui_fax-decoder.h \
 		../virtual-decoder.h \
+		fax-scroller.h \
 		fax-params.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o fax-demodulator.o fax-demodulator.cpp
 
@@ -489,6 +493,7 @@ main.o: main.cpp fax-decoder.h \
 		../../ui_fax-decoder.h \
 		../../radio-constants.h \
 		../virtual-decoder.h \
+		fax-scroller.h \
 		fax-params.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 

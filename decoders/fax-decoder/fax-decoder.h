@@ -94,6 +94,8 @@ private:
         void            addSampletoImage        (float, int32_t, int32_t);
 	faxImage	*theImage;
 	QString		saveName;
+	QString		getSaveName		();
+
 
 private slots:
 	void		reset			(void);
@@ -103,15 +105,16 @@ private slots:
 	void		fax_setColor		(const QString &);
 	void		fax_setDeviation	(const QString &);
 	void		fax_setsavingonDone	();
+	void		fax_setCheat		();
 private:
-	bool		checkStart		(int);
-	int		checkPhase		(int, float);
-	bool		checkPhaseLine		(int, float);
-	int		findPhaseLine		(int, int, float);
+	bool		checkStart		(std::vector<int>&, int);
+	int		checkPhase		(std::vector<int>&, int, float);
+	bool		checkPhaseLine		(std::vector<int>&, int, float);
+	int		findPhaseLine		(std::vector<int> &, int, int, float);
 	int		nrBlanks		();
-	int		shiftBuffer		(int, int);
-	void		processBuffer		();
-	bool		checkStop		(int);
+	int		shiftBuffer		(std::vector<int> &, int, int);
+	void		processBuffer		(std::vector<int>&);
+	bool		checkStop		(std::vector<int>&, int);
 	int		toRead;
 	int		alarmCount;
 	mutex		locker;
@@ -142,8 +145,10 @@ private:
 	int16_t		lastRow;
 	int32_t		pixelValue;
 	float		pixelSamples;
-	std::vector<int>	faxBuffer;
+	std::vector<int>	faxLineBuffer;
+	std::vector<int>	checkBuffer;
 	int		bufferP;
+	int		checkP;
 	int		bufferSize;
 	int		linesRecognized;
 	bool		savingRequested;

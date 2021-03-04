@@ -20,6 +20,7 @@
 #include	<QFile>
 #include	<QFileDialog>
 #include	<QDir>
+#include	<QDateTime>
 #include	<QDebug>
 #include	<vector>
 #include	"fax-decoder.h"
@@ -30,6 +31,11 @@
 
 #define		FAX_IF		0
 #define		FILTER_DEFAULT	21
+
+static inline
+float	square (float f) {
+	return f * f;
+}
 
 faxParams _faxParams [] = {
 	{"Wefax288", 288, 675, 450, false, 120, 600},
@@ -48,7 +54,7 @@ faxParams _faxParams [] = {
 	                          myFrame (nullptr),
 	                          faxContainer (nullptr),
 	                          localMixer (rate),
-	                          faxBuffer (600) {
+	                          faxLineBuffer (600) {
 	theRate			= rate;
 	audioOut		= b;
 	faxSettings		= s;
@@ -99,9 +105,11 @@ int	k;
 	                       getFaxParams (iocSetter -> currentText ());
 	lpm			= myfaxParameters -> lpm;;
 	samplesperLine		= theRate * 60 / lpm;
-	faxBuffer. resize (6 * samplesperLine);
+	faxLineBuffer. resize (5 * samplesperLine);
+	checkBuffer. resize (samplesperLine);
 	fax_IOC			= myfaxParameters -> IOC;
 	numberofColums		= M_PI * fax_IOC;
+	numberofColums		= 800;
 	faxColor		= myfaxParameters -> color ?
 	                                    FAX_COLOR: FAX_BLACKWHITE;
 	carrier			= FAX_IF;	// default
@@ -137,6 +145,8 @@ int	k;
 	         this, SLOT (reset (void)));
 	connect (saveButton, SIGNAL (clicked (void)),
 	         this, SLOT (fax_setsavingonDone (void)));
+	connect (cheatButton, SIGNAL (clicked (void)),
+	         this, SLOT (fax_setCheat ()));
 	h		= s -> value ("fax_modeSetter", "FM"). toString ();
 	k		= modeSetter	-> findText (h);
 	if (k != -1)
@@ -165,12 +175,18 @@ bool	isWhite (int16_t x) {
 	return x > 128;
 }
 
+static inline
+bool	isBlack (int16_t x) {
+	return x < 128;
+}
+
 void	faxDecoder::reset	(void) {
 	faxState		= APTSTART;
 	showState	-> setText (QString ("APTSTART"));
 	aptCount		= 0;
 	apt_upCrossings		= 0;
 	whiteSide		= false;
+	savingRequested		= false;
 	pixelValue		= 0;
 	pixelSamples		= 0;
 	currentSampleIndex	= 0;
@@ -183,7 +199,7 @@ void	faxDecoder::reset	(void) {
 //
 static
 bool	inRange (int16_t x, int16_t y) {
-	return y - 15 <= x && x <= y + 15;
+	return y - 2 <= x && x <= y + 2;
 }
 
 #define	we_are_Black	(!whiteSide)
@@ -220,28 +236,30 @@ static	int cnt	= 0;
 	switch (faxState) {
 	   case	APTSTART:
 	      saveName		= "";
-	      savingRequested	= false;
 	      saveButton	-> setText ("Save");
 	      bufferP	= 0;
 	      showState	-> setText (QString ("APTSTART"));
-	      faxBuffer [bufferP] = sampleValue;
+	      faxLineBuffer [bufferP] = sampleValue;
 	      toRead --;
 	      bufferP ++;
 	      faxState	= WAITING_FOR_START;
 	      break;
 
 	   case WAITING_FOR_START:
-	      faxBuffer [bufferP] = sampleValue;
+	      faxLineBuffer [bufferP] = sampleValue;
 	      bufferP ++;
 	      if (bufferP >= samplesperLine) {
-	         if (checkStart (bufferP)) {
+	         if (checkStart (faxLineBuffer, samplesperLine)) {
 	            faxState = START_RECOGNIZED;
 	            toRead = 6 * samplesperLine;
 	            bufferP = 0;
 	         }
 	         else {
-	            shiftBuffer (samplesperLine / 10, faxBuffer. size ());
+	            for (int i = samplesperLine / 10; i < samplesperLine; i ++)
+	               faxLineBuffer [i - samplesperLine / 10] = 
+	                                       faxLineBuffer [i];
 	            bufferP -= samplesperLine / 10;
+//	            fprintf (stderr, "shifted to %d\n", bufferP);
 	         }
 	      }
 	      break;
@@ -250,33 +268,41 @@ static	int cnt	= 0;
 	      toRead --;
 	      if (toRead <= 0) {
 	         faxState = WAITING_FOR_PHASE;
-	         showState -> setText ("SYNCING");
+	         showState -> setText ("PHASING");
 	         alarmCount	= 0;
 	         bufferP = 0;
 	      }
 	      break;
 
 	   case WAITING_FOR_PHASE:
-	      faxBuffer [bufferP] = sampleValue;
+	      faxLineBuffer [bufferP] = sampleValue;
 	      bufferP ++;
-	      if (bufferP == faxBuffer. size () - 2) {
+	      if (bufferP == faxLineBuffer. size () - 2) {
 	         faxState = READ_PHASE;
 	      }
 	      break;
 
 	   case READ_PHASE:
-	      faxBuffer [bufferP] = sampleValue;
-	      baseP = checkPhase (0, 0.92);
+	      faxLineBuffer [bufferP] = sampleValue;
+	      baseP = checkPhase (faxLineBuffer, 0, 0.90);
+//	      fprintf (stderr, "baseP = %d\n", baseP);
 	      if (baseP >= 0) {
-	         bufferP 	= shiftBuffer (baseP, faxBuffer. size ());
-	         bufferP	= bufferP % samplesperLine;
+	         for (int i = baseP; i < samplesperLine; i ++)
+	            faxLineBuffer [i - baseP] = faxLineBuffer [i];
+	         bufferP	= samplesperLine - baseP;
+	         checkP		= 0;
 	         faxState	= SYNCED;
+	         showState -> setText ("ON SYNC");
 	         stoppers	= 0;
 	         linesRecognized = 0;
 	      }
 	      else {
-	         bufferP = shiftBuffer (samplesperLine, faxBuffer. size ());
+	         for (int i = samplesperLine; i < faxLineBuffer. size (); i ++)
+	            faxLineBuffer [i - samplesperLine] = 
+	                                faxLineBuffer [i];
+	         bufferP = faxLineBuffer. size () - samplesperLine - 1;
 	         alarmCount ++;
+//	         fprintf (stderr, "alarmcount %d\n", alarmCount);
 	         if (alarmCount >= 20)
 	            faxState = APTSTART;
 	         else
@@ -285,21 +311,31 @@ static	int cnt	= 0;
 	      break;
 
 	   case SYNCED:
-	      showState -> setText ("ON SYNC");
-	      faxBuffer [bufferP] = sampleValue;
+	      faxLineBuffer [bufferP] = sampleValue;
 	      bufferP = (bufferP + 1) % samplesperLine;
 	      if (bufferP == 0) {
-	         processBuffer ();
+	         processBuffer (faxLineBuffer);
 	         bufferP = 0;
 	         linesRecognized ++;
 	         lineNumber	-> display (linesRecognized);
 	         if (linesRecognized >= nrLines) {
-	            if (checkStop (samplesperLine))
-	               stoppers ++;
-	            else
-	               stoppers = 0;
-	            if (stoppers >= 2)
-	               faxState = FAX_DONE;
+	            checkBuffer [checkP ++] = sampleValue;
+	            if (checkP >= samplesperLine) {
+	               if (checkStop (checkBuffer, samplesperLine)) {
+	                  stoppers ++;
+	                  for (int i = samplesperLine / 10;
+	                              i < samplesperLine; i ++)
+	                     checkBuffer [i - samplesperLine / 10] =
+	                                       checkBuffer [i];
+	                  checkP -= samplesperLine / 10;
+	               }
+	               else {
+	                  checkP = 0;
+	                  stoppers = 0;
+	               }
+	               if (stoppers >= 2)
+	                  faxState = FAX_DONE;
+	            }
 	         }
 	         if (linesRecognized > nrLines + 50)
 	            faxState = FAX_DONE;
@@ -314,6 +350,7 @@ static	int cnt	= 0;
 
               if (savingRequested) {
 	         QFile outFile;
+	         saveName	= getSaveName ();
 	         outFile. setFileName (saveName);
 	         if (!outFile. open (QIODevice::WriteOnly)) {
 	            qDebug () << "Cannot open" << saveName;
@@ -346,99 +383,128 @@ static	int cnt	= 0;
 }
 
 static inline
-float	square (float f) {
-	return f * f;
+bool    isValid (QChar c) {
+        return c. isLetter () || c. isDigit () || (c == '-');
 }
+
+QString	faxDecoder::getSaveName	() {
+QString theTime = QDateTime::currentDateTime (). toString ();
+QString saveDir	= QDir::homePath ();
+
+	if ((saveDir != "") && (!saveDir. endsWith ('/')))
+	   saveDir = saveDir + '/';
+
+	QString fileName = "weatherFax-" + saveDir + "-" + theTime + ".png";
+	for (int i = 0; i < fileName. length (); i ++)
+	   if (!isValid (fileName. at (i)))
+	      fileName. replace (i,1, '-');
+
+	return fileName;
+}
+	
 //
 //	
-bool	faxDecoder::checkStart		(int length) {
+bool	faxDecoder::checkStart		(std::vector<int> &buffer,
+	                                 int length) {
 int	upCrossings = 0;
 std::vector<int> crossings (0);
 
 	for (int i = 1; i < length; i ++) {
-	   if (realBlack (faxBuffer [i - 1]) &&
-	       realWhite (faxBuffer [i])) {
+	   if (realBlack (buffer [i - 1]) &&
+	       realWhite (buffer [i])) {
 	       crossings . push_back (i);
+	       i ++;
 	       upCrossings ++;
 	   }
 	}
 
+//	fprintf (stderr, "crossings %d at %d\n", upCrossings, length);
+	if (!inRange (upCrossings, aptStartFreq * length / theRate))
+	   return false;
+
 	float 	error	= 0;
 	for (int i = 2; i < upCrossings; i ++) {
 	   int ff = crossings [i] - crossings [i - 1];
-	   error += square (theRate / aptStartFreq - ff);
+	   error += square (length / upCrossings - ff);
 	}
 
 	error	= sqrt (error);
-	if (!inRange (upCrossings, aptStartFreq * length / theRate))
-	   return false;
-	fprintf (stderr, "%f (%f)\n", error, error / upCrossings);
-	return error / upCrossings < 1.5;
+	fprintf (stderr, " %d %d %d %f\n",
+	                              aptStartFreq, length, upCrossings,
+	                                  error / upCrossings);
+	return error / upCrossings < 2.0;
 }
 
-
-int	faxDecoder::checkPhase		(int index, float threshold) {
-int	baseP	= findPhaseLine (0, samplesperLine, threshold);
+int	faxDecoder::checkPhase		(std::vector<int> &buffer,
+	                                 int index, float threshold) {
+int	baseP	= findPhaseLine (buffer, 0, samplesperLine, threshold);
 	(void)index;
 	if (baseP < 0)
 	   return -1;
-	if (!checkPhaseLine (baseP + samplesperLine, threshold))
+//	fprintf (stderr, "initial Phase %d\n", baseP);
+	if (!checkPhaseLine (buffer, baseP + samplesperLine, threshold))
 	   return -1;
-	if (!checkPhaseLine (baseP + 2 * samplesperLine, threshold))
+//	fprintf (stderr, "phaseline checked %d\n", baseP);
+	if (!checkPhaseLine (buffer, baseP + 2 * samplesperLine, threshold))
 	   return -1;
 	return baseP;
 }
 
-bool	faxDecoder::checkPhaseLine	(int index, float threshold) {
+bool	faxDecoder::checkPhaseLine	(std::vector<int> &buffer,
+	                                   int index, float threshold) {
 int	L1	= 2.5 * samplesperLine / 100;
 int	nrWhites	= 0;
 int	nrBlacks	= 0;
 
 	for (int i = 0; i < L1; i ++)
-	   if (realWhite (faxBuffer [index + i]) &&
-	       realWhite (faxBuffer [index + samplesperLine - i - 1]))
+	   if (realWhite (buffer [index + i]) &&
+	       realWhite (buffer [index + samplesperLine - i - 1]))
 	      nrWhites ++;
+	for (int i = L1; i < samplesperLine - L1; i ++)
+	   if (realBlack (buffer [index + i]))
+	      nrBlacks ++;
 	if (nrWhites < threshold * L1)
 	   return false;
-	for (int i = L1; i < samplesperLine - L1; i ++)
-	   if (realBlack (faxBuffer [index + i]))
-	      nrBlacks ++;
 	return nrBlacks > threshold * (0.95 * samplesperLine);
 }
 
-int	faxDecoder::findPhaseLine	(int ind, int end, float threshold) {
+int	faxDecoder::findPhaseLine	(std::vector<int> &buffer,
+	                                   int ind, int end, float threshold) {
 	for (int i = ind; i < end; i ++)
-	   if (checkPhaseLine (i, threshold))
+	   if (checkPhaseLine (buffer, i, threshold))
 	      return i;
 	return -1;
 }
 
 int	faxDecoder::nrBlanks		() {}
 
-int	faxDecoder::shiftBuffer		(int start, int end) {
-	(void)end;
-	for (int i = start; i < faxBuffer. size (); i ++)
-	   faxBuffer [i - start] = faxBuffer [i];
-	return faxBuffer. size () - start;
+int	faxDecoder::shiftBuffer		(std::vector<int> &buffer,
+	                                              int start, int end) {
+	for (int i = start; i < end; i ++)
+	   buffer [i - start] = buffer [i];
+	return end - start;
 }
 
-void	faxDecoder::processBuffer	() {
+void	faxDecoder::processBuffer	(std::vector<int> &buffer) {
 	for (int i = 0; i < samplesperLine; i ++)
-	   addtoImage (faxBuffer [i]);
+	   addtoImage (buffer [i]);
 }
 
-bool	faxDecoder::checkStop		(int length) {
+bool	faxDecoder::checkStop		(std::vector<int> &buffer,
+	                                               int length) {
 int	upCrossings = 0;
 std::vector<int> crossings (0);
 
 	for (int i = 1; i < length; i ++) {
-	   if (realBlack (faxBuffer [i - 1]) &&
-	       realWhite (faxBuffer [i])) {
+	   if (realBlack (buffer [i - 1]) &&
+	       realWhite (buffer [i])) {
 	       crossings . push_back (i);
 	       upCrossings ++;
 	   }
 	}
 
+	if (!inRange (upCrossings, aptStopFreq * length / theRate))
+	   return false;
 	float 	error	= 0;
 	for (int i = 2; i < upCrossings; i ++) {
 	   int ff = crossings [i] - crossings [i - 1];
@@ -446,10 +512,8 @@ std::vector<int> crossings (0);
 	}
 
 	error	= sqrt (error);
-	if (!inRange (upCrossings, aptStopFreq * length / theRate))
-	   return false;
-//	fprintf (stderr, "%f (%f)\n", error, error / upCrossings);
-	return error / upCrossings < 1.5;
+	fprintf (stderr, "%d %f (%f)\n", upCrossings, error, error / upCrossings);
+	return error / upCrossings < 2.0;
 }
 
 //
@@ -459,11 +523,11 @@ faxParams	*myfaxParameters	= getFaxParams (s);
 	locker. lock ();
 	fax_IOC			= myfaxParameters -> IOC;
 	numberofColums		= M_PI * fax_IOC;
+	numberofColums		= 800;
 	aptStartFreq		= myfaxParameters -> aptStart;
 	aptStopFreq		= myfaxParameters -> aptStop;
 	lpm			= myfaxParameters -> lpm;
 	samplesperLine		= theRate * 60 / lpm;
-	numberofColums		= M_PI * fax_IOC;
 	lastRow			= 100;	// will change
 	lastRow			= 100;
 	pixelValue		= 0;
@@ -525,14 +589,6 @@ int16_t	i;
 
 void    faxDecoder::fax_setsavingonDone (void) {
         savingRequested  = !savingRequested;
-	if (savingRequested)
-	   saveName =
-	          QFileDialog::getSaveFileName (nullptr,
-	                                        tr ("save file as .."),
-	                                        QDir::homePath (),
-	                                        tr ("Images (*.PNG)"));
-
-	if (saveName == "")
 	   savingRequested = false;
 	if (savingRequested)
 	   saveButton -> setText ("saving");
@@ -645,3 +701,22 @@ int32_t realRow = faxColor == FAX_COLOR ? row / 3 : row;
 	      currentColumn	= 0;
 	   }
 }
+
+void	faxDecoder::fax_setCheat () {
+	if (faxState == APTSTART) {
+	   showState -> setText ("ON SYNC");
+	   theImage	-> clear ();
+	   bufferP	= 0;
+	   lastRow	= 0;
+	   linesRecognized	= 0;
+	   checkP	= 0;
+	   faxState	= SYNCED;
+	   stoppers	= 0;
+	}
+	else {
+	   showState	-> setText (QString ("FAX_DONE"));
+	   faxState	= FAX_DONE;
+	}
+}
+
+
