@@ -91,6 +91,16 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
+      <widget class="QPushButton" name="correctButton">
+       <property name="text">
+        <string>correct</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="sampleCorrection"/>
+     </item>
+     <item>
       <widget class="QComboBox" name="deviationSetter">
        <item>
         <property name="text">
@@ -134,12 +144,19 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QPushButton" name="saveButton">
+      <widget class="QPushButton" name="saveContinuousButton">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save the picture when the end is reached. A menu will apear at the end with which a file(name) can be selected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
-        <string>save on Done</string>
+        <string>save Cont</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveSingleButton">
+       <property name="text">
+        <string>saveSingle</string>
        </property>
       </widget>
      </item>

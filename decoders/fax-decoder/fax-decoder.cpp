@@ -1,20 +1,16 @@
 #
 /*
- *    Copyright (C) 2011, 2012, 2013
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
- *    
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    SDR-J is distributed in the hope that it will be useful,
+ *   
+ *    fax decoder is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with fax-decoder; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include	<QFile>
@@ -65,6 +61,9 @@ faxParams _faxParams [] = {
 	faxContainer. show ();
 	deviation		= 400;
 	setup_faxDecoder	(faxSettings);
+	saveContinuous		= false;
+	saveSingle		= false;
+	correcting. store (false);
 }
 
 	faxDecoder::~faxDecoder (void) {
@@ -108,18 +107,16 @@ int	k;
 	faxLineBuffer. resize (5 * samplesperLine);
 	checkBuffer. resize (samplesperLine);
 	fax_IOC			= myfaxParameters -> IOC;
-	numberofColums		= M_PI * fax_IOC;
-	numberofColums		= 800;
+	numberofColumns		= M_PI * fax_IOC;
 	faxColor		= myfaxParameters -> color ?
 	                                    FAX_COLOR: FAX_BLACKWHITE;
 	carrier			= FAX_IF;	// default
 	phaseInvers		= false;
 	lastRow			= 100;	// will change
-	theImage		= new faxImage	(numberofColums, lastRow);
+	theImage		= new faxImage	(numberofColumns, lastRow);
 	rawData. resize (1024 * 1024);
 //
 	faxState		= APTSTART;
-	savingRequested		= false;
 	apt_upCrossings		= 0;
 	whiteSide		= false;
 	pixelValue		= 0;
@@ -143,8 +140,12 @@ int	k;
 	         this, SLOT (fax_setPhase (const QString &)));
 	connect (resetButton, SIGNAL (clicked (void)),
 	         this, SLOT (reset (void)));
-	connect (saveButton, SIGNAL (clicked (void)),
-	         this, SLOT (fax_setsavingonDone (void)));
+	connect (saveContinuousButton, SIGNAL (clicked (void)),
+	         this, SLOT (fax_setsaveContinuous (void)));
+	connect (saveSingleButton, SIGNAL (clicked (void)),
+	         this, SLOT (fax_setsaveSingle (void)));
+	connect (correctButton, SIGNAL (clicked ()),
+	         this, SLOT (fax_setCorrection ()));
 	connect (cheatButton, SIGNAL (clicked (void)),
 	         this, SLOT (fax_setCheat ()));
 	h		= s -> value ("fax_modeSetter", "FM"). toString ();
@@ -186,13 +187,41 @@ void	faxDecoder::reset	(void) {
 	aptCount		= 0;
 	apt_upCrossings		= 0;
 	whiteSide		= false;
-	savingRequested		= false;
+	saveContinuous		= false;
+	saveContinuousButton	-> setText ("save Cont");
+	saveSingle		= false;
+	saveSingleButton	-> setText ("save Single");
+	setCorrection		= false;
 	pixelValue		= 0;
 	pixelSamples		= 0;
 	currentSampleIndex	= 0;
 	rawData. resize (1024 * 1024);
 	theImage	-> clear	();
 	fax_displayImage	(theImage	-> getImage ());
+}
+
+void	faxDecoder::fax_setsaveContinuous () {
+	saveContinuous = !saveContinuous;
+	saveContinuousButton -> setText (
+	                  saveContinuous ? "Saving" : "save Cont");
+	if (saveContinuous && saveSingleButton)
+	   fax_setsaveSingle ();
+	if (saveContinuous)
+	   setCorrection = false;
+}
+
+void	faxDecoder::fax_setsaveSingle () {
+	saveSingle = !saveSingle;
+	saveSingleButton -> setText (
+	                  saveSingle ? "Saving" : "save Single");
+	if (saveContinuous && saveSingleButton)
+	   fax_setsaveContinuous ();
+}
+
+void	faxDecoder::fax_setCorrection	() {
+	setCorrection = !setCorrection;
+	if (setCorrection && saveContinuous)
+	   fax_setsaveContinuous ();
 }
 //
 //	as always, we "process" one sample at the time.
@@ -211,6 +240,8 @@ static	std::complex<float> prevSample = std::complex<float> (0, 0);
 static float avgOffset = 0;
 static	int cnt	= 0;
 
+	if (correcting. load ())
+	   return;
 	locker. lock ();
 	z	= localMixer. do_shift (z, carrier);
         z	= faxLowPass    -> Pass (z);
@@ -236,7 +267,6 @@ static	int cnt	= 0;
 	switch (faxState) {
 	   case	APTSTART:
 	      saveName		= "";
-	      saveButton	-> setText ("Save");
 	      bufferP	= 0;
 	      showState	-> setText (QString ("APTSTART"));
 	      faxLineBuffer [bufferP] = sampleValue;
@@ -291,6 +321,7 @@ static	int cnt	= 0;
 	            faxLineBuffer [i - baseP] = faxLineBuffer [i];
 	         bufferP	= samplesperLine - baseP;
 	         checkP		= 0;
+	         currentSampleIndex	= 0;
 	         faxState	= SYNCED;
 	         showState -> setText ("ON SYNC");
 	         stoppers	= 0;
@@ -313,30 +344,37 @@ static	int cnt	= 0;
 	   case SYNCED:
 	      faxLineBuffer [bufferP] = sampleValue;
 	      bufferP = (bufferP + 1) % samplesperLine;
+	      if (linesRecognized > nrLines + 20) {
+	         checkBuffer [checkP] = sampleValue;
+	         checkP ++;
+	         if (checkP >= samplesperLine) {
+	            if (checkStop (checkBuffer, samplesperLine)) {
+	               stoppers ++;
+	               for (int i = samplesperLine / 10;
+	                          i < samplesperLine; i ++)
+	                  checkBuffer [i - samplesperLine / 10] =
+	                                       checkBuffer [i];
+	               checkP -= samplesperLine / 10;
+	            }
+	            else 
+	               stoppers = 0;
+
+	            if (stoppers >= 4)
+	              faxState = FAX_DONE;
+	            break;
+	         }
+	      }
 	      if (bufferP == 0) {
-	         processBuffer (faxLineBuffer);
+	         if ((int32_t) (rawData. size ()) <= currentSampleIndex +
+                                                           samplesperLine)
+	            rawData. resize (rawData. size () + 1024 * 1024);
+
+                 for (int i = 0; i < samplesperLine; i ++)
+                    rawData [currentSampleIndex ++]     = faxLineBuffer [i];
+                 processBuffer (faxLineBuffer, linesRecognized, samplesperLine);
 	         bufferP = 0;
 	         linesRecognized ++;
 	         lineNumber	-> display (linesRecognized);
-	         if (linesRecognized >= nrLines) {
-	            checkBuffer [checkP ++] = sampleValue;
-	            if (checkP >= samplesperLine) {
-	               if (checkStop (checkBuffer, samplesperLine)) {
-	                  stoppers ++;
-	                  for (int i = samplesperLine / 10;
-	                              i < samplesperLine; i ++)
-	                     checkBuffer [i - samplesperLine / 10] =
-	                                       checkBuffer [i];
-	                  checkP -= samplesperLine / 10;
-	               }
-	               else {
-	                  checkP = 0;
-	                  stoppers = 0;
-	               }
-	               if (stoppers >= 2)
-	                  faxState = FAX_DONE;
-	            }
-	         }
 	         if (linesRecognized > nrLines + 50)
 	            faxState = FAX_DONE;
 	      }
@@ -348,24 +386,8 @@ static	int cnt	= 0;
                                 0,
                                 faxColor == FAX_COLOR ? lastRow / 3 : lastRow);
 
-              if (savingRequested) {
-	         QFile outFile;
-	         saveName	= getSaveName ();
-	         outFile. setFileName (saveName);
-	         if (!outFile. open (QIODevice::WriteOnly)) {
-	            qDebug () << "Cannot open" << saveName;
-	            fprintf (stderr, "Could not open %s for writing\n",
-	                                     saveName. toLatin1 (). data ());
-	         }
-	         else {
-	            QImage localImage	= theImage -> getImage ();
-	            fprintf (stderr, "height = %d\n",
-	                                      localImage. height ());
-	            localImage. save (&outFile, "PNG");
-	            fprintf (stderr, "file %s geschreven\n",
-	                                  saveName. toLatin1 (). data ());
-	            outFile. close ();
-	         }
+              if (saveContinuous) {
+	         saveImage_auto ();
 	      }
 	      faxState	= WAITER;
 	      toRead	= 10 * samplesperLine;
@@ -373,8 +395,17 @@ static	int cnt	= 0;
 
 	   case WAITER:
 	      toRead --;
-	      if (toRead <= 0)
+	      if (saveContinuous && (toRead <= 0))
 	         faxState = APTSTART;
+	      else
+	      if (!saveContinuous && setCorrection) {
+	         doCorrection (sampleCorrection -> value ());
+	         setCorrection = false;
+	      }
+	      if (!saveContinuous && saveSingle) {
+                 saveImage_single ();
+                 saveSingle = false;
+              }
 	      break;
 
 	   default:		// cannot happen
@@ -401,7 +432,6 @@ QString saveDir	= QDir::homePath ();
 
 	return fileName;
 }
-	
 //
 //	
 bool	faxDecoder::checkStart		(std::vector<int> &buffer,
@@ -485,9 +515,49 @@ int	faxDecoder::shiftBuffer		(std::vector<int> &buffer,
 	return end - start;
 }
 
-void	faxDecoder::processBuffer	(std::vector<int> &buffer) {
-	for (int i = 0; i < samplesperLine; i ++)
-	   addtoImage (buffer [i]);
+void	faxDecoder::processBuffer	(std::vector<int> &buffer,
+	                                            int currentRow,
+	                                            int samplesperLine) {
+int	currentColumn	= 0;
+int	pixelSamples	= 0;
+float	pixelValue	= 0;
+
+	for (int samplenum = 0; samplenum < samplesperLine; samplenum ++) {
+	   int x = buffer [samplenum];
+	   float temp	= (float)numberofColumns / samplesperLine;
+	   int	columnforSample	=
+	        floor ((float)samplenum / samplesperLine * numberofColumns);
+	   if (columnforSample == currentColumn) { // still dealing with the same pixel
+	      if (temp * numberofColumns > currentColumn) {	// partial contribution
+	         float part_0, part_1;
+// part 0 is for this pixel
+	         part_0 = temp * numberofColumns - currentColumn;
+// and part_1 is for the next one
+	         part_1		= (1 - (temp * numberofColumns - currentColumn));
+	         pixelValue	+= part_0 * x;
+	         pixelSamples 	+= part_0;
+	         addPixeltoImage (pixelValue / pixelSamples,
+	                               currentColumn, currentRow);
+	         currentColumn ++;
+	         pixelValue	= part_1 * x;
+	         pixelSamples	= part_1;
+	         continue;
+	      }
+
+	      pixelValue	+= x;
+	      pixelSamples	++;
+	      continue;
+	   }
+//
+//	we expect here currentCol > currentColumn
+	   if (pixelSamples > 0) 	// simple "assertion"
+	      addPixeltoImage (pixelValue / pixelSamples,
+	                         currentColumn, currentRow);
+
+	   currentColumn	= columnforSample;
+	   pixelValue		= x;
+	   pixelSamples		= 1;
+	}
 }
 
 bool	faxDecoder::checkStop		(std::vector<int> &buffer,
@@ -522,8 +592,7 @@ void	faxDecoder::fax_setIOC	(const QString &s) {
 faxParams	*myfaxParameters	= getFaxParams (s);
 	locker. lock ();
 	fax_IOC			= myfaxParameters -> IOC;
-	numberofColums		= M_PI * fax_IOC;
-	numberofColums		= 800;
+	numberofColumns		= M_PI * fax_IOC;
 	aptStartFreq		= myfaxParameters -> aptStart;
 	aptStopFreq		= myfaxParameters -> aptStop;
 	lpm			= myfaxParameters -> lpm;
@@ -535,7 +604,7 @@ faxParams	*myfaxParameters	= getFaxParams (s);
 	faxState		= APTSTART;
 	delete theImage;
 	delete theImage;
-	theImage             = new faxImage  (numberofColums, lastRow);
+	theImage             = new faxImage  (numberofColumns, lastRow);
 	rawData. resize (1024 * 1024);
 	theImage     -> clear        ();
 	fax_displayImage     (theImage       -> getImage ());
@@ -587,15 +656,6 @@ int16_t	i;
 	return NULL;
 }
 
-void    faxDecoder::fax_setsavingonDone (void) {
-        savingRequested  = !savingRequested;
-	   savingRequested = false;
-	if (savingRequested)
-	   saveButton -> setText ("saving");
-	else
-	   saveButton -> setText ("Save");
-}
-
 void	faxDecoder::fax_setDeviation	(const QString &s) {
 int	newIF;
 int	newDeviation;
@@ -638,58 +698,9 @@ int	newDeviation;
  *	position of sample in current column =
  *	       samplenumber in current line / number of samples per Line * x
  *
- *
- *	What we really want is to distribute the value of the sample
- *	over the pixels it belongs to!!!
  */
-void	faxDecoder::addtoImage (int16_t x) {
-int32_t		samplenum	= currentSampleIndex % samplesperLine;
-float		temp		= (float)samplenum / samplesperLine;
-int32_t		columnforSample	= floor (temp * numberofColums);
-int32_t		currentRow	= (int32_t)
-	                             (currentSampleIndex * lpm / 60.0 / theRate);
-//
-//	First check to see whether there is space to store the sample
-	if ((int32_t) (rawData. size ()) <= currentSampleIndex) 
-	   rawData. resize (rawData. size () + 1024 * 1024);
-	rawData [currentSampleIndex ++]	= x;
-//
-//	A sample may contribute to more than one pixel. E.g., for a samplerate
-//	of 8000, and an IOC of 576, there are 4.42 samples contributing.
-//	We therefore look for the partial contribution of the first
-//	and the last sample for a pixel
-	if (columnforSample == currentColumn) { // still dealing with the same pixel
-	   if (temp * numberofColums > currentColumn) {	// partial contribution
-	      float part_0, part_1;
-	      part_0 = temp * numberofColums - currentColumn; // for this pixel
-					// and part_1 is for the next one
-	      part_1 = (1 - (temp * numberofColums - currentColumn));
-	      pixelValue	+= part_0 * x;
-	      pixelSamples 	+= part_0;
-	      addSampletoImage (pixelValue / pixelSamples,
-	                            currentColumn, currentRow);
-	      currentColumn ++;
-	      pixelValue	= part_1 * x;
-	      pixelSamples	= part_1;
-	      return;
-	   }
 
-	   pixelValue	+= x;
-	   pixelSamples	++;
-	   return;
-	}
-//
-//	we expect here currentCol > currentColumn
-	if (pixelSamples > 0) 	// simple "assertion"
-	   addSampletoImage (pixelValue / pixelSamples,
-	                         currentColumn, currentRow);
-
-	currentColumn		= columnforSample;
-	pixelValue		= x;
-	pixelSamples		= 1;
-}
-
-void	faxDecoder::addSampletoImage (float val, int32_t col, int32_t row) {
+void	faxDecoder::addPixeltoImage (float val, int32_t col, int32_t row) {
 int32_t realRow = faxColor == FAX_COLOR ? row / 3 : row;
 
 	   theImage -> setPixel (col, realRow, val,
@@ -703,7 +714,8 @@ int32_t realRow = faxColor == FAX_COLOR ? row / 3 : row;
 }
 
 void	faxDecoder::fax_setCheat () {
-	if (faxState == APTSTART) {
+	fprintf (stderr, "faxstate = %d\n", faxState);
+	if (faxState != FAX_DONE) {
 	   showState -> setText ("ON SYNC");
 	   theImage	-> clear ();
 	   bufferP	= 0;
@@ -719,4 +731,76 @@ void	faxDecoder::fax_setCheat () {
 	}
 }
 
+void	faxDecoder::doCorrection	(int offset) {
+int sampleTeller	= 0;
+std::vector<int> lineBuffer;
+int	lineno		= 0;
+int	lineSamples = samplesperLine + offset;
+int maxi = lineSamples > samplesperLine ? lineSamples : samplesperLine;
+
+	if ((faxState != WAITER) && (faxState != FAX_DONE))
+	   return;
+	theImage	-> clear ();
+
+	lineBuffer.resize (maxi);
+	correcting. store(true);
+	while (sampleTeller < currentSampleIndex + maxi) {
+	   if ((lineno % 10) != 0) {
+	      for (int i = 0; i < samplesperLine; i ++) 
+	         lineBuffer [i] = rawData [sampleTeller ++];
+	      processBuffer (lineBuffer, lineno, samplesperLine);
+	   }
+	   else
+	      for (int i = 0; i < lineSamples; i ++) {
+	         lineBuffer [i] = rawData [sampleTeller ++];
+	      processBuffer (lineBuffer, lineno, lineSamples);
+	   }
+	   lineno ++;
+	}
+	correcting. store (false);
+}
+
+void	faxDecoder::saveImage_auto () {
+QFile outFile;
+QString saveName	= getSaveName ();
+
+	outFile. setFileName (saveName);
+	if (!outFile. open (QIODevice::WriteOnly)) {
+	   qDebug () << "Cannot open" << saveName;
+	   fprintf (stderr, "Could not open %s for writing\n",
+	                                saveName. toLatin1 (). data ());
+	   return;
+	}
+
+	QImage localImage	= theImage -> getImage ();
+	fprintf (stderr, "height = %d\n", localImage. height ());
+	localImage. save (&outFile, "PNG");
+	fprintf (stderr, "file %s written\n",
+	                                  saveName. toLatin1 (). data ());
+	outFile. close ();
+}
+
+void	faxDecoder::saveImage_single () {
+QFile outFile;
+QString saveName = 
+	saveName = QFileDialog::getSaveFileName (nullptr,
+                                                 tr ("save file as .."),
+                                                 QDir::homePath (),
+                                                 tr ("Images (*.png)"));
+
+	outFile. setFileName (saveName);
+	if (!outFile. open (QIODevice::WriteOnly)) {
+	   qDebug () << "Cannot open" << saveName;
+	   fprintf (stderr, "Could not open %s for writing\n",
+	                                saveName. toLatin1 (). data ());
+	   return;
+	}
+
+	QImage localImage	= theImage -> getImage ();
+	fprintf (stderr, "height = %d\n", localImage. height ());
+	localImage. save (&outFile, "PNG");
+	fprintf (stderr, "file %s written\n",
+	                                  saveName. toLatin1 (). data ());
+	outFile. close ();
+}
 

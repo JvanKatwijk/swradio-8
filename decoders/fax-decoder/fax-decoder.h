@@ -90,8 +90,7 @@ private:
 	faxScroller	faxContainer;
 	void		fax_displayImage	(QImage, int, int);
         void		fax_displayImage	(QImage);
-	void		addtoImage		(int16_t);
-        void            addSampletoImage        (float, int32_t, int32_t);
+        void            addPixeltoImage		(float, int32_t, int32_t);
 	faxImage	*theImage;
 	QString		saveName;
 	QString		getSaveName		();
@@ -104,7 +103,9 @@ private slots:
 	void		fax_setPhase		(const QString &);
 	void		fax_setColor		(const QString &);
 	void		fax_setDeviation	(const QString &);
-	void		fax_setsavingonDone	();
+	void		fax_setsaveContinuous	();
+	void		fax_setsaveSingle	();
+	void		fax_setCorrection	();
 	void		fax_setCheat		();
 private:
 	bool		checkStart		(std::vector<int>&, int);
@@ -112,9 +113,13 @@ private:
 	bool		checkPhaseLine		(std::vector<int>&, int, float);
 	int		findPhaseLine		(std::vector<int> &, int, int, float);
 	int		nrBlanks		();
-	int		shiftBuffer		(std::vector<int> &, int, int);
-	void		processBuffer		(std::vector<int>&);
+	int		shiftBuffer		(std::vector<int>&, int, int);
+	void		processBuffer		(std::vector<int>&, int, int);
 	bool		checkStop		(std::vector<int>&, int);
+	void		doCorrection		(int);
+	void		saveImage_auto		();
+	void		saveImage_single	();
+	std::atomic<bool> correcting;
 	int		toRead;
 	int		alarmCount;
 	mutex		locker;
@@ -139,7 +144,7 @@ private:
 	int16_t		carrier;
 	uint8_t		faxMode;
 	int32_t		samplesperLine;
-	int16_t		numberofColums;
+	int16_t		numberofColumns;
 	int16_t		currentColumn;
 	int		nrLines;
 	int16_t		lastRow;
@@ -151,7 +156,9 @@ private:
 	int		checkP;
 	int		bufferSize;
 	int		linesRecognized;
-	bool		savingRequested;
+	bool		saveContinuous;
+	bool		saveSingle;
+	bool		setCorrection;
 	int		stoppers;
 };
 
