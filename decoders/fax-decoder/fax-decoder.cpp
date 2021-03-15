@@ -524,7 +524,8 @@ float	pixelValue	= 0;
 
 	for (int samplenum = 0; samplenum < samplesperLine; samplenum ++) {
 	   int x = buffer [samplenum];
-	   float temp	= (float)numberofColumns / samplesperLine;
+	   int totalIndex = currentRow * samplesperLine + samplenum;
+	   float temp	= (float)(totalIndex) / samplesperLine;
 	   int	columnforSample	=
 	        floor ((float)samplenum / samplesperLine * numberofColumns);
 	   if (columnforSample == currentColumn) { // still dealing with the same pixel
