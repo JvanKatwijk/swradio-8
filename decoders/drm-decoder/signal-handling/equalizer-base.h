@@ -57,8 +57,8 @@ protected:
 	float		meanEnergy;
 	int16_t		nrCells;
 	void		init_gain_ref_cells	(void);
-	int16_t		gain_ref_cells_k	[750];
-	DSPCOMPLEX	gain_ref_cells_v	[750];
+//	int16_t		gain_ref_cells_k	[750];
+//	DSPCOMPLEX	gain_ref_cells_v	[750];
 };
 
 #endif

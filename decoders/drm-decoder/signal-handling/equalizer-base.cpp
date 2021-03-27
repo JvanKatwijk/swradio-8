@@ -70,9 +70,9 @@ int16_t	totalCount	= 0;
 	   for (carrier = K_min; carrier <= K_max; carrier ++) {
 	      totalCount ++;
 	      if (isPilotCell (Mode, symbol, carrier)) {
-	         gain_ref_cells_k [cellCount] = carrier + prevCarriers;
-	         gain_ref_cells_v [cellCount ++] =
-	                 getPilotValue (Mode, Spectrum, symbol, carrier);
+//	         gain_ref_cells_k [cellCount] = carrier + prevCarriers;
+//	         gain_ref_cells_v [cellCount ++] =
+//	                 getPilotValue (Mode, Spectrum, symbol, carrier);
 	
 	         mean_energy += 
 	                 abs (getPilotValue (Mode, Spectrum, symbol, carrier)) *

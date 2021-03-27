@@ -117,8 +117,8 @@ uint8_t	bits_1 [stream_1 -> highBits () + stream_1 -> lowBits ()];
 
 metrics Y0	[2 * theState -> muxSize];
 metrics Y1	[2 * theState -> muxSize];
-uint8_t	level_0	[theState -> muxSize];
-uint8_t	level_1	[theState -> muxSize];
+uint8_t	level_0	[2 * theState -> muxSize];
+uint8_t	level_1	[2 * theState -> muxSize];
 //
 //	First the "normal" decoding. leading to two bit rows
 	myDecoder. computemetrics (v, theState -> muxSize, 0, Y0,
