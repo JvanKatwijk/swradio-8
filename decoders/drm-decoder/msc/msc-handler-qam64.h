@@ -28,13 +28,15 @@
 #include	"basics.h"
 #include	"qam64-metrics.h"
 
+class	drmDecoder;
 class	stateDescriptor;
 class	MSC_streamer;
 class	Mapper;
 
 class	QAM64_SM_Handler : public mscHandler {
 public:
-		QAM64_SM_Handler	(stateDescriptor *, int8_t);
+		QAM64_SM_Handler	(drmDecoder *,
+	                                 stateDescriptor *, int8_t);
 		~QAM64_SM_Handler	(void);
 	void	process			(theSignal *, uint8_t *);
 private:

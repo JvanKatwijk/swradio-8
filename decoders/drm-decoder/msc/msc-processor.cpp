@@ -63,22 +63,22 @@
 	if (QAMMode == QAM64) {
 	   switch (mscMode) {
 	      case stateDescriptor::SM:
-	         my_mscHandler = new QAM64_SM_Handler (theState,
+	         my_mscHandler = new QAM64_SM_Handler (drmMaster, theState,
 	                                               qam64Roulette);
 	         break;
 
 	      default:  
 	         fprintf (stderr, "not implemented yet\n");
-	         my_mscHandler = new QAM64_SM_Handler  (theState,
+	         my_mscHandler = new QAM64_SM_Handler  (drmMaster, theState,
 	                                                qam64Roulette);
 	         break;
 	   }
 	}
 	else
 	if (QAMMode == QAM16) 	// mscMode == SM
-	   my_mscHandler	= new QAM16_SM_Handler (theState);
+	   my_mscHandler	= new QAM16_SM_Handler (drmMaster, theState);
 	else
-	   my_mscHandler	= new mscHandler (theState);
+	   my_mscHandler	= new mscHandler (drmMaster, theState);
 	bufferP		= 0;
 }
 

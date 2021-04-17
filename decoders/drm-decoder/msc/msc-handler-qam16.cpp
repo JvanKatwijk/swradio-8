@@ -23,6 +23,7 @@
 //
 //	the real msc work is to be done by descendants of the mscHandler
 //
+#include	"drm-decoder.h"
 #include	"msc-handler-qam16.h"
 #include	"msc-streamer.h"
 #include	"state-descriptor.h"
@@ -30,12 +31,15 @@
 #include	"basics.h"
 #include	"prbs.h"
 #include	"protlevels.h"
+
+#include	"mer16-values.h"
 //
 //	For each of the "levels" (qam16 => 2 levels), we create a
 //	separate handler. From "samples to bitstreams" is done here
 //	as is the bit-deinterleaving
-	QAM16_SM_Handler::QAM16_SM_Handler	(stateDescriptor *theState):
-	                                             mscHandler (theState),
+	QAM16_SM_Handler::QAM16_SM_Handler	(drmDecoder *m,
+	                                         stateDescriptor *theState):
+	                                             mscHandler (m, theState),
 	                                             myDecoder () {
 int16_t	RYlcm, i;
 float	denom;
@@ -43,7 +47,6 @@ float	denom;
 //	apply the formula from page 112 (section 7.2.1.1) to determine
 //	the number of QAM cells in the A part, then the number of QAM cells
 //	in the lower protected part (the B part) follows
-
 	this	-> theState	= theState;
 	lengthA		= 0;
 
@@ -119,7 +122,11 @@ metrics Y0	[2 * theState -> muxSize];
 metrics Y1	[2 * theState -> muxSize];
 uint8_t	level_0	[2 * theState -> muxSize];
 uint8_t	level_1	[2 * theState -> muxSize];
-//
+
+mer16_compute	computeMER;
+float	mer	= 10 * log10 (computeMER. computemer (v, theState -> muxSize));
+	show_mer (mer);
+	
 //	First the "normal" decoding. leading to two bit rows
 	myDecoder. computemetrics (v, theState -> muxSize, 0, Y0,
 	                                   false, level_0, level_1);

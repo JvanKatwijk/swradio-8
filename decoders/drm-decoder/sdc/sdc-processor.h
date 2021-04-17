@@ -82,5 +82,6 @@ private:
 signals:
 	void		show_stationLabel (const QString &, int);
 	void		show_timeLabel	(const QString &);
+	void		show_mer	(float);
 };
 #endif

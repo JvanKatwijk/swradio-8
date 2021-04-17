@@ -22,6 +22,7 @@
  */
 #
 //
+#include	"drm-decoder.h"
 #include	"msc-handler-qam64.h"
 #include	"msc-streamer.h"
 #include	"state-descriptor.h"
@@ -32,11 +33,14 @@
 #include	"prbs.h"
 #include	"protlevels.h"
 
+#include	"mer64-values.h"
+
 //	In order to handle the A and B levels, we create a
 //	separate processor ("streamer") for the A and B parts of the stream.
-	QAM64_SM_Handler::QAM64_SM_Handler	(stateDescriptor *theState,
+	QAM64_SM_Handler::QAM64_SM_Handler	(drmDecoder *m,
+	                                         stateDescriptor *theState,
 	                                         int8_t		qam64Roulette):
-	                                          mscHandler (theState),
+	                                          mscHandler (m, theState),
 	                                          myDecoder () {
 int16_t	N1, N2;
 int16_t	RYlcm, i;
@@ -140,6 +144,10 @@ uint8_t	level_0 [2 * theState -> muxSize];
 uint8_t	level_1 [2 * theState -> muxSize];
 uint8_t	level_2 [2 * theState -> muxSize];
 
+mer64_compute computeMER;
+float mer = 10 * log10 (computeMER. computemer (v, theState -> muxSize));
+        show_mer (mer);
+	
 	for (i = 0; i < qam64Roulette; i ++) {
 	   myDecoder. computemetrics (v, theState -> muxSize,
 	                                   0, Y0,

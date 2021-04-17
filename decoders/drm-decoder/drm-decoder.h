@@ -103,6 +103,8 @@ public slots:
 	void		show_programType	(QString);
 	void		show_time		(QString);
 	void		show_datacoding		(QString);
+	void		show_mer_sdc		(float);
+	void		show_mer_msc		(float);
 
 private slots:
 	void		executeTimeSync		(bool);
@@ -119,6 +121,7 @@ private slots:
 	void		selectChannel_4		(void);
 
 	void		set_phaseOffset		(int);
+
 
 signals:
 	void		audioAvailable		(int, int);

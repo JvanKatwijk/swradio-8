@@ -23,24 +23,30 @@
 #ifndef	__MSC_HANDLERS__
 #define	__MSC_HANDLERS__
 
+#include	<QObject>
 #include	"radio-constants.h"
 #include	"basics.h"
 #include	<cstring>
 
+class	drmDecoder;
 class	stateDescriptor;
 class	prbs;
 //
 //	empty base class for the different msc Handlers
 
-class	mscHandler {
+class	mscHandler : public QObject {
+Q_OBJECT
 public:
-		mscHandler 	(stateDescriptor *);
-virtual		~mscHandler	(void);
+		mscHandler 	(drmDecoder *, stateDescriptor *);
+virtual		~mscHandler	();
 virtual	void	process		(theSignal *, uint8_t *);
 protected:
+	drmDecoder	*master;
 	stateDescriptor	*theState;
 	int16_t		muxLength;
 	prbs		*thePRBS;
+signals:
+	void		show_mer	(float);
 };
 #endif
 

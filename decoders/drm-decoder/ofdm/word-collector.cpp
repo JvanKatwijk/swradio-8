@@ -137,6 +137,8 @@ float	timeOffsetFractional;
 //
 //	The getWord as below is used in the main loop, to obtain
 //	a next ofdm word
+static float theOffset	= 0;
+
 void	wordCollector::getWord (std::complex<float>	*out,
 	                        int32_t		initialFreq,
 	                        bool		firstTime,
@@ -146,11 +148,18 @@ void	wordCollector::getWord (std::complex<float>	*out,
 std::complex<float>	temp [Ts];
 	buffer		-> waitfor (Ts + Ts / 2);
 
-	float tt		= get_timeOffset (24, 8);
-	int timeOffsetInteger	= floor (tt + 0.5);
-	offsetFractional	= tt - timeOffsetInteger;
-	int f	= (int)(floor (buffer -> currentIndex + 
-	                              timeOffsetInteger)) & bufMask;
+	int f	= buffer -> currentIndex;
+
+	theOffset	+= clockOffset;
+	if (theOffset < 0) {
+	   theOffset += 1;
+	   f --;
+	}
+	if (theOffset >= 1) {
+	   theOffset -= 1;
+	   f ++;
+	}
+
 //	just linear interpolation
 	for (int i = 0; i < Ts; i ++) {
 	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
@@ -186,7 +195,6 @@ std::complex<float>	temp [Ts];
 	   show_fineOffset	(- offset / 100);
 	   show_angle		(angle);
 	   show_timeOffset	(offsetFractional);
-	   show_timeDelay	(timeOffsetInteger);
 	   show_clockOffset	(Ts * clockOffset);
 	}
 

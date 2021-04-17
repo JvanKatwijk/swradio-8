@@ -33,7 +33,7 @@ class	Mapper;
 
 class	QAM16_SM_Handler : public mscHandler {
 public:
-		QAM16_SM_Handler	(stateDescriptor *);
+		QAM16_SM_Handler	(drmDecoder *, stateDescriptor *);
 		~QAM16_SM_Handler	(void);
 	void	process			(theSignal *, uint8_t *);
 private:

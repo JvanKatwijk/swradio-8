@@ -380,3 +380,11 @@ void	drmDecoder::show_datacoding	(QString s) {
 	datacoding -> setText (s);
 }
 
+void	drmDecoder::show_mer_sdc	(float f) {
+	mer_sdc -> display (f);
+}
+
+void	drmDecoder::show_mer_msc	(float f) {
+	mer_msc	-> display (f);
+}
+

@@ -31,6 +31,9 @@
 #include	"qam16-metrics.h"
 #include	"qam4-metrics.h"
 #include	"viterbi-drm.h"
+
+#include	"mer4-values.h"
+#include	"mer16-values.h"
 //
 //	the "processor" for extracting the SDC values from the
 //	(first) frame of a superframe encoded in QAM4/QAM16
@@ -86,6 +89,9 @@ int16_t	index;
 	         master, SLOT (show_stationLabel (const QString &, int)));
 	connect (this, SIGNAL (show_timeLabel    (const QString &)),
 	         master, SLOT (show_timeLabel    (const QString &)));
+	connect (this, SIGNAL (show_mer (float)),
+	         master, SLOT (show_mer_sdc (float)));
+
 	rmFlag	= theState	-> RMflag;
 	SDCmode	= theState	-> sdcMode;
 	qammode	= (rmFlag == 0 && SDCmode == 0) ? QAM16 : QAM4;
@@ -141,6 +147,9 @@ bool	sdcProcessor::processSDC_QAM4 (theSignal *v) {
 uint8_t sdcBits [4 + stream_0 -> lengthOut ()];
 metrics	rawBits [2 * nrCells];
 uint8_t	reconstructed [2 * nrCells];
+mer4_compute   computeMER;
+float   mer     = 10 * log10 (computeMER. computemer (v, nrCells));
+        show_mer (mer);
 
 	my_qam4_metrics -> computemetrics (v, nrCells, rawBits);
 	stream_0	-> handle_stream (rawBits, reconstructed,
@@ -165,6 +174,9 @@ metrics Y1_stream	[2 * nrCells];
 uint8_t level_0		[2 * nrCells];
 uint8_t level_1		[2 * nrCells];
 int16_t i;
+mer16_compute   computeMER;
+float mer = 10 * log10 (computeMER. computemer (v, nrCells));
+        show_mer (mer);
 
 	for (i = 0; i < 4; i ++) {
 	   my_qam16_metrics	-> computemetrics (v, nrCells, 0, 
