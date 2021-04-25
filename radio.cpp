@@ -119,7 +119,7 @@ QString	FrequencytoString (quint64 freq) {
 	                                QWidget		*parent):
 	                                    QMainWindow (parent),
 	                                    hfShifter   (inputRate),
-	                                    hfFilter    (1024, 377),
+	                                    hfFilter    (2048, 377),
 	                                    lfFilter    (1024, 127),
 	                                    agc         (decoderRate, 12),
 	                                    theDecimator (inputRate,

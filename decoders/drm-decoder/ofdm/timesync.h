@@ -40,17 +40,10 @@ private:
                                                float    *Epsilon,
                                                int16_t  *Offsets);
 
-	 void		compute_b_vector        (uint8_t       mode,
-	                                         int16_t       *b,
-	                                         float         averageOffset);
-
 	Reader		*theReader;
 	int32_t		sampleRate;
 	int16_t		nSymbols;
 	int32_t		nSamples;
-	DSPCOMPLEX	*summedCorrelations;
-	float		*summedSquares;
-	float		EPSILON;
 };
 #endif
 

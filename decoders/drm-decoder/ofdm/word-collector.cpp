@@ -80,6 +80,7 @@
 	fftwf_destroy_plan (hetPlan);
 }
 
+static float theOffset	= 0;
 //	when starting up, we "borrow" the precomputed frequency offset
 //	and start building up the spectrumbuffer.
 //	
@@ -87,42 +88,37 @@ void	wordCollector::getWord (std::complex<float>	*out,
 	                        int32_t		initialFreq,
 	                        float		offsetFractional) {
 std::complex<float>	temp [Ts];
-int16_t		i;
 std::complex<float>	angle	= std::complex<float> (0, 0);
-float		offset	= 0;
-float	timeOffsetFractional;
+int	f	= buffer -> currentIndex;
 
+	theOffset	= 0;
 	buffer		-> waitfor (Ts + Ts / 2);
-	float timedelay	= get_timeOffset (16, 6);
-//	float timedelay	= offsetFractional;
-	int d		= floor (timedelay + 0.5);
-	timeOffsetFractional	= timedelay - d;
 
-	int f = (int)(floor (buffer -> currentIndex + d)) & bufMask;
 //	correction of the time offset by interpolation
-	for (i = 0; i < Ts; i ++) {
+	for (int i = 0; i < Ts; i ++) {
 	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
 	   std::complex<float> two = buffer -> data [(f + i + 1) & bufMask];
-	   temp [i] = cmul (one, 1 - timeOffsetFractional) +
-	                            cmul (two, timeOffsetFractional);
-	   temp [i] = cmul (one, 1 - offsetFractional) +
-	                            cmul (two, offsetFractional);
+	   temp [i] = one;
+//	   temp [i] = cmul (one, 1 - offsetFractional) +
+//	                            cmul (two, offsetFractional);
 	}
 
 //	And we shift the bufferpointer here
 	buffer -> currentIndex = (f + Ts) & bufMask;
 
 //	Now: determine the fine grain offset.
-	for (i = 0; i < Tg; i ++)
+	for (int i = 0; i < Tg; i ++)
 	   angle += conj (temp [Tu + i]) * temp [i];
 //	simple averaging
 	theAngle	= 0.9 * theAngle + 0.1 * arg (angle);
 //
 //	offset  (and shift) in Hz / 100
-	offset		= theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
-	if (offset != -offset)	// precaution to handle undefines
+	float offset	= theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
+	if (!isnan (offset))	// precaution to handle undefines
 	   theShifter. do_shift (temp, Ts,
 	                            100 * modeInf -> freqOffset_integer - offset);
+	else
+	   theAngle = 0;
 
 	if (++displayCount > 20) {
 	   displayCount = 0;
@@ -137,7 +133,6 @@ float	timeOffsetFractional;
 //
 //	The getWord as below is used in the main loop, to obtain
 //	a next ofdm word
-static float theOffset	= 0;
 
 void	wordCollector::getWord (std::complex<float>	*out,
 	                        int32_t		initialFreq,
@@ -146,9 +141,9 @@ void	wordCollector::getWord (std::complex<float>	*out,
 	                        float		angle,
 	                        float		clockOffset) {
 std::complex<float>	temp [Ts];
-	buffer		-> waitfor (Ts + Ts / 2);
+int f	= buffer -> currentIndex;
 
-	int f	= buffer -> currentIndex;
+	buffer		-> waitfor (Ts + Ts / 2);
 
 	theOffset	+= clockOffset;
 	if (theOffset < 0) {
@@ -164,8 +159,8 @@ std::complex<float>	temp [Ts];
 	for (int i = 0; i < Ts; i ++) {
 	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
 	   std::complex<float> two = buffer -> data [(f + i + 1) & bufMask];
-	   temp [i] = cmul (one, 1 - offsetFractional) +
-	              cmul (two, offsetFractional);
+	   temp [i] = cmul (one, 1 - theOffset) +
+	              cmul (two, theOffset);
 	}
 
 //	And we adjust the bufferpointer here
@@ -175,19 +170,11 @@ std::complex<float>	temp [Ts];
 	theAngle	= theAngle - 0.1 * angle;
 //	offset in 0.01 * Hz
 	float offset          = theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
-	if (offset != -offset) { // precaution to handle undefines
-	   if (offset > 200 * sampleRate / Tu) {
-	      modeInf -> freqOffset_integer +=  sampleRate / Tu;
-	      offset -= 200 * sampleRate / Tu;
-	   }
-	   if (offset < -200 * sampleRate / Tu) {
-	      modeInf -> freqOffset_integer -= sampleRate / Tu / 2;
-	      offset += 200 * sampleRate / Tu;
-	   }
-
+	if (!isnan (offset))  // precaution to handle undefines
 	   theShifter. do_shift (temp, Ts,
 	                        100 * modeInf -> freqOffset_integer - offset);
-	}
+	else
+	   theAngle = 0;
 
 	if (++displayCount > 20) {
 	   displayCount = 0;

@@ -39,16 +39,9 @@
 	this	-> nSymbols	= nSymbols;
 //	for mode determination:
 	this	-> nSamples	= nSymbols * Ts_of (Mode_A);
-//	Tu_of (Mode_D) is the smallest of all, so the vectors
-//	all have sufficient length
-	summedCorrelations	= new std::complex<float> [nSamples - Tu_of (Mode_D)];
-	summedSquares		= new float [nSamples - Tu_of (Mode_D)];
-	EPSILON			= 1.0E-10;
 }
 
 	timeSyncer::~timeSyncer (void) {
-	delete []	summedCorrelations;
-	delete []	summedSquares;
 }
 //
 //	Formula 5.16 from Tsai reads
@@ -84,13 +77,11 @@ int16_t	theMode;
 	theMode		= Mode_B;		// default
 	gammaRelative	= -1.0E20;
 	for (i = Mode_A; i <= Mode_D; i++) {
-//	   fprintf (stderr, "%f ", list_gammaRelative [i - Mode_A]);
 	   if (list_gammaRelative [i - Mode_A] > gammaRelative) {
 	      gammaRelative = list_gammaRelative [i - Mode_A];
 	      theMode = i;
 	   }
 	}
-//	fprintf (stderr, "\n");
 
 //	check if result is reliable 
 	bool	maxOK = true;			/* assume reliable */
@@ -101,13 +92,13 @@ int16_t	theMode;
 	else
 	for (i = Mode_A; i <= Mode_D; i++) {
 	   if ((i != theMode) && (list_gammaRelative [i - Mode_A] >
-	                           0.80 * gammaRelative))
+	                           0.50 * gammaRelative))
 	      maxOK = false;
 	}
 	
 	if (!maxOK)	{		// no reliable mode found
-	   result -> Mode		= -1;
-	   result -> sampleRate_offset	= 0.0;
+	   result	-> Mode		= -1;
+	   result	-> sampleRate_offset	= 0.0;
 	   result	-> timeOffset_integer	= 0;
 	   result	-> timeOffset_fractional	= 0;
 	   result	-> freqOffset_integer	= 0;
@@ -121,39 +112,13 @@ int16_t	theMode;
 
 	averageOffset = list_Offsets [theMode - 1];
 //
-        compute_b_vector (theMode, b, averageOffset);
-//
-//	Now least squares to 0...symbols_to_check and b [0] .. */
-	float	sumx	= 0.0;
-	float	sumy	= 0.0;
-	float	sumxx	= 0.0;
-	float	sumxy	= 0.0;
 
-	for (i = 0; i < nSymbols - 1; i++) {
-	   sumx	+= (float) i;
-	   sumy += (float) b [i];
-	   sumxx += (float) i * (float) i;
-	   sumxy += (float) i * (float) b [i];
-	}
-
-	float	slope, boffs;
-	slope = (float) (((nSymbols - 1) * sumxy - sumx * sumy) /
-	                 ((nSymbols - 1) * sumxx - sumx * sumx));
-	boffs = (float) ((sumy * sumxx - sumx * sumxy) /
-	                 ((nSymbols - 1) * sumxx - sumx * sumx));
-
-//	OK, all set, we are done
-
-	result -> Mode		= theMode;
-	result -> sampleRate_offset = slope / ((float)Ts_of (theMode));
-	float	timeOffset	= fmodf (
-	                          (Tg_of (theMode) + Ts_of (theMode) / 2 +
-	                                      averageOffset + boffs - 1),
-	                                            (float)Ts_of (theMode));
-	result	-> timeOffset_integer	= floor (timeOffset + 0.5);
-	result	-> timeOffset_fractional = timeOffset -
-	                                         result -> timeOffset_integer;
-	result -> freqOffset_fract = list_epsilon [theMode - Mode_A];
+	result	-> Mode			= theMode;
+	result	-> sampleRate_offset	= 0;
+	result	-> timeOffset_integer	= list_Offsets [theMode - Mode_A];
+	result	-> timeOffset_fractional = 0;
+	result	-> freqOffset_integer	= 0;
+	result -> freqOffset_fract	= list_epsilon [theMode - Mode_A];
 }
 
 void	timeSyncer::compute_gammaRelative (uint8_t	mode,
@@ -173,15 +138,15 @@ int32_t i, j, k, theOffset;
 	for (i = 0; i < Ts; i ++) {
 	   gamma [i]	= std::complex<float> (0, 0);
 	   squareTerm [i] = float (0);
+	   int32_t base = theReader -> currentIndex + i;
+	   int32_t mask = theReader -> bufSize - 1;
 	   for (j = 0; j < nSymbols; j ++) {
-	      int32_t base = theReader -> currentIndex + i;
-	      int32_t mask = theReader -> bufSize - 1;
 	      for (k = 0; k < Tg; k ++) {
 	         std::complex<float> f1	=
 	               theReader -> data [(base + j * Ts + k     ) & mask];
 	         std::complex<float> f2	=
 	               theReader -> data [(base + j * Ts + Tu + k) & mask];
-	         gamma [i]	+= f1 * conj (f2);
+	         gamma [i]	+=  f1 * conj (f2);
 	         squareTerm [i] += (real (f1 * conj (f1)) +
 	                                  real (f2 * conj (f2)));
 	      }
@@ -202,47 +167,3 @@ int32_t i, j, k, theOffset;
 	*Offsets	= theOffset;
 }
 
-//
-void	timeSyncer::compute_b_vector (uint8_t	mode,
-	                              int16_t	*b,
-	                              float	averageOffset) {
-int16_t	Tu	= Tu_of (mode);
-int16_t	Ts	= Ts_of (mode);
-int16_t	Tg	= Tg_of	(mode);
-std::complex<float> gamma [Ts];
-float	   squareTerm [Ts];
-int32_t i, j;
-
-	int32_t	base	= theReader	-> currentIndex;
-	int32_t	mask	= theReader	-> bufSize - 1;
-	for (i = 0; i < nSamples - Tu; i ++) {
-	   summedCorrelations [i] = std::complex<float> (0, 0);
-	   summedSquares [i]	  = 0;
-	   for (j = 0; j < Tg; j ++) {
-	      std::complex<float> f1        =
-	                      theReader -> data [(base + i + j) & mask];
-              std::complex<float> f2        =
-	                      theReader -> data [(base + i + Tu + j) & mask];
-	      summedCorrelations [i] += f1 * conj (f2);
-	      summedSquares	 [i] += real (f1 * conj (f1)) +
-	                                     real (f2 * conj (f2));
-	   }
-	}
-
-//	OK, the terms are computed, now find the minimum
-	int16_t index = Tg + averageOffset + Ts / 2;
-	for (j = 0; j < (nSymbols - 2); j++) {
-	   float minValue	= 1000000.0;
-	   for (i = 0; i < Ts; i++) {
-	      gamma [i]		= summedCorrelations [(index + i)];
-              squareTerm [i]	= (float) (0.5 * (EPSILON +
-	                                 summedSquares [index + i]));
-	      float mmse = squareTerm [i] - 2 * abs (gamma [i]);
-	      if (mmse < minValue) {
-	         minValue = mmse;
-	         b [j] = i;
-	      }
-	   }
-	   index += Ts;
-	}
-}
