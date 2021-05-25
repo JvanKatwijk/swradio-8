@@ -40,6 +40,7 @@ public:
 	                            std::complex<float> *);
 	std::complex<float>	getBin	(int32_t);
 	int32_t	first		();
+	void	reset		(std::complex<float> *);
 private:
 	std::vector<std::complex<float>> fftBase;
 	std::vector<std::complex<float>> Bins;	/* this is where it happens */

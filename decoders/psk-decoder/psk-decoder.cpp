@@ -31,6 +31,7 @@
 #include	"shifter.h"
 #include	"utilities.h"
 #include	"viterbi.h"
+#include	"slidingfft.h"
 
 #define	pskK			5
 #define	pskPOLY1		0x17
@@ -52,26 +53,29 @@
 	                                RingBuffer<std::complex<float> > *b,
 	                                QSettings *s):
 	                                   virtualDecoder (rate, b),
+	                                   myFrame (nullptr),
 	                                   localShifter   (rate) {
 	theRate		= rate;
 	pskSettings	= s;
 
-	myFrame		= new QFrame;
-	setupUi (myFrame);
-	myFrame		-> show ();
+	setupUi (&myFrame);
+	myFrame. show ();
 
 	setup_pskDecoder (rate);
 	screenwidth	= 256;
+	screenwidth	= 1000;
 	x_axis		= new double [screenwidth];
 	for (int i = 0; i < screenwidth; i ++)
 	   x_axis [i] = - screenwidth / 2 + i;
 	y_values	= new double [screenwidth];
 
-	theFilter	= new decimatingFIR (35, screenwidth / 2, PSKRATE, 8);
+	theFilter	= new decimatingFIR (35, screenwidth / 2, PSKRATE, 2);
+	newFilter	= new LowPassFIR (21, screenwidth / 2, theRate);
 	pskViewer       = new waterfallScope (pskScope,
 	                                      screenwidth, 30);
-	the_fft		= new common_fft (PSKRATE / 8);
+	the_fft		= new common_fft (screenwidth);
 	fftBuffer	= the_fft -> getVector ();
+	newFFT		= new slidingFFT (screenwidth, 0, screenwidth - 1);
 	connect (pskViewer, SIGNAL (clickedwithLeft (int)),
                  this, SLOT (handleClick (int)));
 	psk_setup ();
@@ -119,9 +123,7 @@
 	delete[]	pskBuffer;	
 	delete[]	x_axis;
 	delete[]	y_values;
-	delete		the_fft;
-	myFrame		-> hide ();
-	delete		myFrame;
+	delete		newFFT;
 }
 
 int32_t	pskDecoder::rateOut		(void) {
@@ -148,8 +150,8 @@ void	pskDecoder::setup_pskDecoder	(int32_t rate) {
 	pskBitclk	= 0;
 	pskDecimatorCount	= 0;
 	BPM_Filter	= new bandpassFIR (2 * pskFilterDegree + 1,
-	                                  PSK_IF - PSK31_SPEED,
-	                                  PSK_IF + PSK31_SPEED,
+	                                  psk_IF - PSK31_SPEED,
+	                                  psk_IF + PSK31_SPEED,
 	                                  theRate);
 
 	viterbiDecoder	= new viterbi (pskK, pskPOLY1, pskPOLY2);
@@ -313,35 +315,43 @@ std::complex<float> v [PSKRATE / 8];
 	old_z	= z;
 	z	= BPM_Filter -> Pass (z);
 	z	= localShifter. do_shift  (z, psk_IF);
+	z	 = newFilter -> Pass (z);
 //
 //	and resample to PSKRATE
 	cnt	= resample (z, out);
 	if (cnt < 0) 
 	   return;
 
-static	bool decCnt	= false;
-
+#define NO_OFFSET_FOUND	-500
+std::complex<float> outV [2000];
+static int fftTeller = 0;
 //	Now we are on PSKRATE 
 	for (i = 0; i < cnt; i ++) {
 	   int j;
 	   std::complex<float> res;
 	   if (theFilter -> Pass (out [i], &res)) {
-	      fftBuffer [fillP ++] = cmul (res, 5);
-	      if (fillP < PSKRATE / 40)
+	      fftBuffer [fillP ++] = res;
+	      newFFT	-> do_FFT (res, outV);
+	      if (fillP < screenwidth / 2) 
 	         continue;
-	      for (j = fillP; j < PSKRATE / 8; j ++)
-	         fftBuffer [j] = std::complex<float> (0, 0);
-	      the_fft -> do_FFT ();
-	      for (j = 0; j < PSKRATE / 16; j ++) {
-                 v [j] = fftBuffer [PSKRATE / 16 + j];
-                 v [PSKRATE / 16 + j] = fftBuffer [j];
-              }
-	      for (j = 0; j < screenwidth; j ++)
-	         y_values [j] = 
-	                abs (v [PSKRATE / 16 - screenwidth / 2 + j]);
+	      for (int j = fillP; j < screenwidth; j ++)
+                 fftBuffer [j] = std::complex< float> (0, 0);
+//	      the_fft -> do_FFT ();
+	      for (int j = 0; j < screenwidth; j ++) 
+	            y_values [j] = 
+	                   abs (outV [(screenwidth / 2 + j) % screenwidth]);
 	      pskViewer -> display (x_axis, y_values,
-	                            amplitudeSlider -> value (), 0, 0);
-	      fillP	= 0;
+                                        amplitudeSlider -> value (), 0, 0);
+	      fillP     = 0;
+	      fftTeller ++;
+	      if (fftTeller >= 4) {
+	         int offs = offset (outV);
+	         fprintf (stderr, "offset = %d\n", offs);
+	         if ((offs != NO_OFFSET_FOUND) && (abs (offs) >= 3))
+	            psk_IF += offs / 2;
+	         fftTeller = 0;
+	         newFFT -> reset ();
+	      }
 	   }
 	}
 
@@ -629,3 +639,37 @@ void	pskDecoder::handleClick	(int a) {
 	adjustFrequency (a);
 }
 
+#define	MAX_SIZE 50
+int	pskDecoder::offset (std::complex<float> *v) {
+float avg	= 0;
+float max	= 0;
+float	supermax	= 0;
+int	superIndex	= 0;
+
+//	for (int i = 0; i < screenwidth; i ++)
+//	   v [(screenwidth / 2 + i) % screenwidth] = 
+//	             std::complex<float> (2 * sin ((float)i / (M_PI)), 0);
+	for (int i = 0; i < screenwidth; i ++)
+	   avg += abs (v [i]);
+	avg /= screenwidth;
+	int	index	= screenwidth - 200;
+	for (int i = 0; i < MAX_SIZE; i ++)
+	   max +=  abs (v [index + i]);
+
+	supermax	= max;
+	for (int i = MAX_SIZE; i < 400; i ++) {
+	   max -=  abs (v [(index + i - MAX_SIZE) % screenwidth]);
+	   max +=  abs (v [(index + i) % screenwidth]);
+	   if (max > supermax) {
+	      superIndex = (index + i - MAX_SIZE / 2) % screenwidth;
+	      supermax = max;
+	   }
+	}
+	fprintf (stderr, "%f (%f) %d\n", supermax / MAX_SIZE, avg, superIndex);
+	if (supermax / MAX_SIZE > 3 * avg)
+	   return superIndex > screenwidth / 2 ?
+	                            superIndex - screenwidth :
+	                                     superIndex;
+	else
+	   return NO_OFFSET_FOUND;
+}

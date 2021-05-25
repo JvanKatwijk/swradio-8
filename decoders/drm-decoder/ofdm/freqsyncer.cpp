@@ -144,6 +144,7 @@ uint8_t	spectrum;
 	                   buffer -> bufSize,
 	                   buffer -> currentIndex + localIndex,
 	                   i,
+	                   0,
 	                   m -> timeOffset_fractional);
 	   localIndex += Ts + time_offset_integer;
 	}
@@ -154,10 +155,22 @@ uint8_t	spectrum;
 	binNumber = get_zeroBin (0);
 	m -> freqOffset_integer	= binNumber * sampleRate / Tu;
 
+	localIndex	= 0;
+	for (i = 0; i < N_symbols; i ++) {
+	 int16_t  time_offset_integer =
+	          getWord (buffer -> data,
+	                   buffer -> bufSize,
+	                   buffer -> currentIndex + localIndex,
+	                   i,
+	                   m -> freqOffset_integer,
+	                   m -> timeOffset_fractional);
+	   localIndex += Ts + time_offset_integer;
+	}
+
 	fprintf (stderr, "bin 0 = %d\n", binNumber);
 //	binNumber = binNumber < 0 ? binNumber + Tu : binNumber;
 	for (i = 0; i <= 3; i ++) 
-	   occupancyIndicator [i] = get_spectrumOccupancy (i, binNumber);
+	   occupancyIndicator [i] = get_spectrumOccupancy (i, 0);
 
 	float tmp1	= 0.0;
 	for (spectrum = 0; spectrum <= 3; spectrum ++) {	
@@ -297,12 +310,14 @@ int16_t	freqSyncer::getWord (std::complex<float> *buffer,
 	                     int32_t		bufSize,
 	                     int32_t		theIndex,
 	                     int16_t		wordNumber,
+	                     int		intOffset,
 	                     float		offsetFractional) {
 std::complex<float> temp [Ts];
 int16_t		i;
-int16_t		bufMask	= bufSize - 1;
+uint32_t	bufMask	= bufSize - 1;
 std:;complex<float> angle	= std::complex<float> (0, 0);
 
+	
 //	To take into account the fractional timing difference,
 //	we do some interpolation between samples in the time domain
 	int f	= (int)(floor (theIndex)) & bufMask;
@@ -317,6 +332,7 @@ std:;complex<float> angle	= std::complex<float> (0, 0);
 	              cmul (twee, offsetFractional);
 	}
 
+	theShifter. do_shift (temp, Ts, intOffset * 100);
 //	Now: estimate the fine grain offset.
 	for (i = 0; i < Tg; i ++)
 	   angle += conj (temp [Tu + i]) * temp [i];
@@ -327,7 +343,7 @@ std:;complex<float> angle	= std::complex<float> (0, 0);
 	float offset	= theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
 	if (++displayCount > 20) {
 	   displayCount = 0;
-	   show_coarseOffset	(0);
+	   show_coarseOffset	(intOffset);
 	   show_fineOffset	(- offset / 100);
 	   show_angle		(arg (angle));
 	   show_timeDelay	(offsetFractional);

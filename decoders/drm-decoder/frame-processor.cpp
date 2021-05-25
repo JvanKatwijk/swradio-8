@@ -259,22 +259,16 @@ restart:
 	         bool sdcOK = my_sdcProcessor. processSDC (&outbank);
 	         setSDCSync (sdcOK);
 	         if (sdcOK) {
-	            threeinaRow ++;
-	         }
-	               
-	         show_services (getnrAudio (&theState),
+	            show_services (getnrAudio (&theState),
 	                        getnrData (&theState));
-	         blockCount	= 0;
+	            blockCount	= 0;
+	         }
 //
 //	if we seem to have the start of a superframe, we
 //	re-create a backend with the right parameters
 	         if (!superframer && sdcOK)
 	            my_backendController. reset (&theState);
-//	we allow one sdc to fail, but only after having at least
-//	three frames correct
-	         superframer	= sdcOK || threeinaRow >= 3;
-	         if (!sdcOK)
-	            threeinaRow	= 0;
+	         superframer	= sdcOK;
 	      }
 //
 //	when here, add the current frame to the superframe.
@@ -316,7 +310,7 @@ restart:
 	      else {
 	         setFACSync (false); setSDCSync (false);
 	         superframer		= false;
-	         if (missers++ < 3)
+	         if (missers++ < 2)
 	            continue;
 	         goto restart;	// ... or give up and start all over
 	      }

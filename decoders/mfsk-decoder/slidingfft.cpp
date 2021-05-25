@@ -3,12 +3,9 @@
  *
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
  *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -57,6 +54,12 @@ int32_t	i;
 }
 
 	slidingFFT::~slidingFFT () {
+}
+
+void	slidingFFT::reset	(std::complex<float> *v) {
+	for (int i = 0; i < FFTlen; i ++) {
+	   Bins [i] = std::complex<float> (0, 0):
+	   Past [i] = std::complex<float> (0, 0);
 }
 
 int32_t	slidingFFT::first (void) {

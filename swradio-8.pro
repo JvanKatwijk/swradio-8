@@ -560,6 +560,7 @@ drm-decoder-faad {
 	                   ./decoders/drm-decoder/data/fec-handler.h \
 	                   ./decoders/drm-decoder/data/galois.h \
 	                   ./decoders/drm-decoder/data/reed-solomon.h \
+	                   ./decoders/drm-decoder/data/up-filter.h \
 	                   ./decoders/drm-decoder/data/message-processor.h \
 	                   ./decoders/drm-decoder/data/packet-assembler.h \
 	                   ./decoders/drm-decoder/data/virtual-datahandler.h \
@@ -612,6 +613,7 @@ drm-decoder-faad {
 	                   ./decoders/drm-decoder/data/fec-handler.cpp \
 	                   ./decoders/drm-decoder/data/galois.cpp \
 	                   ./decoders/drm-decoder/data/reed-solomon.cpp \
+	                   ./decoders/drm-decoder/data/up-filter.cpp \
 	                   ./decoders/drm-decoder/data/message-processor.cpp \
 	                   ./decoders/drm-decoder/data/packet-assembler.cpp \
 	                   ./decoders/drm-decoder/data/virtual-datahandler.cpp \

@@ -35,10 +35,12 @@
 
 class	bandpassFIR;
 class	decimatingFIR;
+class	LowPassFIR;
 class	viterbi;
 class	QFrame;
 class	QSettings;
 class	shifter;
+class	slidingFFT;
 /*
  * PSK31  -- receiver classs
  */
@@ -70,7 +72,9 @@ private:
 	   MODE_QPSK125 =	0112
 	};
 
+	QFrame		myFrame;
 	decimatingFIR	*theFilter;
+	LowPassFIR	*newFilter;
 	waterfallScope	*pskViewer;
 	int		screenwidth;
 	double		*x_axis;
@@ -81,7 +85,6 @@ private:
 	int32_t		theRate;
 	RingBuffer<std::complex<float> > *audioData;
 	QSettings	*pskSettings;
-	QFrame		*myFrame;
 	void		doDecode		(std::complex<float>);
 	void		setup_pskDecoder	(int32_t);
 	void		psk_setup		(void);
@@ -98,6 +101,8 @@ private:
 	uint8_t		getIntPhase		(std::complex<float>);
 	int16_t		DecimatingCountforpskMode	(void);
 
+	slidingFFT	*newFFT;
+	int		offset			(std::complex<float> *);
 	shifter		localShifter;
 
 	int16_t		pskCycleCount;

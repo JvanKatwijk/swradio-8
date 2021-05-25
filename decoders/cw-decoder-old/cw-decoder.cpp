@@ -25,7 +25,6 @@
 #include	<QSettings>
 #include	"cw-decoder.h"
 #include	"utilities.h"
-#include	"slidingfft.h"
 
 #define	USECS_PER_SEC		1000000
 #define	MODE_IDLE		0100
@@ -59,7 +58,7 @@ extern const char *const codetable [];
 	myFrame         -> show (); //
 	workingRate     = 2000;
 	setup_cwDecoder (workingRate);
-	screenwidth     = workingRate / 2;
+	screenwidth     = workingRate / 4;
         x_axis          = new double [screenwidth];
         for (int i = 0; i < screenwidth; i ++)
            x_axis [i] = - screenwidth / 2 + i;
@@ -69,8 +68,9 @@ extern const char *const codetable [];
         theFilter       = new decimatingFIR (35, screenwidth / 2, workingRate, 8);
         cwViewer       = new waterfallScope (cwScope,
                                              screenwidth, 15);
+        the_fft         = new common_fft (workingRate / 4);
+        fftBuffer       = the_fft -> getVector ();
 
-	newFFT		= new slidingFFT (screenwidth, 0, screenwidth - 1);
 	connect (cwViewer, SIGNAL (clickedwithLeft (int)),
 	         this, SLOT (handleClick (int)));
 }
@@ -80,10 +80,10 @@ extern const char *const codetable [];
 	delete		thresholdFilter;
 	delete		spaceFilter;
 	delete		cwViewer;
+	delete		the_fft;
 	delete[]	x_axis;
 	delete[]	y_values;
 	delete		myFrame;
-	delete	newFFT;
 }
 
 void	cwDecoder::setup_cwDecoder (int32_t rate) {
@@ -253,28 +253,24 @@ char	buffer [4];
 std::complex<float>	s;
 std::complex<float> res;
 std::complex<float>v [2000];
-static
-std::complex<float> outV [2000];
 
 	s	= cw_BandPassFilter	-> Pass (s);
 	s	= localShifter. do_shift (z, cw_IF * 10);
 	value	=  abs (s);
 
 	if (theFilter -> Pass (s, &res)) {
-	   newFFT -> do_FFT (res, outV);
-	   int offs = offset (outV);
-static int ddd = 0;
-	   ddd ++;
-	   if ((ddd > workingRate / 4) && (offs != -100)) {
-	      fprintf (stderr, "offset %d (%d)\n", offs, 4 * offs);
-	      cw_IF += offs / 2;
-	      ddd = 0;
-	   }
-	   fillP ++;
-	   if (fillP >= workingRate / 4) {
+	   fftBuffer [fillP ++] = res;
+	   if (fillP >= workingRate / 8) {
+	      for (int i = 0; i < workingRate / 8; i ++)
+	         fftBuffer [workingRate / 8 + i] = std::complex<float> (0, 0);
+              the_fft -> do_FFT ();
+              for (i = 0; i < workingRate / 8; i ++) {
+                 v [i] = fftBuffer [workingRate / 8 + i];
+                 v [workingRate / 8 + i] = fftBuffer [i];
+              }
               for (i = 0; i < screenwidth; i ++)
                  y_values [i] =
-	                abs (outV [(screenwidth / 2 + i) % screenwidth]);
+                        abs (v [i]);
               cwViewer -> display (x_axis, y_values,
                                  amplitudeSlider -> value (), 0, 0);
               fillP     = 0;
@@ -581,34 +577,4 @@ void    cwDecoder::handleClick (int a) {
         adjustFrequency (a / 2);
 }
 
-#define	MAX_SIZE 20
-int	cwDecoder::offset (std::complex<float> *v) {
-float avg	= 0;
-float max	= 0;
-float	supermax	= 0;
-int	superIndex	= 0;
-	for (int i = 0; i < screenwidth; i ++)
-	   avg += abs (v [i]);
-	avg /= screenwidth;
-	int	index	= screenwidth - 40;
-	for (int i = 0; i < MAX_SIZE; i ++)
-	   max +=  abs (v [index + i]);
 
-	supermax	= max;
-	for (int i = MAX_SIZE; i < 80; i ++) {
-	   max -=  abs (v [(index + i - MAX_SIZE) % screenwidth]);
-	   max +=  abs (v [(index + i) % screenwidth]);
-	   if (max > supermax) {
-	      superIndex = (index + i + MAX_SIZE / 2) % screenwidth;
-	      supermax = max;
-	   }
-	}
-
-	if (supermax / MAX_SIZE > 3 * avg)
-	   return superIndex > screenwidth - 100 ?
-	                            superIndex - screenwidth :
-	                                     superIndex;
-	else
-	   return -100;
-}
-	      

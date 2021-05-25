@@ -39,7 +39,6 @@ class	Oscillator;
 class	average;
 class	QFrame;
 class	QSettings;
-class	slidingFFT;
 
 #define	CWError		1000
 #define	CWNewLetter	1001
@@ -79,7 +78,6 @@ private:
 	int		fillP;
 	decimatingFIR	*theFilter;
 	int32_t		theRate;
-	slidingFFT	*newFFT;
 	QFrame		*myFrame;
 	RingBuffer<std::complex<float>> inputBuffer;
 	downConverter	inputConverter;
@@ -104,7 +102,6 @@ private:
 	int32_t		getMeanofDotDash	(int32_t, int32_t);
 	void		lookupToken		(char *, char *);
 
-	int		offset			(std::complex<float> *);
 	int32_t		cwPhaseAcc;
 
 	int32_t		CycleCount;

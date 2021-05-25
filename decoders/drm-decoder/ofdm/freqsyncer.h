@@ -50,6 +50,7 @@ private:
 	                                         int32_t,
 	                                         int32_t,
 	                                         int16_t,
+	                                         int,
 	                                         float);
 	int32_t		get_zeroBin 		(int16_t);
 	float		get_spectrumOccupancy	(uint8_t,

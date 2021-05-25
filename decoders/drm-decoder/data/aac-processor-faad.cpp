@@ -244,62 +244,50 @@ uint8_t	audioMode		= theState -> streams [mscIndex].
 	}
 }
 //
-void	aacProcessor_faad::toOutput (float *b, int16_t cnt) {
+void	aacProcessor_faad::toOutput (std::complex<float>*b, int16_t cnt) {
 int16_t	i;
 	if (cnt == 0)
 	   return;
 
-	for (i = 0; i < cnt / 2; i ++)
-	   putSample (b [2 * i], b [2 * i + 1]);
+	for (i = 0; i < cnt; i ++)
+	   putSample (real (b [i]), imag (b [i]));
 }
 
 void	aacProcessor_faad::writeOut (int16_t *buffer, int16_t cnt,
 	                             int32_t pcmRate) {
 int16_t	i;
+
 	if (pcmRate == 48000) {
-	   float lbuffer [cnt];
+	   std::complex<float> lbuffer [cnt / 2];
 	   for (i = 0; i < cnt / 2; i ++) {
-	      lbuffer [2 * i]     = float (buffer [2 * i] / 32767.0);
-	      lbuffer [2 * i + 1] = float (buffer [2 * i + 1] / 32767.0);
+	      lbuffer [i] = std::complex<float> (
+	                                 buffer [2 * i] / 32767.0,
+	      	                         buffer [2 * i + 1] / 32767.0);
 	   }
-	   toOutput (lbuffer, cnt);
+	   toOutput (lbuffer, cnt / 2);
 	   return;
 	}
 
 	if (pcmRate == 12000) {
-	   float lbuffer [4 * cnt];
+	   std::complex<float> lbuffer [2 * cnt + 4];
 	   for (i = 0; i < cnt / 2; i ++) {
-	      DSPCOMPLEX help =
-	           upFilter_12000. Pass (DSPCOMPLEX (buffer [2 * i] / 32767.0,
-	                                           buffer [2 * i + 1] / 32767.0));
-	      lbuffer [8 * i + 0] = real (help);
-	      lbuffer [8 * i + 1] = imag (help);
-	      help = upFilter_12000. Pass (DSPCOMPLEX (0, 0));
-	      lbuffer [8 * i + 2] = real (help);
-	      lbuffer [8 * i + 3] = imag (help);
-	      help = upFilter_12000. Pass (DSPCOMPLEX (0, 0));
-	      lbuffer [8 * i + 4] = real (help);
-	      lbuffer [8 * i + 5] = imag (help);
-	      help = upFilter_12000. Pass (DSPCOMPLEX (0, 0));
-	      lbuffer [8 * i + 6] = real (help);
-	      lbuffer [8 * i + 7] = imag (help);
+	      upFilter_12000. Filter (std::complex<float> (
+	                                    buffer [2 * i] / 32767.0,
+	                                    buffer [2 * i + 1] / 32767.0),
+	                              &lbuffer [4 * i]);
 	   }
-	   toOutput (lbuffer, 4 * cnt);
+	   toOutput (lbuffer, 2 * cnt);
 	   return;
 	}
 	if (pcmRate == 24000) {
-	   float lbuffer [2 * cnt];
+	   std::complex<float> lbuffer [cnt];
 	   for (i = 0; i < cnt / 2; i ++) {
-	      DSPCOMPLEX help =
-	           upFilter_24000. Pass (DSPCOMPLEX (buffer [2 * i] / 32767.0,
-	                                           buffer [2 * i + 1] / 32767.0));
-	      lbuffer [4 * i + 0] = real (help);
-	      lbuffer [4 * i + 1] = imag (help);
-	      help = upFilter_24000. Pass (DSPCOMPLEX (0, 0));
-	      lbuffer [4 * i + 2] = real (help);
-	      lbuffer [4 * i + 3] = imag (help);
+	      upFilter_12000. Filter (std::complex<float> (
+	                                    buffer [2 * i] / 32767.0,
+	                                    buffer [2 * i + 1] / 32767.0),
+	                              &lbuffer [2 * i]);
 	   }
-	   toOutput (lbuffer, 2 * cnt);
+	   toOutput (lbuffer, cnt);
 	   return;
 	}
 }

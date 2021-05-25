@@ -1,24 +1,26 @@
 #
 /*
+ *
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the swradio
+ *    This file is part of the SDR-J
  *
- *    swradio is free software; you can redistribute it and/or modify
+ *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    swradio is distributed in the hope that it will be useful,
+ *    SDR-J is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with swradio; if not, write to the Free Software
+ *    along with SDR-J; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  */
 #include	<stdio.h>
 #include	"slidingfft.h"
@@ -35,8 +37,6 @@ int32_t	i;
 	Past.    resize (len);
 	Bins.    resize (len);
 
-	for (i = 0; i < len; i ++) 
-	   Past [i] = Bins [i] = std::complex<float> (0, 0);
 	FFTlen	= len;
 	First	= first;
 	Amount	= last - first + 1;
@@ -45,8 +45,8 @@ int32_t	i;
 
 	for (i = 0; i < len; i ++) {
 	   fftBase [i] =
-	           std::complex<float> (cos (2.0 * i * M_PI / len),
-				        sin (2.0 * i * M_PI / len)
+	           std::complex<float> (cos (2.0 * i * M_PI / len * STABILIZER),
+				        sin (2.0 * i * M_PI / len * STABILIZER)
 	                               ); 
 	}
 
@@ -56,14 +56,7 @@ int32_t	i;
 	slidingFFT::~slidingFFT () {
 }
 
-void	slidingFFT::reset	(){
-	for (int i = 0; i < FFTlen; i ++) {
-	   Bins [i] = std::complex<float> (0, 0);
-	   Past [i] = std::complex<float> (0, 0);
-	}
-}
-
-int32_t	slidingFFT::first	() {
+int32_t	slidingFFT::first (void) {
 	return First;
 }
 
@@ -82,7 +75,7 @@ int32_t	i;
 /*
  *	calculate the wanted bins
  */
-	for (i = 0; i < FFTlen; i ++) {
+	for (i = First; i < Last; i ++) {
 	   z = Bins [i] - old + nnew;
 	   Bins [i] = z * fftBase [i];
 	}
