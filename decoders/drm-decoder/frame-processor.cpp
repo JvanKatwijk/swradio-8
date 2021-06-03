@@ -112,6 +112,8 @@ int16_t		symbol_no	= 0;
 bool		frameReady;
 int16_t		missers;
 timeSyncer  my_Syncer (&my_Reader, sampleRate,  nSymbols);
+float		deltaFreqOffset	= 0;
+float		sampleclockOffset	= 0;
 //
 	try {
 restart:
@@ -180,7 +182,8 @@ restart:
 	   for (int symbol = 0; symbol < nrSymbols; symbol ++) {
 	      my_wordCollector. getWord (inbank. element (symbol),
 	                                 modeInf. freqOffset_integer,
-	                                 modeInf. timeOffset_fractional);
+	                                 modeInf. timeOffset_fractional,
+	                                 modeInf. freqOffset_fract);
 	      myCorrelator. correlate (inbank. element (symbol), symbol);
 	   }
 
@@ -192,7 +195,8 @@ restart:
 	   while (true) {
 	      my_wordCollector. getWord (inbank. element (lc),
 	                                 modeInf. freqOffset_integer,
-	                                 modeInf. timeOffset_fractional);
+	                                 modeInf. timeOffset_fractional,
+	                                 modeInf. freqOffset_fract);
 	      myCorrelator. correlate (inbank. element (lc), lc);
 	      lc = (lc + 1) % symbolsperFrame (modeInf. Mode);
 	      if (myCorrelator. bestIndex (lc))  {
@@ -207,7 +211,10 @@ restart:
 	   for (symbol_no = 0; symbol_no < nrSymbols; symbol_no ++) 
 	      (void) my_Equalizer.
 	            equalize (inbank. element ((lc + symbol_no) % nrSymbols),
-	                                               symbol_no, &outbank);
+	                      symbol_no,
+	                      &outbank, &modeInf. timeOffset_fractional,
+	                      &deltaFreqOffset,
+	                      &sampleclockOffset);
 
 	   lc		= (lc + symbol_no) % symbol_no;
 	   symbol_no	= 0;
@@ -215,10 +222,19 @@ restart:
 	   while (!frameReady) {
 	      my_wordCollector.  getWord (inbank. element (lc),
 	                                  modeInf. freqOffset_integer,
-	                                  modeInf. timeOffset_fractional);
-	      frameReady = my_Equalizer.  equalize (inbank. element (lc),
-                                                    symbol_no,
-                                                    &outbank);
+	                                  false,
+	                                  modeInf. timeOffset_fractional,
+	                                  deltaFreqOffset,
+	                                  sampleclockOffset
+	                                 );
+	      frameReady = my_Equalizer.
+	                         equalize (inbank. element (lc),
+                                           symbol_no,
+                                           &outbank,
+	                                   &modeInf. timeOffset_fractional,
+	                                   &deltaFreqOffset,
+	                                   &sampleclockOffset
+	                                  );
 
 	      lc = (lc + 1) % nrSymbols;
 	      symbol_no = (symbol_no + 1) % nrSymbols;
@@ -249,8 +265,6 @@ restart:
 	   bool	firstTime	= true;
 	   float	offsetFractional	= 0;	//
 	   int16_t	offsetInteger		= 0;
-	   float	deltaFreqOffset		= 0;
-	   float	sampleclockOffset	= 0;
 	   while (true) {
 	      setFACSync (true);
 //	when we are here, we can start thinking about  SDC's and superframes

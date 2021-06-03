@@ -86,32 +86,25 @@ static float theOffset	= 0;
 //	
 void	wordCollector::getWord (std::complex<float>	*out,
 	                        int32_t		initialFreq,
-	                        float		offsetFractional) {
+	                        float		offsetFractional,
+	                        float		freqOffset_fractional) {
 std::complex<float>	temp [Ts];
-std::complex<float>	angle	= std::complex<float> (0, 0);
 int	f	= buffer -> currentIndex;
 
-	theOffset	= 0;
 	buffer		-> waitfor (Ts + Ts / 2);
+	theAngle	= freqOffset_fractional;
 
 //	correction of the time offset by interpolation
 	for (int i = 0; i < Ts; i ++) {
 	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
 	   std::complex<float> two = buffer -> data [(f + i + 1) & bufMask];
-	   temp [i] = one;
-//	   temp [i] = cmul (one, 1 - offsetFractional) +
-//	                            cmul (two, offsetFractional);
+	   temp [i] = cmul (one, 1 - offsetFractional) +
+	                            cmul (two, offsetFractional);
 	}
 
 //	And we shift the bufferpointer here
 	buffer -> currentIndex = (f + Ts) & bufMask;
 
-//	Now: determine the fine grain offset.
-	for (int i = 0; i < Tg; i ++)
-	   angle += conj (temp [Tu + i]) * temp [i];
-//	simple averaging
-	theAngle	= 0.9 * theAngle + 0.1 * arg (angle);
-//
 //	offset  (and shift) in Hz / 100
 	float offset	= theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
 	if (!isnan (offset))	// precaution to handle undefines
@@ -123,8 +116,8 @@ int	f	= buffer -> currentIndex;
 	if (++displayCount > 20) {
 	   displayCount = 0;
 	   show_coarseOffset	(initialFreq);
-	   show_fineOffset	(- offset / 100);
-	   show_angle		(arg (angle));
+	   show_fineOffset	(offset / 100);
+	   show_angle		(freqOffset_fractional);
 	   show_timeDelay	(offsetFractional);
 	}
 
@@ -145,16 +138,6 @@ int f	= buffer -> currentIndex;
 
 	buffer		-> waitfor (Ts + Ts / 2);
 
-	theOffset	+= clockOffset;
-	if (theOffset < 0) {
-	   theOffset += 1;
-	   f --;
-	}
-	if (theOffset >= 1) {
-	   theOffset -= 1;
-	   f ++;
-	}
-
 //	just linear interpolation
 	for (int i = 0; i < Ts; i ++) {
 	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
@@ -167,7 +150,16 @@ int f	= buffer -> currentIndex;
 	buffer -> currentIndex = (f + Ts) & bufMask;
 
 //	correct the phase
-	theAngle	= theAngle - 0.1 * angle;
+	theAngle	= theAngle - 0.2 * angle;
+	if (theAngle < -M_PI) {
+	   theAngle += M_PI;
+	   modeInf -> freqOffset_integer -= sampleRate / Tu;
+	}
+	if (theAngle >= M_PI) {
+	   theAngle -= M_PI;
+	   modeInf -> freqOffset_integer += sampleRate / Tu;
+	}
+	   
 //	offset in 0.01 * Hz
 	float offset          = theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
 	if (!isnan (offset))  // precaution to handle undefines
@@ -179,7 +171,7 @@ int f	= buffer -> currentIndex;
 	if (++displayCount > 20) {
 	   displayCount = 0;
 	   show_coarseOffset	(initialFreq);
-	   show_fineOffset	(- offset / 100);
+	   show_fineOffset	(offset / 100);
 	   show_angle		(angle);
 	   show_timeOffset	(offsetFractional);
 	   show_clockOffset	(Ts * clockOffset);

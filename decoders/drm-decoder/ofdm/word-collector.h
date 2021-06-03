@@ -44,10 +44,11 @@ public:
 	                                         smodeInfo *,
 	                                         int32_t);
 			~wordCollector 		(void);
-	void		getWord			(DSPCOMPLEX *,
+	void		getWord			(std::complex<float> *,
 	                                         int32_t,
+	                                         float,
 	                                         float);
-	void		getWord			(DSPCOMPLEX *,
+	void		getWord			(std::complex<float> *,
 	                                         int32_t,
 	                                         bool,
 	                                         float,
