@@ -80,7 +80,7 @@
 	fftwf_destroy_plan (hetPlan);
 }
 
-static float theOffset	= 0;
+static	int	amount	= 0;
 //	when starting up, we "borrow" the precomputed frequency offset
 //	and start building up the spectrumbuffer.
 //	
@@ -93,7 +93,6 @@ int	f	= buffer -> currentIndex;
 
 	buffer		-> waitfor (Ts + Ts / 2);
 	theAngle	= freqOffset_fractional;
-
 //	correction of the time offset by interpolation
 	for (int i = 0; i < Ts; i ++) {
 	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
@@ -113,6 +112,7 @@ int	f	= buffer -> currentIndex;
 	else
 	   theAngle = 0;
 
+	amount		= 0;
 	if (++displayCount > 20) {
 	   displayCount = 0;
 	   show_coarseOffset	(initialFreq);
@@ -135,15 +135,36 @@ void	wordCollector::getWord (std::complex<float>	*out,
 	                        float		clockOffset) {
 std::complex<float>	temp [Ts];
 int f	= buffer -> currentIndex;
-
 	buffer		-> waitfor (Ts + Ts / 2);
-
-//	just linear interpolation
+	amount ++;
+static int teller = 0;
+	teller ++;
+	if (amount >= 4) {
+	   buffer		-> waitfor (12 * Ts + Ts);
+	   int intOffs = get_intOffset (0, 10, 10);
+	   int sub	= get_intOffset (1 * Ts, 10, 10);
+	   if (intOffs == sub)  {
+	      if (intOffs < 0) {
+	         fprintf (stderr, "offset %d, distance %d\n", intOffs, teller);
+	         f --;
+	         teller = 0;
+	      }
+	      if (intOffs > 0 ) {
+	         fprintf (stderr, "offset %d distance %d\n", intOffs, teller);
+	         f ++;
+	         teller = 0;
+	      }
+	      amount = 0;
+	   }
+	   else
+	      amount--;
+	}
+	      
 	for (int i = 0; i < Ts; i ++) {
 	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
 	   std::complex<float> two = buffer -> data [(f + i + 1) & bufMask];
-	   temp [i] = cmul (one, 1 - theOffset) +
-	              cmul (two, theOffset);
+	   temp [i] = cmul (one, 1 - offsetFractional) +
+	              cmul (two, offsetFractional);
 	}
 
 //	And we adjust the bufferpointer here
@@ -161,17 +182,17 @@ int f	= buffer -> currentIndex;
 	}
 	   
 //	offset in 0.01 * Hz
-	float offset          = theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
-	if (!isnan (offset))  // precaution to handle undefines
+	float fineOffset	= theAngle / (2 * M_PI) * 100 * sampleRate / Tu;
+	if (!isnan (fineOffset))  // precaution to handle undefines
 	   theShifter. do_shift (temp, Ts,
-	                        100 * modeInf -> freqOffset_integer - offset);
+	                        100 * modeInf -> freqOffset_integer - fineOffset);
 	else
 	   theAngle = 0;
 
 	if (++displayCount > 20) {
 	   displayCount = 0;
 	   show_coarseOffset	(initialFreq);
-	   show_fineOffset	(offset / 100);
+	   show_fineOffset	(fineOffset / 100);
 	   show_angle		(angle);
 	   show_timeOffset	(offsetFractional);
 	   show_clockOffset	(Ts * clockOffset);
@@ -231,16 +252,22 @@ int	wordCollector::get_intOffset	(int base,
 	                                 int nrSymbols, int range) {
 int	bestIndex = -1;
 double	min_mmse = 10E20;
+double	mmse [range];
 
 	for (int i = - range / 2; i < range / 2; i ++) {
-	   int index = buffer -> currentIndex + base + i;
-	   double mmse = compute_mmse (index, nrSymbols);
-	   if (mmse < min_mmse) {
-	      min_mmse = mmse;
+	   int index = (buffer -> currentIndex + base + i) & bufMask ;
+	   mmse [i + range / 2] = compute_mmse (index, nrSymbols);
+	   if (mmse [i + range / 2]  < min_mmse) {
+	      min_mmse = mmse [i + range / 2];
 	      bestIndex = i;
 	   }
 	}
-	
+//
+//	validity check
+	for (int i = 0; i < range; i ++)
+	   if (i != bestIndex + range / 2)
+	      if  (mmse [i] < 1.7 * min_mmse)
+	         return 0;
 	return bestIndex;
 }
 

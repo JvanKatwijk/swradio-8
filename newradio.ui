@@ -268,9 +268,9 @@
    <widget class="QLabel" name="timeDisplay">
     <property name="geometry">
      <rect>
-      <x>590</x>
-      <y>400</y>
-      <width>161</width>
+      <x>740</x>
+      <y>550</y>
+      <width>261</width>
       <height>21</height>
      </rect>
     </property>
