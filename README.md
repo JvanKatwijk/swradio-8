@@ -69,6 +69,49 @@ the frequency.
 The picture shows the "magnifying glass" for psk. It shows that the
 actual width of the received signal is less than 50 Hz.
 
+-------------------------------------------------------------------------
+a note on drm reception
+-------------------------------------------------------------------------
+
+![swradio-8](/swradio-picture-drm.png?raw=true)
+
+DRM, Digital Radio Mondiale, is digital radio over shortwave. 
+There are not many drm transmissions these days, but it is interesting
+to compare drm with DAB. The latter of course on much higher frequencies
+with a much higher bandwidth.
+
+DRM is in two ways more complex than DAB. First of all, the
+DAB frames are preceded by a null period, i.e. a period with a
+low-amplitude signal, making it easy to detect the start of a frame
+and synchronize in time.
+DRM on the other hand does not. It is therefore more resource intensive
+to detect the start of a frame. Since there are differences - whatever small -
+in clocks between transmitter and receiver, it is inevitable to continuously
+apply some computing to find the correct start of a frame.
+
+The second issue making DRM harder to detect that DAB is the demodulation,
+while DAB uses a form of Differential PSK, DRM uses coherent demodulation,
+with up to QAM64 signals. This means that the receiver has to restore
+the received signal as it was at the transmitter.
+
+The process to do that is equalizing, a DRM frame contains some special
+signals helping the equalization, i.e. signals with predefined values,
+but equalization takes some effort.
+The picture shows (red line), the correction to be applied to the amplitude
+of the values for a frame, and (blue line), the correciton to
+be applied to the phase of the values for a frame.
+
+The resulting values - here QAM64 - are given. With some imagination
+one can see the 64 dots, the possible values of the signals.
+
+Values as given here are good enough to be decoded further.
+
+![swradio-8](/swradio-picture-drm-2.png?raw=true)
+
+The second picture shows a reception of Radio Nigeria, with a mode
+where QAM16 is used as encoding for the content. The picture shows the
+16 possible signal values clearly.
+
 --------------------------------------------------------------------------
 Using the swradio
 ---------------------------------------------------------------------------

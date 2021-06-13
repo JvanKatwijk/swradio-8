@@ -139,10 +139,10 @@ int f	= buffer -> currentIndex;
 	amount ++;
 static int teller = 0;
 	teller ++;
-	if (amount >= 4) {
-	   buffer		-> waitfor (12 * Ts + Ts);
-	   int intOffs = get_intOffset (0, 10, 10);
-	   int sub	= get_intOffset (1 * Ts, 10, 10);
+	if (amount >= 20) {
+	   buffer		-> waitfor (25 * Ts + Ts);
+	   int intOffs = get_intOffset (10 * Ts, 14, 10);
+	   int sub	= get_intOffset (11 * Ts, 14, 10);
 	   if (intOffs == sub)  {
 	      if (intOffs < 0) {
 	         fprintf (stderr, "offset %d, distance %d\n", intOffs, teller);
