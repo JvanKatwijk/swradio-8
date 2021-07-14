@@ -139,25 +139,27 @@ int f	= buffer -> currentIndex;
 	amount ++;
 static int teller = 0;
 	teller ++;
-	if (amount >= 20) {
-	   buffer		-> waitfor (25 * Ts + Ts);
-	   int intOffs = get_intOffset (10 * Ts, 14, 10);
-	   int sub	= get_intOffset (11 * Ts, 14, 10);
+	if (amount >= 4) {
+	   buffer		-> waitfor (14 * Ts + Ts);
+	   int intOffs	= get_intOffset (2 * Ts, 10, 10) - 2 * Ts;
+	   int sub	= get_intOffset (4 * Ts, 10, 10) - 4 * Ts;
 	   if (intOffs == sub)  {
-	      if (intOffs < 0) {
-	         fprintf (stderr, "offset %d, distance %d\n", intOffs, teller);
+	      if (intOffs < -1) {
+//	         fprintf (stderr, "offset %d, distance %d\n", intOffs, teller);
 	         f --;
 	         teller = 0;
 	      }
-	      if (intOffs > 0 ) {
-	         fprintf (stderr, "offset %d distance %d\n", intOffs, teller);
+	      if (intOffs > 1 ) {
+//	         fprintf (stderr, "offset %d distance %d\n", intOffs, teller);
 	         f ++;
 	         teller = 0;
 	      }
 	      amount = 0;
 	   }
-	   else
+	   else {
+//	      fprintf (stderr, "%d - %d\n", intOffs, sub);
 	      amount--;
+	   }
 	}
 	      
 	for (int i = 0; i < Ts; i ++) {

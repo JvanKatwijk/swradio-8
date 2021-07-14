@@ -85,7 +85,10 @@ DAB frames are preceded by a null period, i.e. a period with a
 low-amplitude signal, making it easy to detect the start of a frame
 and synchronize in time.
 DRM on the other hand does not. It is therefore more resource intensive
-to detect the start of a frame. Since there are differences - whatever small -
+to detect the start of a frame. The fact that there are different DRM modes,
+with different profiles, does not make identification easier.
+
+Since there are differences - whatever small -
 in clocks between transmitter and receiver, it is inevitable to continuously
 apply some computing to find the correct start of a frame.
 
@@ -97,8 +100,8 @@ the received signal as it was at the transmitter.
 The process to do that is equalizing, a DRM frame contains some special
 signals helping the equalization, i.e. signals with predefined values,
 but equalization takes some effort.
-The picture shows (red line), the correction to be applied to the amplitude
-of the values for a frame, and (blue line), the correciton to
+The picture shows (red line) the correction to be applied to the amplitude
+of the values for a frame, and (blue line) the correciton to
 be applied to the phase of the values for a frame.
 
 The resulting values - here QAM64 - are given. With some imagination
@@ -222,6 +225,14 @@ Here we need "only" 96k, it works well under Linux and at the time it worked on 
 However, it does not like Windows-10, using it under W10 leads to a crash.
 
 ![swradio-8](/swradio-pmsdr-drm.png?raw=true)
+
+--------------------------------------------------------------------
+Windows
+--------------------------------------------------------------------
+
+An installer for windows is available. 
+The supported devices are the good old SDRplay (with support for the 2.13
+library), the hackRF and - limited - the RTLSDR devices
 
 ------------------------------------------------------------------
 Ubuntu Linux

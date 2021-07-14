@@ -147,7 +147,7 @@ isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
 
-DESTDIR		= ../../windows-swradio
+DESTDIR		= /usr/shared/w32-programs/windows-swradio
 CONFIG		+= sdrplay
 CONFIG		+= hackrf
 CONFIG		+= rtlsdr
@@ -161,8 +161,9 @@ CONFIG		+= amtor-decoder
 CONFIG		+= psk-decoder
 CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
-#CONFIG		+= drm-decoder-faad
-CONFIG		+= drm-decoder-fdk
+CONFIG		+= drm-decoder-faad
+#CONFIG		+= drm-decoder-fdk
+#
 # includes in mingw differ from the includes in fedora linux
 INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include
 INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
