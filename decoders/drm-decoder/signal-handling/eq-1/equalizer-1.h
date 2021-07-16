@@ -63,7 +63,8 @@ private:
 	int16_t		windowsinFrame;
 	int16_t		periodforPilots;
 	int16_t		periodforSymbols;
-	double		**W_symbol_blk [10];
+//	double		**W_symbol_blk [20];
+	std::vector<std::vector<double>> W_symbol_blk [20];
 	float		f_cut_t;
 	float		f_cut_k;
 	std::vector<std::vector<trainer>> theTrainers;

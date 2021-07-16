@@ -65,12 +65,12 @@ SF_INFO	*sf_info;
 	fprintf (stderr, "samplesinfile = %d, sampleRate = %d, channels = %d\n",
 	                      samplesinFile, sampleRate, numofChannels);
         totalTime       = samplesinFile / sampleRate;
-	fprintf (stderr, "timetoplay %f\n", totalTime);
+	fprintf (stderr, "timetoplay %f\n", (float)totalTime);
 
 	theRate		= rate;
 	readerOK	= true;
 	resetRequest	= false;
-	
+	running. store (false);
 	currPos		= 0;
 }
 

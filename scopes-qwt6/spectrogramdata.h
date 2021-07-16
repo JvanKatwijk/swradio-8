@@ -72,8 +72,10 @@ double value (double x, double y) const {
 	if (y != y)
 	   y = 0;
 	x = x - left;
-	x = x / width * datawidth;
-	return data [(int)y * datawidth + (int)x];
+	x = x / width * (datawidth - 1);
+        y = y / height * (dataheight - 1);
+        return data [(int)y * datawidth + (int)x];
+
 }
 
 };

@@ -138,12 +138,7 @@ int16_t		symbols_per_window_list_5 []	= {15, 15, 15, 6};
 //	values taken from diorama
 	f_cut_t = 0.0675 / symbols_to_delay;
 	f_cut_k = 1.75 * (float) Tg / (float) Tu;
-	f_cut_k = 2.00 * (float) Tg / (float) Tu;
-//	1.75 seems a little large and has as effect that in the equalizatiom
-//	a dip will appear, so we take a smaller value
-//	f_cut_k = (Mode == Mode_A ? 2.25 :
-//	           Mode == Mode_B ? 1.25 :
-//	           0.50) * (float) Tg_of (Mode) / (float) Tu_of (Mode);
+	f_cut_k = 2.0 * (float) Tg / (float) Tu;
 //
 //	This code is based on the diorama Matlab code, and a
 //	(complete)rewrite of the C translation of this Matlab code by Ties Bos.
@@ -165,9 +160,12 @@ int16_t		symbols_per_window_list_5 []	= {15, 15, 15, 6};
 	   trainer	*currentTrainers	= theTrainers [window] . data ();
 	   int16_t	trainer_1, trainer_2, carrier;
 //
-	   W_symbol_blk [window]	= new double  *[carriersinSymbol];
+//	   W_symbol_blk [window]	= new double  *[carriersinSymbol];
+//	   for (i = 0; i < carriersinSymbol; i ++)
+//	      W_symbol_blk [window][i] = new double [trainers_in_window];
+	   W_symbol_blk [window]. resize (carriersinSymbol);
 	   for (i = 0; i < carriersinSymbol; i ++)
-	      W_symbol_blk [window][i] = new double [trainers_in_window];
+	      W_symbol_blk [window][i]. resize (trainers_in_window);
 
 	   PHI		= new float *[trainers_in_window];
 	   int cc;
@@ -263,11 +261,11 @@ int16_t	i;
 	delete [] Estimators;
 //
 //	W_symbol_blk is a matrix with three dimensions
-	for (int window = 0; window < windowsinFrame; window ++) { 
-	   for (i = 0; i < carriersinSymbol; i ++)
-	      delete W_symbol_blk [window][i];
-	   delete W_symbol_blk [window];
-	}
+//	for (int window = 0; window < windowsinFrame; window ++) { 
+//	   for (i = 0; i < carriersinSymbol; i ++)
+//	      delete W_symbol_blk [window][i];
+//	   delete W_symbol_blk [window];
+//	}
 }
 //
 //	The "trainers" are built over the "regular" pilots, i.e.
@@ -378,7 +376,7 @@ int16_t	i;
 //	the SCO is then
 //	arg (offsa) / symbolsinFrame / (2 * M_PI * Ts / Tu * offsb)) * Ts;
 //	The measured offset is in radials
-	*sampleclockOffset = offsa / (2 * M_PI * (float (Ts) / Tu) * offsb);
+	*sampleclockOffset = arg (offsa) / (2 * M_PI * (float (Ts) / Tu) * offsb);
 
 //	still wondering about the scale
 	*offset_fractional	= arg (offs2) / (2 * M_PI * periodforPilots);
@@ -388,8 +386,8 @@ int16_t	i;
 //	offs7 means using all pilots over two near symbols with the same
 //	pilot layout
 //	*delta_freq_offset	=  arg (offs1) / (3 * (symbolsinFrame - 1));
-	*delta_freq_offset	=  arg (offs7) / periodforSymbols;
-//	*delta_freq_offset	= (arg (offs1) + arg (offs7) / periodforSymbols) / 2;
+//	*delta_freq_offset	=  arg (offs7) / periodforSymbols;
+	*delta_freq_offset	= (arg (offs1) + arg (offs7) / periodforSymbols) / 2;
 //	fprintf (stderr, "freq error: freq pilots = %f, all pilots  = %f\n",
 //	                 arg (offs1) / (3 * (symbolsinFrame - 1)),
 //	                 arg (offs7) / periodforSymbols);

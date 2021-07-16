@@ -145,12 +145,12 @@ static int teller = 0;
 	   int sub	= get_intOffset (4 * Ts, 10, 10) - 4 * Ts;
 	   if (intOffs == sub)  {
 	      if (intOffs < -1) {
-//	         fprintf (stderr, "offset %d, distance %d\n", intOffs, teller);
+	         fprintf (stderr, "offset %d, distance %d\n", intOffs, teller);
 	         f --;
 	         teller = 0;
 	      }
 	      if (intOffs > 1 ) {
-//	         fprintf (stderr, "offset %d distance %d\n", intOffs, teller);
+	         fprintf (stderr, "offset %d distance %d\n", intOffs, teller);
 	         f ++;
 	         teller = 0;
 	      }

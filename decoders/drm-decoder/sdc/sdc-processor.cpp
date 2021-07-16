@@ -169,10 +169,10 @@ float   mer     = 10 * log10 (computeMER. computemer (v, nrCells));
 
 bool sdcProcessor::processSDC_QAM16 (theSignal *v) {
 uint8_t sdcBits [4 + stream_0 -> lengthOut () + stream_1 -> lengthOut ()];
-metrics Y0_stream	[2 * nrCells];
-metrics Y1_stream	[2 * nrCells];
-uint8_t level_0		[2 * nrCells];
-uint8_t level_1		[2 * nrCells];
+metrics *Y0_stream = new metrics [2 * nrCells];
+metrics *Y1_stream = new metrics [2 * nrCells];
+uint8_t *level_0   = new uint8_t [2 * nrCells];
+uint8_t *level_1   = new uint8_t [2 * nrCells];
 int16_t i;
 mer16_compute   computeMER;
 float mer = 10 * log10 (computeMER. computemer (v, nrCells));
@@ -199,6 +199,10 @@ float mer = 10 * log10 (computeMER. computemer (v, nrCells));
 //
 //	apply PRBS
 	thePRBS -> doPRBS (&sdcBits [4]);
+	delete [] Y0_stream; 
+	delete [] Y1_stream;
+	delete [] level_0;
+	delete [] level_1;
 
 	sdcBits [0] = sdcBits [1] = sdcBits [2] = sdcBits [3] = 0;
 	if (!theCRC. doCRC (sdcBits, 4 + lengthofSDC)) {
@@ -317,12 +321,16 @@ uint8_t	language [3], country [2];
 //	for now:
 	      (void)shortId; (void)rfu;
 //	the "full" bits are
-	      for (i = 0; i < lengthofBody; i ++) 
+	      s = "";
+	      fprintf (stderr, "lengthofBody %d\n", lengthofBody);
+	      for (i = 0; i < lengthofBody; i ++) {
 	          s. append (get_SDCBits (v, 4 + 8 * i, 8));
+	      }
 	      s. append (char (0));
 	      if (lengthofBody > 1) {
-	         char *s2 = s. toLatin1 (). data ();
-	         strcpy (theState -> streams [shortId]. serviceName, s2);
+//	         char *s2 = s. toLatin1 (). data ();
+	         strcpy (theState -> streams [shortId]. serviceName,
+	                         s. toLatin1 (). data ());
 	      }
 	      show_stationLabel (QString (s), shortId);
 	      return;

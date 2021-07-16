@@ -60,6 +60,7 @@ void	SDC_streamer::handle_stream (metrics *softBits,
 int16_t	i, Cnt	= 0;
 metrics	unmappedBits [2 * nrCells];
 metrics	theBits [deconvolveLength + 600];
+uint8_t temp [deconvolveLength + 600];
 uint8_t	recomputedBits [2 * nrCells];
 
 	for (i = 0; i < 2 * nrCells; i ++)
@@ -90,15 +91,15 @@ uint8_t	recomputedBits [2 * nrCells];
 	   return;
 
 	Cnt	= 0;		// start all over with counting
-	deconvolver. convolve (out, outLength, reconstr);
+	deconvolver. convolve (out, outLength, temp);
 	for (i = 0; i < 6 * (outLength + 6) - 36; i ++)
 	   if (punctureTable [i % punctureSize] == 1)
-	      recomputedBits [Cnt ++] = reconstr [i];
+	      recomputedBits [Cnt ++] = temp [i];
 //	and the residu bits
 	for (i = 6 * (outLength + 6) - 36;
 	     i < 6 * (outLength + 6); i ++)
 	   if (residuTable [(i - (6 * (outLength + 6) - 36))] == 1)
-	      recomputedBits [Cnt ++] = reconstr [i];
+	      recomputedBits [Cnt ++] = temp [i];
 
 	for (i = 0; i < 2 * nrCells; i ++)
 	   reconstr [i] = recomputedBits [demapper -> mapIn (i)];

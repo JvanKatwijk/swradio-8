@@ -74,7 +74,7 @@ int i, j,root, iprim;
 }
 
 	reedSolomon::~reedSolomon	(void) {
-	delete generator;
+	delete[] generator;
 }
 
 //
@@ -282,7 +282,7 @@ int16_t	deg_lambda = 0;
 	Lambda	[0]	= 1;
 	Corrector [1]	= 1;
 //
-	while (K <= nroots) {
+	while (K < nroots) {
 	   uint8_t oldLambda [nroots + 1];
 	   memcpy (oldLambda, Lambda, (nroots + 1) * sizeof (Lambda [0]));
 //

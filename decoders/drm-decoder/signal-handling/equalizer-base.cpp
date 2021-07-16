@@ -48,8 +48,8 @@ int16_t	i;
 		equalizer_base::~equalizer_base (void) {
 int16_t	i;
 	for (i = 0; i < symbolsinFrame; i ++) {
-	   delete refFrame [i];
-	   delete testFrame [i];
+	   delete [] refFrame [i];
+	   delete [] testFrame [i];
 	}
 	delete []	refFrame;
 	delete []	testFrame;
