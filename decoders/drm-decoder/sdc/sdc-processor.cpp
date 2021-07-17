@@ -322,7 +322,6 @@ uint8_t	language [3], country [2];
 	      (void)shortId; (void)rfu;
 //	the "full" bits are
 	      s = "";
-	      fprintf (stderr, "lengthofBody %d\n", lengthofBody);
 	      for (i = 0; i < lengthofBody; i ++) {
 	          s. append (get_SDCBits (v, 4 + 8 * i, 8));
 	      }
