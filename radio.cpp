@@ -624,6 +624,31 @@ void	RadioInterface::setBand	(const QString &s) {
 	   theBand. highF	= 4500;
 	}
 	else
+	if (s == "200") {	// for small modes with IF 0
+	   theBand. lowF	= -100;
+	   theBand. highF	= +100;
+	}
+	else
+	if (s == "500") {
+	   theBand. lowF	= -250;
+           theBand. highF	= +250;
+	}
+	else
+	if (s == "1000") {
+	   theBand. lowF	= -500;
+           theBand. highF	= +500;
+	}
+	else
+	if (s == "1500") {
+	   theBand. lowF	= -750;
+           theBand. highF	= +750;
+	}
+	else
+	if (s == "2000") {
+	   theBand. lowF	= -1000;
+           theBand. highF	= +1000;
+	}
+	else
 	if (s == "usb") {
 	   theBand. lowF	= 0;
 	   theBand. highF	= 2500;

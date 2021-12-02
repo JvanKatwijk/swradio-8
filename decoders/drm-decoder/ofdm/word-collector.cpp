@@ -93,6 +93,7 @@ int	f	= buffer -> currentIndex;
 
 	buffer		-> waitfor (Ts + Ts / 2);
 	theAngle	= freqOffset_fractional;
+
 //	correction of the time offset by interpolation
 	for (int i = 0; i < Ts; i ++) {
 	   std::complex<float> one = buffer -> data [(f + i) & bufMask];
@@ -139,10 +140,10 @@ int f	= buffer -> currentIndex;
 	amount ++;
 static int teller = 0;
 	teller ++;
-	if (amount >= 4) {
-	   buffer		-> waitfor (14 * Ts + Ts);
-	   int intOffs	= get_intOffset (2 * Ts, 10, 10);
-	   int sub	= get_intOffset (4 * Ts, 10, 10);
+	if (amount >= 5) {
+	   buffer		-> waitfor (18 * Ts + Ts);
+	   int intOffs	= get_intOffset (1 * Ts, 12, 10);
+	   int sub	= get_intOffset (5 * Ts, 12, 10);
 	   if (intOffs == sub)  {
 	      if (intOffs < -1) {
 	         fprintf (stderr, "offset %d, distance %d\n", intOffs, teller);

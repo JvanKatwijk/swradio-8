@@ -12,6 +12,7 @@ The software supports hackrf devices, rtlsdr devices
 library, the one by Oliver Jowett. Sources are included in the source tree of
 this program.)
 
+
 ![swradio-8](/swradio-picture-1.png?raw=true)
 
 One of the less common decoders is a *drm-decoder*, the picture shows
@@ -55,6 +56,18 @@ the spectrum from "classical" spectrum view to "waterfall" (and back).
 
 This feature applies to both the display showing the full spectrum as
 the display showing the "decoder" spectrum.
+
+-------------------------------------------------------------------------
+bandwidth selection and decoders
+-------------------------------------------------------------------------
+
+Since in this version the "IF" for decoding most of the implemented
+modes is 0 Hz, some additional bandwidth selections are added
+These selections are all centered around 0 Hz,
+so, a selection of 200 Hz, means from -100 .. 100.
+
+This is different from the selection of the usb or lsb band, since these
+activate filtering from 0 .. 2500 Hz resp. -2500 .. 0 Hz.
 
 Many typical amateur signals have a small bandwidth, making tuning harder.
 Take as example Bpsk32, the width of the signal is just a couple of tens of Hz.
