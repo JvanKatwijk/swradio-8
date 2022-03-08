@@ -126,15 +126,19 @@ uint8_t	level_1	[2 * theState -> muxSize];
 mer16_compute	computeMER;
 float	mer	= 10 * log10 (computeMER. computemer (v, theState -> muxSize));
 	show_mer (mer);
-	
+
+	for (int i = 0; i < 4; i ++) {
 //	First the "normal" decoding. leading to two bit rows
-	myDecoder. computemetrics (v, theState -> muxSize, 0, Y0,
-	                                   false, level_0, level_1);
-	stream_0	-> process	(Y0, bits_0, level_0);
-	myDecoder. computemetrics (v, theState -> muxSize, 1, Y1,
-	                                   false, level_0, level_1);
-	stream_1	-> process	(Y1, bits_1, level_1); 
-//
+	   myDecoder. computemetrics (v, theState -> muxSize, 0, Y0,
+	                              i != 0,
+	                              level_0, level_1);
+	   stream_0	-> process	(Y0, bits_0, level_0);
+	   myDecoder. computemetrics (v, theState -> muxSize, 1, Y1,
+	                              true,
+	                              level_0, level_1);
+	   stream_1	-> process	(Y1, bits_1, level_1); 
+	}
+
 	memcpy (&bitsOut [0],
 	        &bits_0 [0],
 	        stream_0 -> highBits ());

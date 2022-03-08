@@ -32,6 +32,7 @@
 #include	<cstring>
 #include	"radio-constants.h"
 #include	"fir-filters.h"
+#include	"message-processor.h"
 
 class	drmDecoder;
 class	stateDescriptor;
@@ -53,6 +54,7 @@ public:
 private:
 	stateDescriptor *theState;
         drmDecoder      *drmMaster;
+	messageProcessor	my_messageProcessor;
         LowPassFIR      upFilter_24000;
         LowPassFIR      upFilter_12000;
         int16_t         numFrames;

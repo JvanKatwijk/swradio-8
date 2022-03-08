@@ -51,42 +51,31 @@ extern const char *const codetable [];
 	                           virtualDecoder (inRate, buffer),
 	                           inputBuffer (inRate),
 	                           inputConverter (inRate, 2000),
-	                           localShifter   (2000) {
+	                           localShifter   (10 * 2000) {
 	theRate		= inRate;
-	this	-> cwSettings	= s;
+	(void)s;
 	myFrame         = new QFrame;
 	setupUi (myFrame);
 	myFrame         -> show (); //
 	workingRate     = 2000;
 	setup_cwDecoder (workingRate);
-	screenwidth     = workingRate;
-//	screenwidth     = workingRate / 2;
+	screenwidth     = workingRate / 2;
         x_axis          = new double [screenwidth];
         for (int i = 0; i < screenwidth; i ++)
-	   x_axis [i] = - screenwidth / 2 + i;
+           x_axis [i] = - screenwidth / 2 + i;
         y_values        = new double [screenwidth];
 
 	fillP		= 0;
-	theFilter       = new decimatingFIR (35, screenwidth / 2, workingRate, 8);
+        theFilter       = new decimatingFIR (35, screenwidth / 2, workingRate, 8);
         cwViewer       = new waterfallScope (cwScope,
                                              screenwidth, 15);
 
 	newFFT		= new slidingFFT (screenwidth, 0, screenwidth - 1);
-	afcFFT		= new slidingFFT (screenwidth, 0, screenwidth - 1);
 	connect (cwViewer, SIGNAL (clickedwithLeft (int)),
 	         this, SLOT (handleClick (int)));
-        cwSettings     -> beginGroup ("cwDecoder");
-	cw_searchRange	= cwSettings	-> value ("cw_searchRange", 800). toInt ();
-	cwSettings	-> endGroup ();
-	cw_rangeSetter	-> setValue (cw_searchRange); 
-	connect (cw_rangeSetter, SIGNAL (valueChanged (int)),
-	         this, SLOT (set_searchRange (int)));
 }
 
 	cwDecoder::~cwDecoder		(void) {
-	cwSettings	-> beginGroup ("cwDecoder");
-	cwSettings	-> setValue ("cw_searchRange", cw_searchRange);
-	cwSettings	-> endGroup ();
 	delete		SmoothenSamples;
 	delete		thresholdFilter;
 	delete		spaceFilter;
@@ -94,7 +83,6 @@ extern const char *const codetable [];
 	delete[]	x_axis;
 	delete[]	y_values;
 	delete		myFrame;
-	delete	afcFFT;
 	delete	newFFT;
 }
 
@@ -187,8 +175,8 @@ void	cwDecoder::cw_setFilterDegree (int n) {
 	if (cw_BandPassFilter != NULL)
 	   delete cw_BandPassFilter;
 	cw_BandPassFilter	= new bandpassFIR (2 * cwFilterDegree + 1,
-	                                           cw_IF - 500,
-	                                           cw_IF + 500,
+	                                           cw_IF - 30,
+	                                           cw_IF + 20,
 	                                           workingRate);
 }
 
@@ -232,7 +220,6 @@ void	cwDecoder::process (std::complex<float> z) {
 	   cw_showagcpeak	(clamp (agc_peak * 1000.0, 0.0, 100.0));
 	   cw_shownoiseLevel	(clamp (noiseLevel * 1000.0, 0.0, 100.0));
 	   audioAvailable (theRate / 10, theRate);
-//	   fprintf (stderr, ">>> %d\n", (int)cw_IF);
 	   setDetectorMarker	((int)cw_IF);
 	}
 }
@@ -266,56 +253,33 @@ char	buffer [4];
 std::complex<float>	s;
 std::complex<float> res;
 std::complex<float>v [2000];
+static
 std::complex<float> outV [2000];
-static int offs	= 0;
 
-	z	= cdiv (z, 40);
-	s	= localShifter. do_shift (z, cw_IF);
 	s	= cw_BandPassFilter	-> Pass (s);
+	s	= localShifter. do_shift (z, cw_IF * 10);
 	value	=  abs (s);
-	newFFT	-> do_FFT (s, outV);
-//
-//	if the value is (most likely) a '1', then we use it
-//	to compute the frequency offset
-	if (value > agc_peak) {
-	   std::complex<float> ff [screenwidth];
-	   std::complex<float> tempV [screenwidth];
-	   afcFFT	-> do_FFT (s, ff);
-//
+
+	if (theFilter -> Pass (s, &res)) {
+	   newFFT -> do_FFT (res, outV);
+	   int offs = offset (outV);
 static int ddd = 0;
-static	int oldOffset	= 0;
-	   for (int i = 0; i < screenwidth / 2; i++) {
-	      tempV [i]		= ff [screenwidth / 2 + i];
-	      tempV [screenwidth / 2 + i] = ff [i];
+	   ddd ++;
+	   if ((ddd > workingRate / 4) && (offs != -100)) {
+	      fprintf (stderr, "offset %d (%d)\n", offs, 4 * offs);
+	      cw_IF += offs / 2;
+	      ddd = 0;
 	   }
-
-	   int offf = offset (tempV);
-	   if ((offf != -100) && (offf != 0)) {
-	      offs += offf;
-	      ddd ++;
-	   }
-	
-	   if (ddd > workingRate / 4) {
-	      offs /= ddd;
-	      oldOffset = 0.5 * oldOffset + 0.5 * offs;
-	      cw_IF += oldOffset / 2;
-	      ddd	= 0;
-	      offs	= 0;
-	      afcFFT -> reset ();
+	   fillP ++;
+	   if (fillP >= workingRate / 4) {
+              for (i = 0; i < screenwidth; i ++)
+                 y_values [i] =
+	                abs (outV [(screenwidth / 2 + i) % screenwidth]);
+              cwViewer -> display (x_axis, y_values,
+                                 amplitudeSlider -> value (), 0, 0);
+              fillP     = 0;
 	   }
 	}
-
-	fillP ++;
-	if (fillP >= workingRate / 10) {
-	   for (i = 0; i < screenwidth; i ++)
-	      y_values [i] = 0.6 * y_values [i] +
-	        0.4 * abs (outV [(screenwidth / 2 + i) % screenwidth]);
-	   cwViewer -> display (x_axis, y_values,
-                                   amplitudeSlider -> value (), 0, 0);
-	   fillP     = 0;
-	   newFFT -> reset ();
-	}
-
 	if (value > agc_peak)
 	   agc_peak = decayingAverage (agc_peak, value, 50.0);
 	else
@@ -617,36 +581,34 @@ void    cwDecoder::handleClick (int a) {
         adjustFrequency (a / 2);
 }
 
-#define	MAX_SIZE 24
+#define	MAX_SIZE 20
 int	cwDecoder::offset (std::complex<float> *v) {
 float avg	= 0;
-float sum	= 0;
+float max	= 0;
 float	supermax	= 0;
 int	superIndex	= 0;
 	for (int i = 0; i < screenwidth; i ++)
 	   avg += abs (v [i]);
 	avg /= screenwidth;
-	int	index	= screenwidth / 2 - cw_searchRange / 2;
+	int	index	= screenwidth - 40;
 	for (int i = 0; i < MAX_SIZE; i ++)
-	   sum +=  abs (v [index + i]);
+	   max +=  abs (v [index + i]);
 
-	supermax	= sum;
-	for (int i = MAX_SIZE; i < cw_searchRange; i ++) {
-	   sum -=  abs (v [(index + i - MAX_SIZE) % screenwidth]);
-	   sum +=  abs (v [(index + i) % screenwidth]);
-	   if (sum > supermax) {
-	      superIndex = (index + i - MAX_SIZE / 2) % screenwidth;
-	      supermax = sum;
+	supermax	= max;
+	for (int i = MAX_SIZE; i < 80; i ++) {
+	   max -=  abs (v [(index + i - MAX_SIZE) % screenwidth]);
+	   max +=  abs (v [(index + i) % screenwidth]);
+	   if (max > supermax) {
+	      superIndex = (index + i + MAX_SIZE / 2) % screenwidth;
+	      supermax = max;
 	   }
 	}
 
 	if (supermax / MAX_SIZE > 3 * avg)
-	   return superIndex - screenwidth / 2;
+	   return superIndex > screenwidth - 100 ?
+	                            superIndex - screenwidth :
+	                                     superIndex;
 	else
 	   return -100;
 }
-
-void	cwDecoder::set_searchRange	(int n) {
-	cw_searchRange = n;
-}
-
+	      

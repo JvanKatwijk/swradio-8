@@ -35,9 +35,10 @@
 #include	"fir-filters.h"
 #include	"basics.h"
 #include	"checkcrc.h"
+#include	"message-processor.h"
 
 class	drmDecoder;
-class	rateConverter;
+class	audioConverter;
 class	stateDescriptor;
 
 class	xheaacProcessor: public QObject {
@@ -53,20 +54,22 @@ private:
 	stateDescriptor	*theState;
 	drmDecoder	*parent;
 	checkCRC	theCRC;
-	LowPassFIR      upFilter_24000;
-        LowPassFIR      upFilter_12000;
+	messageProcessor	my_messageProcessor;
+	audioConverter	*theConverter;
+//	LowPassFIR      upFilter_24000;
+//	LowPassFIR      upFilter_12000;
 	void		resetBuffers	();
 	void		processFrame	(int);
 	int		currentRate;
 	std::vector<uint8_t>
         		getAudioInformation (stateDescriptor *drm,
                                                         int streamId);
-//	deque<uint8_t>	frameBuffer;
-//	vector<uint32_t> borders;
+	vector<uint8_t>	frameBuffer;
+	vector<uint32_t> borders;
 	int		numFrames;
 	void		writeOut	(int16_t *, int16_t, int32_t);
-	void		toOutput	(float *, int16_t);
-	void		playOut		(std::vector<uint8_t>);
+	void		toOutput	(std::complex<float> *, int16_t);
+	void		playOut		(std::vector<uint8_t> &, int, int);
 
 //	added to support inclusion of the last phase
 	void		reinit		(std::vector<uint8_t>, int);

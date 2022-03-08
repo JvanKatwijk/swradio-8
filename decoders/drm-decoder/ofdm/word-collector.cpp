@@ -210,7 +210,6 @@ void	wordCollector::fft_and_extract (std::complex<float> *in,
 	memcpy (fft_vector, in, Tu * sizeof (std::complex<float>));
 
 	fftwf_execute (hetPlan);
-	for (int i = 0; i < Tu; i ++) 
 //	extract the "useful" data
 	if (K_min < 0) {
 	   memcpy (out,

@@ -29,9 +29,6 @@
 #include	<vector>
 #include	<complex>
 
-deque<uint8_t>  frameBuffer;
-vector<uint32_t> borders;
-
 static
 const uint16_t crcPolynome [] = {
         0, 0, 0, 1, 1, 1, 0     // MSB .. LSB x⁸ + x⁴ + x³ + x² + 1
@@ -85,130 +82,120 @@ int	numChannels		=
 	         params -> theStreams [streamId]. audioMode == 0 ? 1 : 2;
 int	elementsUsed		= 0;
 
-	my_messageProcessor.
-                 processMessage (v, 8 * length);
-
+	fprintf (stderr, "frameBorderCount %d\n", frameBorderCount);
+	
 	if (!theCRC. doCRC (v, 16)) {
 	   fprintf (stderr, "oei\n");
 	}
-//
-	uint32_t bitResLevel	= (bitReservoirLevel + 1) * 384 *
-	                                               numChannels;
-	uint32_t directoryOffset = length - 2 * frameBorderCount;
 
-	if (frameBorderCount > 0) {
-	   borders. 	resize	(frameBorderCount);
-	   std::vector<uint8_t> audioDescriptor =
+	if (frameBorderCount < 0)
+	   return;
+
+//	uint32_t bitResLevel	= (bitReservoirLevel + 1) * 384 *
+//	                                               numChannels;
+	uint32_t directoryOffset = length - 2 * frameBorderCount - 2;
+
+	if (textFlag != 0) {
+//	   my_messageProcessor.
+//	      processMessage (v, (startLow + lengthLow - 4) * 8);
+           length -= 4;
+        }
+
+	fprintf (stderr, "borders %d\n", frameBorderCount);
+	borders. 	resize	(frameBorderCount);
+	std::vector<uint8_t> audioDescriptor =
 	                         getAudioInformation (params, streamId);
-	   my_aacDecoder -> reinit (audioDescriptor, streamId);
+	my_aacDecoder -> reinit (audioDescriptor, streamId);
 
-	   for (int i = 0; i < frameBorderCount; i++) {
-	      uint32_t frameBorderIndex =
+	for (int i = 0; i < frameBorderCount; i++) {
+	   uint32_t frameBorderIndex =
 	                    get_MSCBits (v, 8 * length - 16 - 16 * i, 12);
-	      uint32_t frameBorderCountRepeat = 
+	   uint32_t frameBorderCountRepeat = 
 	                    get_MSCBits (v, 8 * length - 16 - 16 * i + 12, 4);
-	      if (frameBorderCountRepeat != frameBorderCount) {
-	         resetBuffers ();
-	         return;
-	      }
-#if 0
-	      fprintf (stderr, "frameBorderIndex %d, check %d\n",
+	   if (frameBorderCountRepeat != frameBorderCount) {
+	      resetBuffers ();
+	      return;
+	   }
+#if 1
+	   fprintf (stderr, "frameBorderIndex %d, check %d\n",
 	                        frameBorderIndex, frameBorderCountRepeat);
 #endif
-	      borders [i] = frameBorderIndex;
-	      if (i == 0) {
+	   borders [i] = frameBorderIndex;
+	}
 //
 //	The first frameBorderIndex might point to the last one or
 //	two bytes of the previous afs.
-	         switch (borders [0]) {
-	            case 0xffe: // delayed from previous afs
+	switch (borders [0]) {
+	   case 0xffe: // delayed from previous afs
 //	first frame has two bytes in previous afs
-	               if (frameBuffer. size () < 2) {
-	                  resetBuffers ();
-	                  return;
-	               }
+	      if (frameBuffer. size () < 2) {
+	         resetBuffers ();
+	         return;
+	      }
 //
 //	if the "frameBuffer" contains more than 2 bytes, there was
 //	a non-empty last part in the previous afs
-	               if (frameBuffer. size () > 2)
-	                  processFrame (frameBuffer. size () - 2);
-	               elementsUsed = 0;
-	               break;
+	      if (frameBuffer. size () > 2)
+	          playOut (frameBuffer, frameBuffer. size (), - 2);
+	      elementsUsed = 0;
+	      break;
 
-	            case 0xfff:
+	   case 0xfff:
 //	first frame has one byte in previous afs
-	               if (frameBuffer. size () < 1) {
-	                  resetBuffers ();
-	                  return;
-	               }
-	               if (frameBuffer. size () > 1)
-	                  processFrame (frameBuffer. size () - 1);
-	               elementsUsed = 0;
-	               break;
+	      if (frameBuffer. size () < 1) {
+	         resetBuffers ();
+	         return;
+	      }
+	      if (frameBuffer. size () > 1)
+	         playOut (frameBuffer, frameBuffer. size (), - 1);
+	      elementsUsed = 0;
+	      break;
 
-	            default: // boundary in this afs
+	   default: // boundary in this afs
 //	boundary in this afs, process the last part of the previous afs
 //	together with what is here as audioFrame
-	               if (borders [0] < 2) {
-	                  resetBuffers ();
-	                  return;
-	               }
+	      if (borders [0] < 2) {
+	         resetBuffers ();
+	         return;
+	      }
 //
 //	elementsUsed will be used to keep track on the progress
 //	in handling the elements of this afs
-	               for (elementsUsed = 0; 
-	                    elementsUsed < borders [0]; elementsUsed ++)
-	                  frameBuffer.
-	                  push_back (get_MSCBits (v, 16 + elementsUsed * 8, 8));
-	               processFrame (frameBuffer. size ());
-	               break;
-	         }
-	      }
-	      else
-	      if (i < frameBorderCount - 1) {
-//	just read in the data and process the frame
-	         for (; elementsUsed < borders [i]; elementsUsed ++) 
-	            frameBuffer. push_back
-	                        (get_MSCBits (v, 16 + elementsUsed * 8, 8));
-	         processFrame (frameBuffer. size ());
-	      }
-	      else	// at the end, save for the next afs
-	      for ( ; elementsUsed < directoryOffset; elementsUsed ++)
+	      for (; elementsUsed < borders [0]; elementsUsed ++)
 	         frameBuffer.
-		       push_back (get_MSCBits (v, 16 + elementsUsed * 8, 8));
-	   }
+	                  push_back (get_MSCBits (v, 16 + elementsUsed * 8, 8));
+	      playOut (frameBuffer, frameBuffer. size (), 0);
+	      break;
 	}
-	else {
-	   for (int i = 0; i < directoryOffset; i ++)
-	      frameBuffer. push_back (get_MSCBits (v, 16 + 8 * i, 8));
+
+//	just read in the data and process the frame
+	for (int i = 1; i < frameBorderCount; i ++) {
+	   frameBuffer. resize (0);
+	   for (; elementsUsed < borders [i]; elementsUsed ++) 
+	      frameBuffer.
+	              push_back (get_MSCBits (v, 16 + elementsUsed * 8, 8));
+	   playOut (frameBuffer, frameBuffer. size (), i);
 	}
+
+// at the end, save for the next afs
+	frameBuffer. resize (0);
+	for (; elementsUsed < directoryOffset; elementsUsed ++)
+	   frameBuffer. push_back (get_MSCBits (v, 16 + elementsUsed * 8, 8));
 }
 //
-//	In some cases we do not use the full content
-//	of the data gathered in the frameBuffer, so we pass on the size
-void	xheaacProcessor::processFrame	(int size) {
-std::vector<uint8_t> audioFrame;
-#if 0
-	fprintf (stderr, "process frame %d\n", size);
-#endif
-	while (size > 0) {
-	   size --;
-	   audioFrame. push_back (frameBuffer. front());
-	   frameBuffer. pop_front ();
-	}
-	playOut (audioFrame);
-}
-
 void	xheaacProcessor::resetBuffers	() {
 	frameBuffer. resize (0);
 }
 
 static
 int16_t outBuffer [16 * 960];
-void	xheaacProcessor::playOut (std::vector<uint8_t> f) {
-bool		convOK;
+void	xheaacProcessor::playOut (std::vector<uint8_t> &f,
+	                          int size, int index) {
+static
+bool		convOK = false;
 int16_t	cnt;
 int32_t	rate;
+	fprintf (stderr, "playing out\n");
 	my_aacDecoder ->  decodeFrame (f. data (),
 	                               f. size (),
 	                               &convOK,
@@ -216,8 +203,7 @@ int32_t	rate;
 	                               &cnt, &rate);
 	if (convOK) {
 	   faadSuccess (true);
-	   if (cnt > 0)
-	      writeOut (outBuffer, cnt, rate);
+	   writeOut (outBuffer, cnt, rate);
 	}
 	else {
 	   faadSuccess (false);
@@ -233,6 +219,11 @@ int16_t i;
            putSample (real (b [i]), imag (b [i]));
 }
 
+/
+//      valid samplerates for xHE-AAC are
+//      9.6, 12, 16, 19,2 24, 32, 38,4 and 48 KHz
+//      translation factors are
+//      5, 4, 3, 5 / 2, 2, 3 / 2, 5/4
 void	xheaacProcessor::writeOut (int16_t *buffer, int16_t cnt,
 	                           int32_t pcmRate) {
 int16_t	i;

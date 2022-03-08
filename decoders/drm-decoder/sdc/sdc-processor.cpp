@@ -433,7 +433,19 @@ uint8_t	language [3], country [2];
 	                                      = get_SDCBits (v, 14, 5);
 	         theState -> streams [index]. rfa
 	                                      = get_SDCBits (v, 19, 1);
+
+//
+//      if xHE-AAC we need to collect the decoderspecific data
+                 if (theState -> streams [index]. audioCoding == 03) {
+                    int bytes = (index + 16 + 8 * lengthofBody - 20) / 8;
+                    theState -> streams [index]. xHE_AAC. resize (0);
+                    for (int i = 0; i < bytes; i ++) {
+                       uint8_t t = get_SDCBits (v, 20 + 8 * i, 8);
+                       theState -> streams [index]. xHE_AAC. push_back (t);
+                    }
+                 }
 	      }
+
 	      return;
 
 	   case 10:	// FAC channel parameters data entity

@@ -30,6 +30,7 @@
 #include	<neaacdec.h>
 #include	"fir-filters.h"
 #include	"up-filter.h"
+#include	"message-processor.h"
 
 class	drmDecoder;
 class	stateDescriptor;
@@ -50,9 +51,7 @@ public:
 private:
 	stateDescriptor	*theState;
 	drmDecoder	*drmMaster;
-//	DRM_aacDecoder	my_aacDecoder;
-//	LowPassFIR	upFilter_24000;
-//	LowPassFIR	upFilter_12000;
+	messageProcessor	my_messageProcessor;
 	upFilter	upFilter_24000;
 	upFilter	upFilter_12000;
 

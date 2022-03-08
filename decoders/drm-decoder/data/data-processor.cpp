@@ -149,8 +149,6 @@ int16_t	new_dataChannel	= drmMaster	-> getDataChannel ();
 	                               (audioChannel == i)) {
 	      process_audio (v, i, startPosA, lengthA,
 	                           startPosB, lengthB);
-	      my_messageProcessor.  processMessage (v,
-	                                       8 * (startPosB + lengthB - 4));
 	   }
 	   else
 	   if ((theState -> streams [i]. soort ==

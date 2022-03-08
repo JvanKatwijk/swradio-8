@@ -79,7 +79,7 @@ static
 int16_t	localBuffer [8 * 32768];
 
 void	fdkAAC::decodeFrame (uint8_t    *audioFrame,
-	                     uint32_t    frameSize,
+	                     uint32_t	frameSize,
 	                     bool       *conversionOK,
 	                     int16_t	*buffer,
 	                     int16_t    *samples,
@@ -105,6 +105,7 @@ uint32_t	bytesValid	= 0;
 	   *samples		= 0;
 	   return;
 	}
+	fprintf (stderr, "%X\n", errorStatus);
 	if (errorStatus != AAC_DEC_OK) {
 	   *conversionOK	= false;
 	   *samples		= 0;
@@ -125,12 +126,12 @@ uint32_t	bytesValid	= 0;
 	      buffer [2 * i + 1] = localBuffer [2 * i + i];
 	   }
 	}
-#if 1
+#if 0
 	fprintf (stderr, "frameSize %d, samplerate %d\n",
 	               fdk_info -> frameSize, fdk_info -> sampleRate);
-#endif
 	fprintf (stderr, "channel config %d (rate %d)\n",
 	           fdk_info -> channelConfig, fdk_info -> sampleRate);
+#endif
 	*samples	= fdk_info	-> frameSize;
 	*pcmRate	= fdk_info	-> sampleRate;
 	*conversionOK	= true;

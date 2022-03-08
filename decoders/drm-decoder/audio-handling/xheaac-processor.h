@@ -50,7 +50,6 @@ public:
                                          int16_t startLow, int16_t lengthLow);
 private:
 	void		resetBuffers	();
-	void		processFrame	(int);
 	drmDecoder	*parent;
 	drmParameters	*params;
 	messageProcessor my_messageProcessor;
@@ -59,14 +58,14 @@ private:
 	std::vector<uint8_t>
         		getAudioInformation (drmParameters *drm,
                                                         int streamId);
-//	deque<uint8_t>	frameBuffer;
-//	vector<uint32_t> borders;
+	std::vector<uint8_t>	frameBuffer;
+	std::vector<uint32_t> borders;
 	decoderBase	*my_aacDecoder;
 	rateConverter	*theConverter;
 	int		numFrames;
 	void		writeOut	(int16_t *, int16_t, int32_t);
 	void		toOutput	(std::complex<float> *, int16_t);
-	void		playOut		(std::vector<uint8_t>);
+	void		playOut		(std::vector<uint8_t> &, int, int);
 signals:
 	void            putSample       (float, float);
 	void            faadSuccess     (bool);

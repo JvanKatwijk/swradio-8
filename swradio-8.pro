@@ -5,11 +5,11 @@ TEMPLATE = app
 QT	+= widgets xml
 CONFIG	-= console
 TARGET	= swradio-8.1
-QMAKE_CFLAGS	+= -O3 -ffast-math 
-QMAKE_CXXFLAGS	+= -O3 -ffast-math 
-#QMAKE_CXXFLAGS += -fsanitize=address -g
-#QMAKE_CFLAGS   += -fsanitize=address -g
-#QMAKE_LFLAGS   += -fsanitize=address -g
+#QMAKE_CFLAGS	+= -O3 -ffast-math 
+#QMAKE_CXXFLAGS	+= -O3 -ffast-math 
+QMAKE_CXXFLAGS += -fsanitize=address -g
+QMAKE_CFLAGS   += -fsanitize=address -g
+QMAKE_LFLAGS   += -fsanitize=address -g
 
 RC_ICONS        =  swradio.ico
 RESOURCES       += resources.qrc
@@ -130,8 +130,8 @@ CONFIG		+= psk-decoder
 CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
 CONFIG		+= mfsk-decoder
-CONFIG		+= drm-decoder-faad
-#CONFIG		+= drm-decoder-fdk
+#CONFIG		+= drm-decoder-faad
+CONFIG		+= drm-decoder-fdk
 #CONFIG		+= test-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
@@ -165,8 +165,8 @@ CONFIG		+= amtor-decoder
 CONFIG		+= psk-decoder
 CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
-CONFIG		+= drm-decoder-faad
-#CONFIG		+= drm-decoder-fdk
+#CONFIG		+= drm-decoder-faad
+CONFIG		+= drm-decoder-fdk
 #
 # includes in mingw differ from the includes in fedora linux
 INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include
@@ -415,6 +415,7 @@ drm-decoder-fdk {
 	                   ./decoders/drm-decoder/support/mer4-values.h \
 	                   ./decoders/drm-decoder/support/mer16-values.h \
 	                   ./decoders/drm-decoder/support/mer64-values.h \
+	                   ./decoders/drm-decoder/support/up-converter.h \
 	                   ./decoders/drm-decoder/parameters/state-descriptor.h \
 	                   ./decoders/drm-decoder/parameters/puncture-tables.h \
 	                   ./decoders/drm-decoder/fac/fac-tables.h \
@@ -467,6 +468,7 @@ drm-decoder-fdk {
 	                   ./decoders/drm-decoder/support/mer4-values.cpp \
 	                   ./decoders/drm-decoder/support/mer16-values.cpp \
 	                   ./decoders/drm-decoder/support/mer64-values.cpp \
+	                   ./decoders/drm-decoder/support/up-converter.cpp \
 	                   ./decoders/drm-decoder/parameters/state-descriptor.cpp \
 	                   ./decoders/drm-decoder/parameters/puncture-tables.cpp \
 	                   ./decoders/drm-decoder/fac/fac-tables.cpp \
