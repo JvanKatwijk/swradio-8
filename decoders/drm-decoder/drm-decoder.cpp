@@ -95,6 +95,7 @@ int16_t	symbs;
 	                                              &buffer,
 	                                              &iqBuffer,
 	                                              &eqBuffer,
+	                                              audioOut,
 	                                              12000,
 	                                              symbs,
 	                                              windowDepth,
@@ -253,6 +254,11 @@ std::complex<float> z	= std::complex<float> (re, im);
 	   audioAvailable (audioOut -> GetRingBufferReadAvailable (), 48000);
 	   fillP = 0;
 	}
+}
+
+void	drmDecoder::samplesAvailable () {
+	if (audioOut -> GetRingBufferReadAvailable ()  >= 4800)
+	   audioAvailable (audioOut -> GetRingBufferReadAvailable (), 48000);
 }
 
 void	drmDecoder::showSNR		(float snr) {

@@ -28,7 +28,7 @@
 #include	<deque>
 #include	<vector>
 #include	<complex>
-#include	"up-converter.h"
+#include	"rate-converter.h"
 static
 const uint16_t crcPolynome [] = {
         0, 0, 0, 1, 1, 1, 0     // MSB .. LSB x⁸ + x⁴ + x³ + x² + 1
@@ -47,16 +47,21 @@ uint16_t        res     = 0;
 }
 
 	xheaacProcessor::xheaacProcessor (stateDescriptor *theState,
-	                                  drmDecoder *drm):
+	                                  drmDecoder *drm,
+	                                  RingBuffer<std::complex<float>> *b):
 	                                    theCRC (8, crcPolynome),
 	                                    my_messageProcessor (drm) {
 	this	-> theState	= theState;
 	this	-> parent	= drm;
+	this	-> audioBuffer	= b;
 	this	-> handle	= aacDecoder_Open (TT_DRM, 3);
-	connect (this, SIGNAL (putSample (float, float)),
-	         parent, SLOT (sampleOut (float, float)));
+	connect (this, SIGNAL (samplesAvailable ()),
+	         parent, SLOT (samplesAvailable ()));
 	connect (this, SIGNAL (faadSuccess (bool)),
 	         parent, SLOT (faadSuccess (bool)));
+	connect (this, SIGNAL (aacData (QString)),
+                 parent, SLOT (aacData (QString)));
+
 	currentRate		= 0;
 	theConverter		= nullptr;
 	frameBuffer. resize (0);
@@ -126,7 +131,6 @@ uint32_t elementsUsed		= 0;
            return;
         }
 
-
 //	fprintf (stderr, "going for decoding\n");
 //
 //	The first frameBorderIndex might point to the last one or
@@ -172,8 +176,8 @@ uint32_t elementsUsed		= 0;
 	      break;
 	}
 //	just read in the data and process the frame
-	frameBuffer. resize (0);
 	for (int i = 1; i < borders. size (); i ++) {
+	   frameBuffer. resize (0);
 	   for (; elementsUsed < borders [i]; elementsUsed ++) 
 	      frameBuffer.
 	              push_back (get_MSCBits (v, 16 + elementsUsed * 8, 8));
@@ -217,7 +221,7 @@ int32_t	rate;
 	}
 
 	if (good + fout >= 10) {
-	   fprintf (stderr, "%d good out of %d\n", good, good + fout);
+//	   fprintf (stderr, "%d good out of %d\n", good, good + fout);
 	   good = 0; fout = 0;
 	}
 }
@@ -227,27 +231,31 @@ int16_t i;
         if (cnt == 0)
            return;
 
-        for (i = 0; i < cnt; i ++)
-           putSample (real (b [i]), imag (b [i]));
+	audioBuffer	-> putDataIntoBuffer (b, cnt);
+	samplesAvailable ();
 }
+//      valid samplerates for xHE-AAC are
+//      9.6, 12, 16, 19,2 24, 32, 38,4 and 48 KHz
+//      translation factors are
+//      5, 4, 3, 5 / 2, 2, 3 / 2, 5/4
 
 void	xheaacProcessor::writeOut (int16_t *buffer, int16_t cnt,
 	                           int32_t pcmRate) {
 	if (theConverter == nullptr) {
-	   theConverter = new audioConverter (pcmRate, 48000, pcmRate / 10);
+	   theConverter = new rateConverter (pcmRate, 48000, pcmRate / 10);
 	   currentRate	= pcmRate;
 	}
 
 	if (pcmRate != currentRate) {
 	   delete theConverter;
-	   theConverter = new audioConverter (pcmRate, 48000, pcmRate / 10);
+	   theConverter = new rateConverter (pcmRate, 48000, pcmRate / 10);
 	   currentRate = pcmRate;
 	}
 #if 0
 	fprintf (stderr, "processing %d samples (rate %d)\n",
 	                  cnt, pcmRate);
 #endif
-	std::complex<float> local [theConverter -> getOutputSize ()];
+	std::complex<float> local [theConverter -> getOutputsize ()];
 	for (int i = 0; i < cnt; i ++) {
 	   std::complex<float> tmp = 
 	                    std::complex<float> (buffer [2 * i] / 8192.0,
@@ -304,6 +312,7 @@ void	xheaacProcessor::decodeFrame (uint8_t	*audioFrame,
 	                              int32_t	*pcmRate) {
 int	errorStatus;
 uint32_t	bytesValid	= 0;
+int	flags		= 0;
 
 	UCHAR *bb	= (UCHAR *)audioFrame;
 	bytesValid	= frameSize;
@@ -312,15 +321,20 @@ uint32_t	bytesValid	= 0;
 
 	if (bytesValid != 0)
 	   fprintf (stderr, "bytesValid after fill %d\n", bytesValid);
+
+	if (!*conversionOK)
+           flags = AACDEC_INTR;
 	errorStatus =
-	     aacDecoder_DecodeFrame (handle, localBuffer, 16 * 980, 0);
+	     aacDecoder_DecodeFrame (handle, localBuffer, 2048, flags);
 #if 0
-	fprintf (stderr, "fdk-aac errorstatus %x\n",
-	                       errorStatus);
+	if (errorStatus != 0)
+	   fprintf (stderr, "fdk-aac errorstatus %x\n",
+	                                errorStatus);
 #endif
 	if (errorStatus == AAC_DEC_NOT_ENOUGH_BITS) {
 	   *conversionOK	= false;
 	   *samples		= 0;
+	   faadSuccess (false);
 	   return;
 	}
 
@@ -328,10 +342,13 @@ uint32_t	bytesValid	= 0;
 //	if ((errorStatus != AAC_DEC_OK) && (errorStatus & 0x4000 == 0)) {
 	   *conversionOK	= false;
 	   *samples		= 0;
+	   faadSuccess (false);
 	   return;
 	}
 
-	CStreamInfo *fdk_info = aacDecoder_GetStreamInfo (handle);
+	CStreamInfo *fdk_info =
+	                aacDecoder_GetStreamInfo (handle);
+
 	if (fdk_info -> numChannels == 1) {
 	   for (int i = 0; i < fdk_info -> frameSize; i ++) {
 	      buffer [2 * i] 	= localBuffer [i];
@@ -345,12 +362,16 @@ uint32_t	bytesValid	= 0;
 	      buffer [2 * i + 1] = localBuffer [2 * i + i];
 	   }
 	}
+	QString text = QString::number (fdk_info -> sampleRate);
+        text += fdk_info -> numChannels == 2 ? " stereo" : " mono";
+        aacData (text);
+
 #if 0
 	fprintf (stderr, "frameSize %d, samplerate %d\n",
 	               fdk_info -> frameSize, fdk_info -> sampleRate);
+	fprintf (stderr, "channel config %d (rate %d)\n",
+	           fdk_info -> channelConfig, fdk_info -> sampleRate);
 #endif
-//	fprintf (stderr, "channel config %d (rate %d)\n",
-//	           fdk_info -> channelConfig, fdk_info -> sampleRate);
 	*samples	= fdk_info	-> frameSize;
 	*pcmRate	= fdk_info	-> sampleRate;
 	*conversionOK	= true;

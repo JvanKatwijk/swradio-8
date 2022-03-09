@@ -72,12 +72,14 @@ uint32_t y;
 }
 
 	dataProcessor::dataProcessor	(stateDescriptor *theState,
-	                                 drmDecoder *drm):
-	                                   my_messageProcessor (drm) ,
-	                                   my_aacProcessor (theState, drm)
+	                                 drmDecoder *drm,
+	                                 RingBuffer<std::complex<float>> *audioBuffer):
+	                                   my_aacProcessor (theState,
+	                                                    drm, audioBuffer)
 #ifdef	__WITH_FDK_AAC__
 	                                   ,my_xheaacProcessor (theState,
-	                                                                drm)
+	                                                        drm,
+	                                                        audioBuffer)
 #endif
 	{
 	this	-> theState		= theState;

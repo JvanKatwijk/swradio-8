@@ -36,9 +36,11 @@
 	backendController::
 	           backendController	(drmDecoder	*drmDecoder,
 	                                 RingBuffer<std::complex<float>> *iqBuffer,
+	                                 RingBuffer<std::complex<float>> *audioBuffer,
 	                                 int8_t		qam64Roulette) {
 	drmMaster	= drmDecoder;
 	this	-> iqBuffer	= iqBuffer;
+	this	-> audioBuffer	= audioBuffer;
 	this	-> qam64Roulette	= qam64Roulette;
 
 	connect (this, SIGNAL (showIQ (int)),
@@ -61,13 +63,13 @@
 void	backendController::reset	(stateDescriptor *theState) {
 	if (theWorker != NULL)
 	   delete theWorker;
-	theWorker = new mscProcessor (theState, drmMaster, 6);
+	theWorker = new mscProcessor (theState, drmMaster, 6, audioBuffer);
 	
 }
 
 void	backendController::newFrame	(stateDescriptor *theState) {
 	if (theWorker == NULL)	// should not happen
-	   theWorker = new mscProcessor (theState, drmMaster, 6);
+	   theWorker = new mscProcessor (theState, drmMaster, 6, audioBuffer);
 	theWorker -> newFrame (theState);
 }
 

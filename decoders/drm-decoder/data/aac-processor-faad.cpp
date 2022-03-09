@@ -42,13 +42,15 @@ uint16_t	res	= 0;
 
 	aacProcessor_faad::aacProcessor_faad	(
 	                                 stateDescriptor *theState,
-	                                 drmDecoder *drm):
+	                                 drmDecoder *drm,
+	                                 RingBuffer<std::compelx<float>> *b):
 	                                      my_messageProcessor (drm),
 	                                      upFilter_24000 (5, 12000, 48000),
 	                                      upFilter_12000 (5, 6000, 48000) {
 	
 	this	-> theState		= theState;
 	this	-> drmMaster		= drm;
+	this	-> audioBuffer		= b;
 	this	-> theDecoder		= nullptr;
 //
 //	these are "previous values"
@@ -60,6 +62,8 @@ uint16_t	res	= 0;
                  drm,  SLOT (aacData (QString)));
 	connect (this, SIGNAL (putSample (float, float)),
 	         drmMaster, SLOT (sampleOut (float, float)));
+	connect (this, SIGNAL (samplesAvailable ()),
+	         drmMaster, SLOT (samplesAvailable ()));
 	connect (this, SIGNAL (faadSuccess (bool)),
 	         drmMaster, SLOT (faadSuccess (bool)));
 }
@@ -264,8 +268,8 @@ int16_t	i;
 	if (cnt == 0)
 	   return;
 
-	for (i = 0; i < cnt; i ++)
-	   putSample (real (b [i]), imag (b [i]));
+	audioBuffer	-> putDataIntoBuffer (b, cnt);
+	samplesAvailable ();
 }
 
 void	aacProcessor_faad::writeOut (int16_t *buffer, int16_t cnt,

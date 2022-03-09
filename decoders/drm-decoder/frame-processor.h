@@ -57,6 +57,7 @@ public:
 	                                 RingBuffer<DSPCOMPLEX> *,
 	                                 RingBuffer<DSPCOMPLEX> *,
 	                                 RingBuffer<DSPCOMPLEX> *,
+	                                 RingBuffer<std::complex<float>> *,
 	                                 int32_t,	// samplerate
 	                                 int16_t,	// number of symbs
 	                                 int8_t,	// windowDepth
@@ -69,6 +70,7 @@ private:
 	RingBuffer<std::complex<float>> *buffer;
 	RingBuffer<std::complex<float>> *iqBuffer;
 	RingBuffer<std::complex<float>> *eqBuffer;
+	RingBuffer<std::complex<float>> *audioBuffer;
 	backendController	my_backendController;
 	int16_t		nSymbols;
 	int32_t		sampleRate;

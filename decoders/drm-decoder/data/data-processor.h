@@ -29,13 +29,13 @@
 #include	<cstring>
 #include	"fec-handler.h"
 #include	"fir-filters.h"
+#include	"ringbuffer.h"
 #ifdef	__WITH_FDK_AAC__
 #include	"aac-processor-fdk.h"
 #include	"xheaac-processor.h"
 #else
 #include	"aac-processor-faad.h"
 #endif
-#include	"message-processor.h"
 
 class	drmDecoder;
 class	stateDescriptor;
@@ -44,8 +44,10 @@ class	packetAssembler;
 class	dataProcessor: public QObject {
 Q_OBJECT
 public:
-		dataProcessor	(stateDescriptor *, drmDecoder *);
-		~dataProcessor	(void);
+		dataProcessor	(stateDescriptor *,
+	                         drmDecoder *, 
+	                         RingBuffer<std::complex<float>> *);
+		~dataProcessor	();
 	void	process		(uint8_t *, int16_t);
 enum	{S_AAC, S_CELPT, S_HVXC};
 	void	selectDataService	(int16_t);
@@ -53,7 +55,6 @@ enum	{S_AAC, S_CELPT, S_HVXC};
 private:
 	stateDescriptor	*theState;
 	drmDecoder	*drmMaster;
-	messageProcessor my_messageProcessor;
 #ifdef	__WITH_FDK_AAC__
 	aacProcessor_fdk	my_aacProcessor;
 	xheaacProcessor		my_xheaacProcessor;

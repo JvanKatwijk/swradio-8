@@ -128,6 +128,8 @@ The second picture shows a reception of Radio Nigeria, with a mode
 where QAM16 is used as encoding for the content. The picture shows the
 16 possible signal values clearly.
 
+The current version now was tested on decoding xHE-AAC
+
 --------------------------------------------------------------------------
 Using the swradio
 ---------------------------------------------------------------------------

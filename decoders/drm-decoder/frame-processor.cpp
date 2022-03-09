@@ -49,6 +49,7 @@
 	                                RingBuffer<std::complex<float>> *buffer,
 	                                RingBuffer<std::complex<float>> *iqBuffer,
 	                                RingBuffer<std::complex<float>> *eqBuffer,
+	                                RingBuffer<std::complex<float>> *audioBuffer,
 	                                int32_t		sampleRate,
 	                                int16_t		nSymbols,
 	                                int8_t		windowDepth,
@@ -56,12 +57,14 @@
 	                                 my_Reader (buffer, 4 * 16384, mr),
 	                                 my_backendController (mr,
 	                                                       iqBuffer,
+	                                                       audioBuffer,
 	                                                       qam64Roulette),
 	                                 theState (mr, 1, 3) {
 	this	-> theDecoder	= mr;
 	this	-> buffer	= buffer;
 	this	-> iqBuffer	= iqBuffer;
 	this	-> eqBuffer	= eqBuffer;
+	this	-> audioBuffer	= audioBuffer;
 	this	-> sampleRate	= sampleRate;
 	this	-> nSymbols	= nSymbols;
 	this	-> windowDepth	= windowDepth;

@@ -28,18 +28,20 @@
 
 #include	"radio-constants.h"
 #include	"basics.h"
+#include	"ringbuffer.h"
+#include	"data-processor.h"
 
 class	drmDecoder;
 class	stateDescriptor;
 class	deInterleaver;
 class	mscHandler;
-class	dataProcessor;
 
 class	mscProcessor {
 public:
 		mscProcessor		(stateDescriptor *,
 	                                 drmDecoder *,
-	                                 int8_t);
+	                                 int8_t,
+	                                 RingBuffer<std::complex<float>> *);
 		~mscProcessor		(void);
 	void	addtoMux		(int16_t, int32_t, theSignal);
 	void	newFrame		(stateDescriptor *);
@@ -48,6 +50,8 @@ private:
 	drmDecoder	*drmMaster;
 	stateDescriptor	*theState;
 	int8_t		qam64Roulette;
+	dataProcessor	my_dataProcessor;
+	RingBuffer<std::complex<float>> *audioBuffer;
 	uint8_t		protLevelA;
 	uint8_t		protLevelB;
 	int16_t		numofStreams;
@@ -59,7 +63,6 @@ private:
 	int16_t		bufferP;
 	deInterleaver	*my_deInterleaver;
 	mscHandler	*my_mscHandler;
-	dataProcessor	*my_dataProcessor;
 	int16_t		muxNo;
 	int16_t		dataLength;
 };

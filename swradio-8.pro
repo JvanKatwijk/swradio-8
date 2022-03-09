@@ -51,6 +51,7 @@ HEADERS += ./radio-constants.h \
 	   ./various/popup-keypad.h \
 	   ./various/s-meter.h \
 	   ./various/downconverter.h \
+	   ./various/rate-converter.h \
 	   ./decimators/newconverter.h \
 	   ./decimators/decimator.h \
            ./filters/fft-filters.h \
@@ -87,6 +88,7 @@ SOURCES += ./main.cpp \
 	   ./various/slidingfft.cpp \
 	   ./various/program-list.cpp \
 	   ./various/downconverter.cpp \
+	   ./various/rate-converter.cpp \
            ./filters/fft-filters.cpp \
            ./filters/fir-filters.cpp \
            ./filters/iir-filters.cpp \

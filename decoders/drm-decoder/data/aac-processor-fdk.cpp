@@ -41,16 +41,20 @@ uint16_t	res	= 0;
 }
 //
 	aacProcessor_fdk::aacProcessor_fdk (stateDescriptor *theState,
-	                                    drmDecoder *drm):
+	                                    drmDecoder *drm,
+	                                    RingBuffer<std::complex<float>> *b):
 	                                    my_messageProcessor (drm),
 	                                    upFilter_24000 (5, 12000, 48000),
 	                                    upFilter_12000 (5, 6000, 48000) {
 
 	this	-> theState	= theState;
 	this	-> drmMaster	= drm;
+	this	-> audioBuffer	= b;
 	this	-> handle	= aacDecoder_Open (TT_DRM, 2);
 	connect (this, SIGNAL (putSample (float, float)),
 	         drmMaster, SLOT (sampleOut (float, float)));
+	connect (this, SIGNAL (samplesAvailable ()),
+	         drmMaster, SLOT (samplesAvailable ()));
 	connect (this, SIGNAL (faadSuccess (bool)),
 	         drmMaster, SLOT (faadSuccess (bool)));
 	connect (this, SIGNAL (aacData (QString)),
@@ -248,8 +252,8 @@ int16_t	i;
 	if (cnt == 0)
 	   return;
 
-	for (i = 0; i < cnt / 2; i ++)
-	   putSample (b [2 * i], b [2 * i + 1]);
+	audioBuffer	-> putDataIntoBuffer ((std::complex<float> *)b, cnt / 2);
+	samplesAvailable ();
 }
 
 void	aacProcessor_fdk::writeOut (int16_t *buffer, int16_t cnt,

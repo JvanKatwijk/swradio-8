@@ -89,6 +89,7 @@ public slots:
 	void		show_eqsymbol		(int);
 	void		show_audioMode		(QString);
 	void		sampleOut		(float, float);
+	void		samplesAvailable	();
 	void		show_coarseOffset	(float);
 	void		show_fineOffset		(float);
 	void		show_timeDelay		(float);

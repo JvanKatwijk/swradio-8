@@ -38,16 +38,20 @@
 //	and checked once per superframe here
 	mscProcessor::mscProcessor	(stateDescriptor *theState,
 	                                 drmDecoder	*drm,
-	                                 int8_t		qam64Roulette) {
+	                                 int8_t		qam64Roulette,
+	                                 RingBuffer<std::complex<float>> *audioBuffer):
+	                                    my_dataProcessor (theState,
+	                                                      drm,
+	                                                      audioBuffer) {
 	this	-> theState	= theState;
 	drmMaster		= drm;
 	this	-> qam64Roulette	= qam64Roulette;
+	this	-> audioBuffer	= audioBuffer;
 	this	-> mscMode	= theState	-> mscMode;
 	this	-> protLevelA	= theState	-> protLevelA;
 	this	-> protLevelB	= theState	-> protLevelB;
 	this	-> numofStreams	= theState	-> numofStreams;
 	this	-> QAMMode	= theState	-> QAMMode;
-	my_dataProcessor	= new dataProcessor (theState, drmMaster);
 
 	this	-> muxsampleLength	= theState -> mscCells / 3;
 	this	-> muxsampleBuf	= new theSignal [muxsampleLength];
@@ -87,7 +91,6 @@
         delete []       tempBuffer;
         delete          my_deInterleaver;
         delete          my_mscHandler;
-	delete		my_dataProcessor;
 }
 
 //
@@ -114,7 +117,7 @@ void	mscProcessor::addtoMux	(int16_t blockno, int32_t cnt, theSignal v) {
 	   my_deInterleaver -> deInterleave (tempBuffer,
 	                                     this -> muxsampleBuf);
 	   my_mscHandler    -> process (this -> muxsampleBuf, dataBuffer);
-	   my_dataProcessor -> process (dataBuffer, theState -> dataLength);
+	   my_dataProcessor. process (dataBuffer, theState -> dataLength);
 	   bufferP	= 0;
 	}
 }

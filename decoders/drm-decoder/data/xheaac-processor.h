@@ -36,16 +36,18 @@
 #include	"basics.h"
 #include	"checkcrc.h"
 #include	"message-processor.h"
+#include	"ringbuffer.h"
 
 class	drmDecoder;
-class	audioConverter;
+class	rateConverter;
 class	stateDescriptor;
 
 class	xheaacProcessor: public QObject {
 Q_OBJECT
 public:
 			xheaacProcessor	(stateDescriptor *,
-	                                 drmDecoder *);
+	                                 drmDecoder *,
+	                                 RingBuffer<std::complex<float>> *);
 			~xheaacProcessor	();
 	void		process_usac	(uint8_t *v, int16_t mscIndex,
                                          int16_t startHigh, int16_t lengthHigh,
@@ -53,11 +55,10 @@ public:
 private:
 	stateDescriptor	*theState;
 	drmDecoder	*parent;
+	RingBuffer<std::complex<float>> *audioBuffer;
 	checkCRC	theCRC;
 	messageProcessor	my_messageProcessor;
-	audioConverter	*theConverter;
-//	LowPassFIR      upFilter_24000;
-//	LowPassFIR      upFilter_12000;
+	rateConverter	*theConverter;
 	void		resetBuffers	();
 	void		processFrame	(int);
 	int		currentRate;
@@ -92,7 +93,7 @@ private:
         uint32_t        bufferP;
         std::vector<uint8_t>    currentConfig;
 signals:
-	void            putSample       (float, float);
+	void		samplesAvailable	();
 	void            faadSuccess     (bool);
 	void		aacData		(QString);
 };

@@ -31,6 +31,7 @@
 #include	"fir-filters.h"
 #include	"up-filter.h"
 #include	"message-processor.h"
+#include	"ringbuffer.h"
 
 class	drmDecoder;
 class	stateDescriptor;
@@ -44,13 +45,16 @@ typedef	struct frame {
 class	aacProcessor_faad: public QObject {
 Q_OBJECT
 public:
-		aacProcessor_faad	(stateDescriptor *, drmDecoder *);
-		~aacProcessor_faad	(void);
+		aacProcessor_faad	(stateDescriptor *,
+	                                 drmDecoder *,
+	                                 RingBuffer<std::complex<float>> *);
+		~aacProcessor_faad	();
 	void	process_aac	(uint8_t *, int16_t,
 	                         int16_t, int16_t, int16_t, int16_t);
 private:
 	stateDescriptor	*theState;
 	drmDecoder	*drmMaster;
+	RingBuffer<std::complex<float>> *audioBuffer;
 	messageProcessor	my_messageProcessor;
 	upFilter	upFilter_24000;
 	upFilter	upFilter_12000;
@@ -82,6 +86,7 @@ private:
 signals:
 	void		show_audioMode	(QString);
 	void		putSample	(float, float);
+	void		samplesAvailable	();
 	void		faadSuccess	(bool);
 	void		aacData		(QString);
 };

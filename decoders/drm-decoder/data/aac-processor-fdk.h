@@ -33,6 +33,7 @@
 #include	"radio-constants.h"
 #include	"fir-filters.h"
 #include	"message-processor.h"
+#include	"ringbuffer.h"
 
 class	drmDecoder;
 class	stateDescriptor;
@@ -46,14 +47,17 @@ typedef	struct frame {
 class	aacProcessor_fdk: public QObject {
 Q_OBJECT
 public:
-		aacProcessor_fdk   (stateDescriptor *, drmDecoder *);
-                ~aacProcessor_fdk  (void);
+		aacProcessor_fdk   (stateDescriptor *,
+	                            drmDecoder *,
+	                            RingBuffer<std::complex<float>> *);
+                ~aacProcessor_fdk  ();
 
         void	process_aac	(uint8_t *, int16_t, int16_t,
                                          int16_t, int16_t, int16_t);
 private:
 	stateDescriptor *theState;
         drmDecoder      *drmMaster;
+	RingBuffer<std::complex<float>> *audioBuffer;
 	messageProcessor	my_messageProcessor;
         LowPassFIR      upFilter_24000;
         LowPassFIR      upFilter_12000;
@@ -91,6 +95,7 @@ private:
                         getAudioInformation (stateDescriptor *, int);
 signals:
         void            putSample       (float, float);
+	void		samplesAvailable	();
         void            faadSuccess     (bool);
 	void		aacData		(QString);
 };
