@@ -26,6 +26,7 @@
 
 #include	"radio-constants.h"
 #include	<QString>
+#include	<vector>
 class	drmDecoder;
 
 //

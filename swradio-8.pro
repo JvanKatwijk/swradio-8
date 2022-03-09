@@ -5,11 +5,11 @@ TEMPLATE = app
 QT	+= widgets xml
 CONFIG	-= console
 TARGET	= swradio-8.1
-#QMAKE_CFLAGS	+= -O3 -ffast-math 
-#QMAKE_CXXFLAGS	+= -O3 -ffast-math 
-QMAKE_CXXFLAGS += -fsanitize=address -g
-QMAKE_CFLAGS   += -fsanitize=address -g
-QMAKE_LFLAGS   += -fsanitize=address -g
+QMAKE_CFLAGS	+= -O3 -ffast-math 
+QMAKE_CXXFLAGS	+= -O3 -ffast-math 
+#QMAKE_CXXFLAGS += -fsanitize=address -g
+#QMAKE_CFLAGS   += -fsanitize=address -g
+#QMAKE_LFLAGS   += -fsanitize=address -g
 
 RC_ICONS        =  swradio.ico
 RESOURCES       += resources.qrc

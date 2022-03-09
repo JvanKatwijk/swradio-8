@@ -58,8 +58,9 @@ int32_t	i;
 
 void	slidingFFT::reset	(std::complex<float> *v) {
 	for (int i = 0; i < FFTlen; i ++) {
-	   Bins [i] = std::complex<float> (0, 0):
+	   Bins [i] = std::complex<float> (0, 0);
 	   Past [i] = std::complex<float> (0, 0);
+	}
 }
 
 int32_t	slidingFFT::first (void) {

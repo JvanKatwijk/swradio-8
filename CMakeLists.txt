@@ -38,7 +38,9 @@ endif()
 	add_definitions (-DHAVE_MFSK_DECODER)
 	add_definitions (-DHAVE_DRM_DECODER)
 	add_definitions (-DESTIMATOR_1)
-	
+
+	add_definitions	(-D__WITH_FDK_AAC__)
+	add_definitions	(-DESTIMATOR_1)
 ########################################################################
 # select the release build type by default to get optimization flags
 ########################################################################
@@ -178,10 +180,12 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./various/fft.h 
 	   ./various/shifter.h 
 	   ./various/utilities.h 
+	   ./various/slidingfft.h 
 	   ./various/program-list.h 
 	   ./various/popup-keypad.h 
 	   ./various/s-meter.h 
 	   ./various/downconverter.h 
+	   ./various/rate-converter.h
 	   ./decimators/newconverter.h 
 	   ./decimators/decimator.h 
 	   ./filters/fft-filters.h 
@@ -216,7 +220,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-filenames.h
 	   ./decoders/mfsk-decoder/mfsk-decoder.h 
 	   ./decoders/mfsk-decoder/goertzel-filter.h 
-	   ./decoders/mfsk-decoder/slidingfft.h 
+#	   ./decoders/mfsk-decoder/slidingfft.h 
 	   ./decoders/mfsk-decoder/interleave.h
 	   ./decoders/drm-decoder/drm-decoder.h  
 	   ./decoders/drm-decoder/iqdisplay.h 
@@ -244,6 +248,9 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/support/deinterleaver.h 
 	   ./decoders/drm-decoder/support/matrix2.h 
 	   ./decoders/drm-decoder/support/protlevels.h 
+	   ./decoders/drm-decoder/support/mer4-values.h 
+	   ./decoders/drm-decoder/support/mer16-values.h 
+	   ./decoders/drm-decoder/support/mer64-values.h 
 	   ./decoders/drm-decoder/parameters/state-descriptor.h 
 	   ./decoders/drm-decoder/parameters/puncture-tables.h 
 	   ./decoders/drm-decoder/fac/fac-tables.h 
@@ -283,8 +290,10 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./various/s-meter.cpp 
 	   ./various/shifter.cpp 
 	   ./various/utilities.cpp 
+	   ./various/slidingfft.cpp
 	   ./various/program-list.cpp 
 	   ./various/downconverter.cpp 
+	   ./various/rate-converter.cpp 
 	   ./filters/fft-filters.cpp 
 	   ./filters/fir-filters.cpp 
 	   ./filters/iir-filters.cpp 
@@ -317,7 +326,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/fax-decoder/fax-filenames.cpp
 	   ./decoders/mfsk-decoder/mfsk-decoder.cpp 
 	   ./decoders/mfsk-decoder/goertzel-filter.cpp 
-	   ./decoders/mfsk-decoder/slidingfft.cpp 
+#	   ./decoders/mfsk-decoder/slidingfft.cpp 
 	   ./decoders/mfsk-decoder/interleave.cpp
 	   ./decoders/drm-decoder/drm-decoder.cpp  
 	   ./decoders/drm-decoder/eqdisplay.cpp 
@@ -344,6 +353,9 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
  	   ./decoders/drm-decoder/support/deinterleaver.cpp 
 	   ./decoders/drm-decoder/support/matrix2.cpp 
 	   ./decoders/drm-decoder/support/protlevels.cpp 
+	   ./decoders/drm-decoder/support/mer4-values.cpp 
+	   ./decoders/drm-decoder/support/mer16-values.cpp 
+	   ./decoders/drm-decoder/support/mer64-values.cpp 
 	   ./decoders/drm-decoder/parameters/state-descriptor.cpp 
 	   ./decoders/drm-decoder/parameters/puncture-tables.cpp 
 	   ./decoders/drm-decoder/fac/fac-tables.cpp 
@@ -416,6 +428,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h
 	   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h
 	   ./decoders/drm-decoder/sdc/sdc-processor.h
+	   ./decoders/drm-decoder/msc/msc-handler.h
 	   ./decoders/drm-decoder/msc/backend-controller.h
 	   ./decoders/drm-decoder/data/mot-data.h
 	   ./decoders/drm-decoder/data/data-processor.h
