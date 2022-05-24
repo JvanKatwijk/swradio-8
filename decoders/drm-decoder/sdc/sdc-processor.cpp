@@ -481,6 +481,7 @@ uint8_t	language [3], country [2];
 	            }
 	         }
 	      }
+
 	      return;
 
 	   case 10:	// FAC channel parameters data entity

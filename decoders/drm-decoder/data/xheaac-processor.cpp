@@ -160,6 +160,7 @@ int	failure		= 0;
 	std::vector<uint8_t> audioDescriptor =
 	                         getAudioInformation (theState, streamId);
 	reinit (audioDescriptor, streamId);
+
 	for (int i = 0; i < frameBorderCount; i++) {
 	   uint32_t frameBorderIndex =
 	                    get_MSCBits (v, 8 * length - 16 - 16 * i, 12);
@@ -288,6 +289,11 @@ int32_t	rate;
 	if (good + fout >= 10) {
 	   faadSuccess (good > fout);
 //	   fprintf (stderr, "%d out of %d were good\n", good, good + fout);
+	   good = 0; fout = 0;
+	}
+
+	if (good + fout >= 10) {
+//	   fprintf (stderr, "%d good out of %d\n", good, good + fout);
 	   good = 0; fout = 0;
 	}
 }

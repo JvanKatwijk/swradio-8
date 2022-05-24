@@ -84,7 +84,7 @@ void	aacProcessor_fdk::process_aac (uint8_t *v, int16_t mscIndex,
 	                               int16_t startLow,  int16_t lengthLow) {
 	if (lengthHigh != 0) 
 	   handle_uep_audio (v, mscIndex, startHigh, lengthHigh,
-	                            startLow, lengthLow - 4);
+	                            startLow, lengthLow);
 	else 
 	   handle_eep_audio (v, mscIndex,  startLow, lengthLow);
 }
@@ -149,7 +149,6 @@ int16_t	payloadLength;
 	         my_messageProcessor.
 	                   processMessage (v, (startLow + lengthLow - 4) * 8);
 
-	
 	playOut (mscIndex);
 }
 

@@ -43,7 +43,6 @@ endif()
 	add_definitions (-DHAVE_DRM_DECODER)
 	add_definitions (-DESTIMATOR_1)
 	add_definitions (-D__WITH_FDK_AAC__)
-	
 ########################################################################
 # select the release build type by default to get optimization flags
 ########################################################################
@@ -178,6 +177,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./various/popup-keypad.h 
 	   ./various/s-meter.h 
 	   ./various/downconverter.h 
+	   ./various/rate-converter.h
 	   ./decimators/newconverter.h 
 	   ./decimators/decimator.h 
 	   ./filters/fft-filters.h 
@@ -287,8 +287,10 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./various/shifter.cpp 
 	   ./various/slidingfft.cpp
 	   ./various/utilities.cpp 
+	   ./various/slidingfft.cpp
 	   ./various/program-list.cpp 
 	   ./various/downconverter.cpp 
+	   ./various/rate-converter.cpp 
 	   ./filters/fft-filters.cpp 
 	   ./filters/fir-filters.cpp 
 	   ./filters/iir-filters.cpp 

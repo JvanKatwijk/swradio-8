@@ -61,7 +61,6 @@ private slots:
 	void		psk_setMode		(const QString &);
 	void		psk_setFilterDegree	(int);
 	void		handleClick		(int);
-	void		set_searchRange		(int);
 	
 private:
 	enum PskMode {
@@ -138,8 +137,6 @@ private:
 	std::vector<float>	theTable;
 	std::vector<complex<float> >	inTable;
 	int16_t		tablePointer;
-
-	int		searchRange;
 //
 //	former signals are now handled locally
 	QString		pskText;

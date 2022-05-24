@@ -51,6 +51,7 @@ HEADERS += ./radio-constants.h \
 	   ./various/popup-keypad.h \
 	   ./various/s-meter.h \
 	   ./various/downconverter.h \
+	   ./various/rate-converter.h \
 	   ./decimators/newconverter.h \
 	   ./decimators/decimator.h \
            ./filters/fft-filters.h \
@@ -88,6 +89,7 @@ SOURCES += ./main.cpp \
 	   ./various/slidingfft.cpp \
 	   ./various/program-list.cpp \
 	   ./various/downconverter.cpp \
+	   ./various/rate-converter.cpp \
            ./filters/fft-filters.cpp \
            ./filters/fir-filters.cpp \
            ./filters/iir-filters.cpp \
@@ -434,6 +436,7 @@ drm-decoder-fdk {
 	                   ./decoders/drm-decoder/eqdisplay.h \
 	                   ./decoders/drm-decoder/iqdisplay.h \
 	                   ./decoders/drm-decoder/basics.h \
+<<<<<<< HEAD
 #	                   ./decoders/drm-decoder/utilities.h \
 	                   ./decoders/drm-decoder/up-converter.h \
 	                   ./decoders/drm-decoder/rate-converter.h \
@@ -441,6 +444,36 @@ drm-decoder-fdk {
 	                   ./decoders/drm-decoder/data/data-processor.h \
 	                   ./decoders/drm-decoder/data/message-processor.h \
 #	                   ./decoders/drm-decoder/data/up-filter.h \
+=======
+	                   ./decoders/drm-decoder/frame-processor.h \
+	                   ./decoders/drm-decoder/ofdm/reader.h \
+	                   ./decoders/drm-decoder/ofdm/correlator.h \
+	                   ./decoders/drm-decoder/ofdm/timesync.h \
+	                   ./decoders/drm-decoder/ofdm/freqsyncer.h \
+	                   ./decoders/drm-decoder/ofdm/word-collector.h \
+	                   ./decoders/drm-decoder/signal-handling/referenceframe.h \
+	                   ./decoders/drm-decoder/signal-handling/equalizer-base.h \
+	                   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.h \
+	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.h \
+	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.h \
+	                   ./decoders/drm-decoder/support/my-array.h \
+	                   ./decoders/drm-decoder/support/viterbi-drm.h \
+	                   ./decoders/drm-decoder/support/mapper.h \
+	                   ./decoders/drm-decoder/support/prbs.h \
+	                   ./decoders/drm-decoder/support/checkcrc.h \
+	                   ./decoders/drm-decoder/support/qam64-metrics.h \
+	                   ./decoders/drm-decoder/support/qam16-metrics.h \
+	                   ./decoders/drm-decoder/support/qam4-metrics.h \
+	                   ./decoders/drm-decoder/support/deinterleaver.h \
+	                   ./decoders/drm-decoder/support/matrix2.h \
+	                   ./decoders/drm-decoder/support/protlevels.h \
+	                   ./decoders/drm-decoder/support/mer4-values.h \
+	                   ./decoders/drm-decoder/support/mer16-values.h \
+	                   ./decoders/drm-decoder/support/mer64-values.h \
+	                   ./decoders/drm-decoder/support/up-converter.h \
+	                   ./decoders/drm-decoder/parameters/state-descriptor.h \
+	                   ./decoders/drm-decoder/parameters/puncture-tables.h \
+>>>>>>> 13f7ded765b6129a07793d5b0c777ece446b44e3
 	                   ./decoders/drm-decoder/fac/fac-tables.h \
 	                   ./decoders/drm-decoder/fac/fac-processor.h \
 	                   ./decoders/drm-decoder/sdc/sdc-include.h \
@@ -489,11 +522,41 @@ drm-decoder-fdk {
 	                   ./decoders/drm-decoder/up-converter.cpp \
 	                   ./decoders/drm-decoder/rate-converter.cpp \
 	                   ./decoders/drm-decoder/basics.cpp \
+<<<<<<< HEAD
 #	                   ./decoders/drm-decoder/data/aac-processor-faad.cpp \
 	                   ./decoders/drm-decoder/data/data-processor.cpp \
 	                   ./decoders/drm-decoder/data/message-processor.cpp \
 #	                   ./decoders/drm-decoder/data/lowpassfir.cpp \
 	                   ./decoders/drm-decoder/data/up-filter.cpp \
+=======
+	                   ./decoders/drm-decoder/frame-processor.cpp \
+	                   ./decoders/drm-decoder/ofdm/reader.cpp \
+	                   ./decoders/drm-decoder/ofdm/correlator.cpp \
+	                   ./decoders/drm-decoder/ofdm/timesync.cpp \
+	                   ./decoders/drm-decoder/ofdm/freqsyncer.cpp \
+	                   ./decoders/drm-decoder/ofdm/word-collector.cpp \
+	                   ./decoders/drm-decoder/signal-handling/referenceframe.cpp \
+	                   ./decoders/drm-decoder/signal-handling/equalizer-base.cpp \
+	                   ./decoders/drm-decoder/signal-handling/eq-1/equalizer-1.cpp \
+	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-base.cpp \
+	                   ./decoders/drm-decoder/signal-handling/eq-1/estimator-1.cpp \
+	                   ./decoders/drm-decoder/support/viterbi-drm.cpp \
+	                   ./decoders/drm-decoder/support/mapper.cpp \
+	                   ./decoders/drm-decoder/support/prbs.cpp \
+	                   ./decoders/drm-decoder/support/checkcrc.cpp \
+	                   ./decoders/drm-decoder/support/qam64-metrics.cpp \
+	                   ./decoders/drm-decoder/support/qam16-metrics.cpp \
+	                   ./decoders/drm-decoder/support/qam4-metrics.cpp \
+ 	                   ./decoders/drm-decoder/support/deinterleaver.cpp \
+	                   ./decoders/drm-decoder/support/matrix2.cpp \
+	                   ./decoders/drm-decoder/support/protlevels.cpp \
+	                   ./decoders/drm-decoder/support/mer4-values.cpp \
+	                   ./decoders/drm-decoder/support/mer16-values.cpp \
+	                   ./decoders/drm-decoder/support/mer64-values.cpp \
+	                   ./decoders/drm-decoder/support/up-converter.cpp \
+	                   ./decoders/drm-decoder/parameters/state-descriptor.cpp \
+	                   ./decoders/drm-decoder/parameters/puncture-tables.cpp \
+>>>>>>> 13f7ded765b6129a07793d5b0c777ece446b44e3
 	                   ./decoders/drm-decoder/fac/fac-tables.cpp \
 	                   ./decoders/drm-decoder/fac/fac-processor.cpp \
 	                   ./decoders/drm-decoder/sdc/sdc-processor.cpp \

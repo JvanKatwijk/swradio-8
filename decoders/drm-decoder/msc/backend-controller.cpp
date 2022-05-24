@@ -40,6 +40,7 @@
 	                                 RingBuffer<std::complex<float>> *b,
 	                                 RingBuffer<std::complex<float>> *iq) {
 	this	-> m_form		= m_form;
+
 	this	-> qam64Roulette	= qam64Roulette;
 #ifdef	__WITH_FDK_AAC__
 #ifdef	__MINGW32__

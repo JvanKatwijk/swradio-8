@@ -68,10 +68,8 @@ private slots:
 	void		cw_setSquelchValue	(int);
 	void		cw_adjustFrequency	(int);
 	void		handleClick             (int);
-	void		set_searchRange		(int);
 
 private:
-	QSettings	*cwSettings;
 	waterfallScope	*cwViewer;
 	double		*x_axis;
 	double		*y_values;
@@ -82,8 +80,6 @@ private:
 	decimatingFIR	*theFilter;
 	int32_t		theRate;
 	slidingFFT	*newFFT;
-	slidingFFT	*afcFFT;
-	int		cw_searchRange;
 	QFrame		*myFrame;
 	RingBuffer<std::complex<float>> inputBuffer;
 	downConverter	inputConverter;

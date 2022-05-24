@@ -233,25 +233,6 @@
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="QSpinBox" name="cw_rangeSetter">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>30</y>
-      <width>126</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="minimum">
-     <number>200</number>
-    </property>
-    <property name="maximum">
-     <number>1400</number>
-    </property>
-    <property name="singleStep">
-     <number>25</number>
-    </property>
-   </widget>
   </widget>
  </widget>
  <customwidgets>

@@ -88,10 +88,3 @@ std::complex<float>	slidingFFT::getBin (int32_t ind) {
 	return Bins [ind];
 }
 
-void	slidingFFT::reset	() {
-	for (int i = 0; i < len; i ++) {
-	   Bins [i] = std::complex<float> (0, 0);
-	   Past [i] = std::complex<float> (0, 0);
-	   Ptr = 0;
-}
-
