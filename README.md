@@ -232,24 +232,6 @@ uses the fdk-aac library. Therefore, the decoder is able to handle both AAC and 
 Using the swradio
 ---------------------------------------------------------------------------
 
-If a configured device is connected to the computer where the program runs,
-the device will be connected and opened. If no device is detected,
-it is assumed that file input is requested and a file selection
-menu will appear (input files in PCM format, with a 2 channel,
-96000 samples/second configuration will be accepted.)
-
-Most controls are on the main widget. Touching the frequency select
-button will cause a keypad to be shown where the frequency can be
-types in (in KHz or MHz).
-
-One may select among a number of different filterings:
-* wide, used for e.g. DRM decoding, uses the full 12 k bandwidth;
-* am, used - as the name suggests - for am decoding, uses 9 k;
-* usb, used for smallband decoding in the upper side band, has a width of 2500 Hz;
-* lsb, used for ssb decoding is the lower sideband, has a width of 2500 Hz
-
-The input can be written to a file, that file can be processed later on.
-
 Frequency presets
 can be stored, together with a user defined label (a program name).
 A table of preferred frequencies (programs) is
@@ -263,7 +245,6 @@ the programname or the associated field with the frequency.
 
 Buttons and slider are equipped with a *tooltip*, touching the button or
 slider will show a brief description of the function.
->>>>>>> 13f7ded765b6129a07793d5b0c777ece446b44e3
 
 ----------------------------------------------------------------------------
 A bandplan
