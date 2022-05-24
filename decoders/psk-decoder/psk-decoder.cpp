@@ -344,16 +344,14 @@ std::complex<float> outV [2000];
 	   pskViewer -> display (x_axis, y_values,
                                         amplitudeSlider -> value (), 0, 0);
 	      fillP     = 0;
-	      fftTeller ++;
-	      if (fftTeller >= 4) {
-	         int offs = offset (outV);
-//	         fprintf (stderr, "offset = %d\n", offs);
-	         if ((offs != NO_OFFSET_FOUND) && (abs (offs) >= 3))
+	      int offs = offset (outV);
+	      if ((offs != NO_OFFSET_FOUND) && (abs (offs) >= 3)) {
+	         if ((- searchRange / 2 < psk_IF + offs) &&
+	             (psk_IF + offs / 2 < searchRange)) {
 	            psk_IF += offs / 2;
-	         fftTeller = 0;
-	         newFFT -> reset ();
-	      }
-	   }
+              }
+           }
+
 	   newFFT -> reset ();
 	}
 

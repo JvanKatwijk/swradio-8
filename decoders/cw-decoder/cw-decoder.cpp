@@ -283,6 +283,7 @@ static int offs	= 0;
 	   afcFFT	-> do_FFT (s, ff);
 //
 static int ddd = 0;
+static int oldOffset	= 0;
 	   ddd ++;
 	   if ((ddd > workingRate / 4) && (offs != -100)) {
 //	      fprintf (stderr, "offset %d (%d)\n", offs, 4 * offs);

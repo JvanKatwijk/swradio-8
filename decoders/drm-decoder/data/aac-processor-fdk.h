@@ -30,18 +30,12 @@
 #include	<stdint.h>
 #include	<cstring>
 #include	"radio-constants.h"
-<<<<<<< HEAD
 #include	"up-filter.h"
 #include	"ringbuffer.h"
 #ifdef	__MINGW32__
 #include	"aac-handler.h"
 #endif
 #include	"message-processor.h"
-=======
-#include	"fir-filters.h"
-#include	"message-processor.h"
-#include	"ringbuffer.h"
->>>>>>> 13f7ded765b6129a07793d5b0c777ece446b44e3
 
 class	drmDecoder;
 class	stateDescriptor;
@@ -111,14 +105,8 @@ private:
 	std::vector<uint8_t>
 	                getAudioInformation (stateDescriptor *, int);
 signals:
-<<<<<<< HEAD
 	void		audioAvailable	();
 	void            faadSuccess     (bool);
-=======
-        void            putSample       (float, float);
-	void		samplesAvailable	();
-        void            faadSuccess     (bool);
->>>>>>> 13f7ded765b6129a07793d5b0c777ece446b44e3
 	void		aacData		(QString);
 };
 #endif

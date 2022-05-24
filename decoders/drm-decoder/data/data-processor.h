@@ -26,7 +26,6 @@
 
 #include	<QObject>
 #include	<cstring>
-<<<<<<< HEAD
 #include	"ringbuffer.h"
 #ifdef  __WITH_FDK_AAC__
 #ifdef	__MINGW32__
@@ -34,14 +33,6 @@
 #endif
 #include        "aac-processor-fdk.h"
 #include        "xheaac-processor.h"
-=======
-#include	"fec-handler.h"
-#include	"fir-filters.h"
-#include	"ringbuffer.h"
-#ifdef	__WITH_FDK_AAC__
-#include	"aac-processor-fdk.h"
-#include	"xheaac-processor.h"
->>>>>>> 13f7ded765b6129a07793d5b0c777ece446b44e3
 #else
 #include	"aac-processor-faad.h"
 #endif
@@ -53,20 +44,7 @@ class	dataProcessor: public QObject {
 Q_OBJECT
 public:
 		dataProcessor	(stateDescriptor *,
-<<<<<<< HEAD
 	                         drmDecoder *,
-=======
-	                         drmDecoder *, 
-	                         RingBuffer<std::complex<float>> *);
-		~dataProcessor	();
-	void	process		(uint8_t *, int16_t);
-enum	{S_AAC, S_CELPT, S_HVXC};
-	void	selectDataService	(int16_t);
-	void	selectAudioService	(int16_t);
-private:
-	stateDescriptor	*theState;
-	drmDecoder	*drmMaster;
->>>>>>> 13f7ded765b6129a07793d5b0c777ece446b44e3
 #ifdef	__WITH_FDK_AAC__
 #ifdef	__MINGW32__
 	                         aacHandler *,

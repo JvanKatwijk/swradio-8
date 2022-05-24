@@ -64,8 +64,6 @@ private:
 	RingBuffer<std::complex<float>> *audioBuffer;
 	dataProcessor	my_dataProcessor;
 	int8_t		qam64Roulette;
-	dataProcessor	my_dataProcessor;
-	RingBuffer<std::complex<float>> *audioBuffer;
 	uint8_t		protLevelA;
 	uint8_t		protLevelB;
 	int16_t		numofStreams;
