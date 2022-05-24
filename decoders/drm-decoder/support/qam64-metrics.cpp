@@ -17,32 +17,32 @@
  *
  ******************************************************************************
  *
- *    Copyright (C) 2015
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR). It is a rewrite of (part of)
+ *    This file is part of the SDRunoPlugin_drm. It is a rewrite of (part of)
  *    the file "Metrics.cpp" of the dream software. All rights acknowledged.
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #include	"qam64-metrics.h"
 #include	"basics.h"
 
-const float rTableQAM64SM [8][2] = {
+const DRM_FLOAT rTableQAM64SM [8][2] = {
     { 1.0801234497f,  1.0801234497f},
     {-0.1543033499f, -0.1543033499f},
     { 0.4629100498f,  0.4629100498f},

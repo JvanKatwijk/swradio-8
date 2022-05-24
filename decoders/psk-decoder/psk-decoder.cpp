@@ -346,7 +346,7 @@ static int fftTeller = 0;
 	      fftTeller ++;
 	      if (fftTeller >= 4) {
 	         int offs = offset (outV);
-	         fprintf (stderr, "offset = %d\n", offs);
+//	         fprintf (stderr, "offset = %d\n", offs);
 	         if ((offs != NO_OFFSET_FOUND) && (abs (offs) >= 3))
 	            psk_IF += offs / 2;
 	         fftTeller = 0;
@@ -665,7 +665,7 @@ int	superIndex	= 0;
 	      supermax = max;
 	   }
 	}
-	fprintf (stderr, "%f (%f) %d\n", supermax / MAX_SIZE, avg, superIndex);
+//	fprintf (stderr, "%f (%f) %d\n", supermax / MAX_SIZE, avg, superIndex);
 	if (supermax / MAX_SIZE > 3 * avg)
 	   return superIndex > screenwidth / 2 ?
 	                            superIndex - screenwidth :

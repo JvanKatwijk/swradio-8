@@ -39,6 +39,7 @@
 #include        "popup-keypad.h"
 #include        "program-list.h"
 #include	"bandplan.h"
+#include	"deviceselect.h"
 //
 //      devices
 #include        "device-handler.h"
@@ -50,6 +51,9 @@
 #else
 #ifdef	HAVE_SDRPLAY
 #include        "sdrplay-handler.h"
+#endif
+#ifdef	HAVE_SDRPLAY_V3
+#include        "sdrplay-handler-v3.h"
 #endif
 #ifdef	HAVE_HACKRF
 #include	"hackrf-handler.h"
@@ -79,6 +83,9 @@
 #ifdef	HAVE_PSK_DECODER
 #include	"psk-decoder.h"
 #endif
+#ifdef	HAVE_FT8_DECODER
+#include	"ft8-decoder.h"
+#endif
 #ifdef	HAVE_NEW_DECODER
 #include	"new-decoder.h"
 #endif
@@ -87,9 +94,6 @@
 #endif
 #ifdef	HAVE_FAX_DECODER
 #include	"fax-decoder.h"
-#endif
-#ifdef	HAVE_MFSK_DECODER
-#include	"mfsk-decoder.h"
 #endif
 #ifdef	HAVE_DRM_DECODER
 #include	"drm-decoder.h"
@@ -131,8 +135,11 @@ QString	FrequencytoString (quint64 freq) {
 	this	-> decoderRate	= decoderRate;
 	setupUi (this);
 	QPalette *p = new QPalette;
-	p -> setColor (QPalette::WindowText, Qt::white);
+	p -> setColor (QPalette::WindowText, Qt::darkBlue);
 	frequencyDisplay -> setPalette (*p);
+	QFont f ("Arial", 16, QFont::Bold);
+	f. setItalic (true);
+	bandLabel -> setFont (f);
 	bandLabel -> setPalette (*p);
 //      and some buffers
 //	in comes:
@@ -165,6 +172,9 @@ QString	FrequencytoString (quint64 freq) {
 #ifdef	HAVE_PSK_DECODER
 	decoderTable	-> addItem ("psk decoder");
 #endif
+#ifdef	HAVE_FT8_DECODER
+	decoderTable	-> addItem ("ft8 decoder");
+#endif
 #ifdef	HAVE_NEW_DECODER
 	decoderTable	-> addItem ("new decoder");
 #endif
@@ -173,9 +183,6 @@ QString	FrequencytoString (quint64 freq) {
 #endif
 #ifdef	HAVE_FAX_DECODER
 	decoderTable	-> addItem ("wfax decoder");
-#endif
-#ifdef	HAVE_MFSK_DECODER
-	decoderTable	-> addItem ("mfsk decoder");
 #endif
 #ifdef	HAVE_DRM_DECODER
 	decoderTable	-> addItem ("drm decoder");
@@ -196,6 +203,7 @@ QString	FrequencytoString (quint64 freq) {
                                         8);
 	hfScope		-> set_bitDepth (12);	// default
 	hfScope	-> setScope (14070 * 1000, scopeWidth / 4);
+	theFrequency	= 14070 * 1000;
         connect (hfScope,
                  SIGNAL (clickedwithLeft (int)),
                  this,
@@ -352,52 +360,104 @@ void	RadioInterface::handle_quitButton	(void) {
 	delete	theDecoder;
 }
 
-deviceHandler	*RadioInterface::setDevice (RingBuffer<std::complex<float>> *hfBuffer) {
+#define	D_WAV_FILE	"wav file"
+#define	D_SDRPLAY	"sdrplay"
+#define	D_SDRPLAY_V3	"sdrplay-v3"
+#define	D_HACKRF	"hackrf"
+#define	D_RTLSDR	"rtlsdr"
+#define	D_PMSDR		"pmsdr"
+#define	D_EXTIO		"extio"
 
-deviceHandler *res	= NULL;
-#ifdef	HAVE_EXTIO
-	if (res == NULL) {
-	   try {
-	      res = new extioHandler (this, inputRate, hfBuffer, settings);
-	   } catch (int e) {}
-	}
-
-#elif	HAVE_PMSDR
-	if (res == NULL) {
-	   try {
-	      res = new pmsdrHandler (this, inputRate, hfBuffer, settings);
-	   } catch (int e) {}
-	}
-#else
+deviceHandler	*RadioInterface::
+	          setDevice (RingBuffer<std::complex<float>> *hfBuffer) {
+deviceSelect	deviceSelect;
+deviceHandler	*theDevice	= nullptr;
+QStringList devices;
+static 
+const char *deviceTable [] = {
+	D_WAV_FILE,
 #ifdef	HAVE_SDRPLAY
-	try {
-	   res  = new sdrplayHandler (this, inputRate, hfBuffer, settings);
-	} catch (int e) {}
+	D_SDRPLAY,
+#endif
+#ifdef	HAVE_SDRPLAY_V3
+	D_SDRPLAY_V3,
 #endif
 #ifdef	HAVE_HACKRF
-	if (res == NULL) {
-	   try {
-	      res  = new hackrfHandler (this, inputRate, hfBuffer, settings);
-	   } catch (int e) {}
-	}
+	D_HACKRF,
 #endif
 #ifdef	HAVE_RTLSDR
-	if (res == NULL) {
-	   try {
-	      res  = new rtlsdrHandler (this, inputRate, hfBuffer, settings);
-	   } catch (int e) {}
-	}
+	D_RTLSDR,
 #endif
-	
+#ifdef	HAVE_PMSDR
+	D_PMSDR,
 #endif
-	if (res == NULL) {
-	   try {
-	      res	= new fileReader (this, inputRate, hfBuffer, settings);
-	      bandLabel	-> hide ();
-	   } catch (int e) {}
-	}
+#ifdef	HAVE_EXTIO
+	D_EXTIO,
+#endif
+	nullptr
+};
 
-	return res;
+	for (int i = 0; deviceTable [i] != nullptr; i ++)
+	   devices += deviceTable [i];
+	deviceSelect. addList (devices);
+	int theIndex = -1;
+	while (theDevice == nullptr) {
+	   theIndex = deviceSelect. QDialog::exec ();
+	   if (theIndex < 0)
+	      continue;
+	   QString s = devices. at (theIndex);
+	   try {
+	      if (s == D_WAV_FILE) {
+	         theDevice	= new fileReader (this, inputRate,
+	                                       hfBuffer, settings);
+	         bandLabel	-> hide ();
+	         return theDevice;
+	      }
+#ifdef	HAVE_SDRPLAY
+	      if (s == D_SDRPLAY) {
+	         theDevice  = new sdrplayHandler (this,
+	                               inputRate, hfBuffer, settings);
+	         return theDevice;
+	      }
+#endif
+#ifdef	HAVE_SDRPLAY_V3
+	      if (s == D_SDRPLAY_V3) {
+	         theDevice =  new sdrplayHandler_v3 (this, inputRate,
+	                                       hfBuffer, settings);
+	         return theDevice;
+	      }
+#endif
+#ifdef	HAVE_HACKRF
+	      if (s ==  D_HACKRF) {
+	         theDevice = new hackrfHandler (this, inputRate,
+	                                     hfBuffer, settings);
+	         return theDevice;
+	      }
+#endif
+#ifdef	HAVE_RTLSDR
+	      if (s == D_RTLSDR) {
+	         theDevice  = new rtlsdrHandler (this, inputRate,
+	                                    hfBuffer, settings);
+	         return theDevice; 
+	      }
+#endif
+#ifdef	HAVE_PMSDR
+	      if (s = D_PMSDR) {
+	         theDevice  = new pmsdrHandler (this, inputRate,
+	                                    hfBuffer, settings);
+	         return theDevice; 
+	      }
+#endif
+#ifdef	HAVE_EXTIO
+	      if (s = D_EXTIO) {
+	         theDevice  = new extioHandler (this, inputRate,
+	                                    hfBuffer, settings);
+	         return theDevice; 
+	      }
+#endif
+	   } catch (int e) {}
+	}
+	return nullptr;
 }
 //
 //	
@@ -407,15 +467,6 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	disconnect (theDecoder, SIGNAL (setDetectorMarker (int)),
 	            this, SLOT (setDetectorMarker (int)));
 	delete theDecoder;
-#ifdef	HAVE_MFSK_DECODER
-	if (s == "mfsk decoder") {
-	   theDecoder	= new mfskDecoder (decoderRate,
-	                                   audioData, settings);
-	   connect (theDecoder, SIGNAL (adjustFrequency (int)),
-	            this, SLOT (adjustFrequency_hz (int)));
-	}
-	else
-#endif
 #ifdef	HAVE_TEST_DECODER
 	if (s == "test decoder") {
 	   theDecoder	= new testDecoder (decoderRate,
@@ -464,6 +515,13 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	}
 	else
 #endif
+#ifdef	HAVE_FT8_DECODER
+	if (s == "ft8 decoder") {
+	   theDecoder	= new ft8_Decoder (this, decoderRate,
+	                                   audioData, settings);
+	}
+	else
+#endif
 #ifdef	HAVE_NEW_DECODER
 	if (s == "new decoder") {
 	   theDecoder	= new newDecoder (decoderRate,
@@ -487,7 +545,7 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 #endif
 #ifdef	HAVE_DRM_DECODER
 	if (s == "drm decoder") {
-	   theDecoder	= new drmDecoder (decoderRate,
+	   theDecoder	= new drmDecoder (this,
 	                                   audioData, settings);
 	}
 	else
@@ -518,6 +576,7 @@ quint64	VFOFrequency	= frequency - scopeWidth / 4;
 	hfFilter. setBand (theBand. currentOffset + theBand. lowF,
 	                   theBand. currentOffset + theBand. highF,
 	                                          inputRate);
+	theFrequency	= frequency;
 	QString ff	= FrequencytoString (frequency);
 	frequencyDisplay	-> display (ff);
 	bandLabel		-> setText (my_bandPlan -> getFrequencyLabel (frequency));
@@ -552,8 +611,15 @@ int	currOff	= theBand. currentOffset;
 	int freq		= theDevice -> getVFOFrequency () +
 	                                    theBand. currentOffset;
 	QString ff = FrequencytoString ((quint64)freq);
+//	auto lcdPalette = frequencyDisplay -> palette ();
+//	lcdPalette. setColor (lcdPalette. WindowText, Qt::darkBlue);
+//	frequencyDisplay -> setPalette (lcdPalette);
 	frequencyDisplay	-> display (ff);
-	bandLabel		-> setText (my_bandPlan -> getFrequencyLabel (freq));
+//	QPalette labelPalette;
+//	labelPalette. setColor (QPalette::WindowText, Qt::darkBlue);
+//	bandLabel	-> setAutoFillBackground (true);
+//	bandLabel	-> setPalette (labelPalette);
+	bandLabel	-> setText (my_bandPlan -> getFrequencyLabel (freq));
 }
 //
 //	just a convenience button
@@ -873,5 +939,7 @@ void RadioInterface::closeEvent (QCloseEvent *event) {
         }
 }
 
+int32_t	RadioInterface::tunedFrequency	() {
+	return theFrequency;
+}
 
-	

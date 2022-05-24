@@ -30,6 +30,7 @@
 #include	<QSettings>
 #include	<QPoint>
 #include	<vector>
+#include	<atomic>
 #include	<mutex>
 #include	"utilities.h"
 #include	"ui_fax-decoder.h"

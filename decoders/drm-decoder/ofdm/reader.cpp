@@ -1,10 +1,10 @@
 #
 /*
- *    Copyright (C) 2014
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
+ *    This file is part of the SDRuno plugin for drm
  *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -21,21 +21,25 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
+//#include	<windows.h>
+#include	<unistd.h>
 #include	"reader.h"
-#include	"drm-decoder.h"
+#include	"ringbuffer.h"
+#include	<stdint.h>
 
 //
 //	A simple interface class to the ringBuffer
 //	The methods are called from the drmdecoder
 
-	Reader::Reader (RingBuffer<DSPCOMPLEX> *r,
-	                int16_t s, 
-	                drmDecoder *mr) {
+	Reader::Reader (RingBuffer<std::complex<float>> *r,
+	                uint32_t bufSize, drmDecoder *m_form) {
 	ringBuffer		= r;
-	this	-> bufSize	= 4 * 8192;
-	data			= new std::complex<float> [this -> bufSize];
-	memset (data, 0, bufSize * sizeof (std::complex<float>));
-	master			= mr;
+	(void)bufSize;
+	this -> bufSize		= 16 * 8192;
+	this	-> bufMask	= this -> bufSize - 1;
+	data			= new std::complex<float> [this -> bufSize + 1];
+	this	-> m_form	= m_form;
+	memset (data, 0, this -> bufSize * sizeof (std::complex<float>));
 	currentIndex		= 0;
 	firstFreeCell		= 0;
 	stopSignal		= false;
@@ -80,7 +84,7 @@ int32_t		contents	= Contents ();
 //
 //	Ok, if the amount of samples to be read fits in a contiguous part
 //	one read will suffice, otherwise it will be in two parts
-	if (firstFreeCell + tobeRead <= bufSize) {
+	if (firstFreeCell + tobeRead <= this -> bufSize) {
 	   ringBuffer -> getDataFromBuffer (&data [firstFreeCell], tobeRead);
 	}
 	else {
@@ -89,12 +93,14 @@ int32_t		contents	= Contents ();
 	   ringBuffer -> getDataFromBuffer (&data [0],
 	                                tobeRead - (bufSize - firstFreeCell));
 	}
-	   firstFreeCell = (firstFreeCell + tobeRead) % bufSize;
+
+	firstFreeCell = (firstFreeCell + tobeRead) & this ->  bufMask;
 }
 
-void	Reader::shiftBuffer (int16_t n) {
-	if (n > 0)
+void	Reader::shiftBuffer (int32_t n) {
+	if (n > 0) {
 	   waitfor (n + 20);
-	currentIndex = (currentIndex + n) % bufSize;
+	   currentIndex = (currentIndex + n) & this -> bufMask;
+	}
 }
 

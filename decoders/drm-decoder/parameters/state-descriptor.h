@@ -4,29 +4,29 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
+ *    This file is part of the SDRuno plugin for drm
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
 #ifndef	__STATE_DESCRIPTOR__
 #define	__STATE_DESCRIPTOR__
 
-#include	"radio-constants.h"
-#include	<QString>
-class	drmDecoder;
+#include	<stdint.h>
+#include	<string>
+#include	<vector>
 
 //
 //	The "frame" with all derived components are maintained
@@ -43,12 +43,15 @@ enum	{
 	AUDIO_STREAM, DATA_STREAM
 };
 
-		stateDescriptor	(drmDecoder *, uint8_t, uint8_t);
+		stateDescriptor	(uint8_t, uint8_t);
 		~stateDescriptor	(void);
 	void		cleanUp		(void);
-
+	int		getAudioChannel		();
+	void		activate_channel_1	();
+	void		activate_channel_2	();
+	bool		audio_channel_1;
+	bool		audio_channel_2;
 	bool		set;
-	drmDecoder	*master;
 	uint8_t		Mode;		// set by frameProcessor
 	uint8_t		Spectrum;	// set by frameProcessor
 	uint8_t		spectrumBits;	// set by facProcessor
@@ -90,6 +93,7 @@ enum	{
 	   uint8_t	enhancementFlag;
 	   uint8_t	coderField;
 	   uint8_t	rfa;
+	   std::vector<uint8_t> xHE_AAC;
 	   uint8_t	domain;		//for data transmission
 	   uint8_t	packetModeInd;
 	   uint8_t	dataUnitIndicator;

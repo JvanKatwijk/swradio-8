@@ -25,16 +25,21 @@
 #define	__AAC_PROCESSOR_FDK__
 
 #include	<QObject>
-#include	<aacdecoder_lib.h>
-//#include	<fdk-aac/aacdecoder_lib.h>
+#include	<fdk-aac/aacdecoder_lib.h>
 #include	<stdio.h>
 #include	<stdint.h>
 #include	<cstring>
 #include	"radio-constants.h"
-#include	"fir-filters.h"
+#include	"up-filter.h"
+#include	"ringbuffer.h"
+#ifdef	__MINGW32__
+#include	"aac-handler.h"
+#endif
+#include	"message-processor.h"
 
 class	drmDecoder;
 class	stateDescriptor;
+class	drmConverter;
 
 typedef	struct frame {
 	int16_t length, startPos;
@@ -45,51 +50,63 @@ typedef	struct frame {
 class	aacProcessor_fdk: public QObject {
 Q_OBJECT
 public:
-		aacProcessor_fdk   (stateDescriptor *, drmDecoder *);
-                ~aacProcessor_fdk  (void);
+		aacProcessor_fdk   (stateDescriptor *,
+	                            drmDecoder *,
+#ifdef	__MINGW32__
+	                            aacHandler	*,
+#endif
+	                            RingBuffer<std::complex<float>> *);
+	        ~aacProcessor_fdk  ();
 
-        void	process_aac	(uint8_t *, int16_t, int16_t,
-                                         int16_t, int16_t, int16_t);
+	void	process_aac	(uint8_t *, int16_t, int16_t,
+	                                 int16_t, int16_t, int16_t);
 private:
 	stateDescriptor *theState;
-        drmDecoder      *drmMaster;
-        LowPassFIR      upFilter_24000;
-        LowPassFIR      upFilter_12000;
-        int16_t         numFrames;
-        int16_t         selectedAudioService;
+	drmDecoder      *drmMaster;
+	RingBuffer<std::complex<float>> *audioOut;
+	messageProcessor	my_messageProcessor;
+//	upFilter	upFilter_24000;
+//	upFilter	upFilter_12000;
+	int16_t         numFrames;
+	int16_t         selectedAudioService;
+	drmConverter	*theConverter;
+	int		currentRate;
+#ifdef	__MINGW32__
+	aacHandler	*aacFunctions;
+#endif
 
-        void		handle_uep_audio        (uint8_t *, int16_t,
+	void		handle_uep_audio        (uint8_t *, int16_t,
 	                                 int16_t, int16_t, int16_t, int16_t);
-        void		handle_eep_audio (uint8_t *, int16_t, int16_t, int16_t);
-        void		writeOut        (int16_t *, int16_t, int32_t);
-        void		toOutput        (float *, int16_t);
-        void		playOut         (int16_t);
+	void		handle_eep_audio (uint8_t *, int16_t, int16_t, int16_t);
+	void		writeOut        (int16_t *, int16_t, int32_t);
+	void		toOutput        (std::complex<float> *, int16_t);
+	void		playOut         (int16_t);
 //
 //	added to support inclusion of the last phase
 	void    reinit          (std::vector<uint8_t>, int);
 	void	init		();
-        void    decodeFrame     (uint8_t        *audioFrame,
-                                 uint32_t       frameSize,
-                                 bool           *conversionOK,
-                                 int16_t        *buffer,
-                                 int16_t        *samples,
-                                 int32_t        *pcmRate);
+	void    decodeFrame     (uint8_t        *audioFrame,
+	                         uint32_t       frameSize,
+	                         bool           *conversionOK,
+	                         int16_t        *buffer,
+	                         int16_t        *samples,
+	                         int32_t        *pcmRate);
 
 	uint8_t         aac_isInit;
-        uint8_t         prev_audioSamplingRate;
-        uint8_t         prevSBR_flag;
-        uint8_t         prev_audioMode;
-        int16_t         audioChannel;
+	uint8_t         prev_audioSamplingRate;
+	uint8_t         prevSBR_flag;
+	uint8_t         prev_audioMode;
+	int16_t         audioChannel;
 //
 	HANDLE_AACDECODER       handle;
-        UCHAR           *theBuffer;
-        uint32_t        bufferP;
-        std::vector<uint8_t>    currentConfig;
-        std::vector<uint8_t>
-                        getAudioInformation (stateDescriptor *, int);
+	UCHAR           *theBuffer;
+	uint32_t        bufferP;
+	std::vector<uint8_t>    currentConfig;
+	std::vector<uint8_t>
+	                getAudioInformation (stateDescriptor *, int);
 signals:
-        void            putSample       (float, float);
-        void            faadSuccess     (bool);
+	void		audioAvailable	();
+	void            faadSuccess     (bool);
 	void		aacData		(QString);
 };
 #endif

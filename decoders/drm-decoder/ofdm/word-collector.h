@@ -1,22 +1,23 @@
 #
 /*
- *    Copyright (C) 2015 .. 2017
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J 
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the SDRunoPlugin_drm
+ *
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -25,25 +26,24 @@
 
 #include	<QObject>
 #include	"basics.h"
-#include	"radio-constants.h"
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<cstring>
 #include	<math.h>
-#include	<fftw3.h>
-#include	"shifter.h"
+#include	"drm-shifter.h"
+#include	"fft-complex.h"
 
 class	Reader;
-class	simpleBuf;
 class	drmDecoder;
-class	wordCollector:public QObject {
+
+class	wordCollector: public QObject {
 Q_OBJECT
 public:
 			wordCollector 		(drmDecoder *,
 	                                         Reader *,
 	                                         smodeInfo *,
 	                                         int32_t);
-			~wordCollector 		(void);
+			~wordCollector 		();
 	void		getWord			(std::complex<float> *,
 	                                         int32_t,
 	                                         float,
@@ -54,8 +54,9 @@ public:
 	                                         float,
 	                                         float,
 	                                         float);
+
 private:
-	shifter		theShifter;
+	drmShifter		theShifter;
 
 	smodeInfo	*modeInf;
 	uint32_t	bufMask;
@@ -65,7 +66,7 @@ private:
 	int32_t		sampleRate;
 	uint8_t		Mode;
 	uint8_t		Spectrum;
-	drmDecoder	*master;
+	drmDecoder	*m_form;
 	float		theAngle;
 	float		sampleclockOffset;
 	int16_t		Tu;
@@ -74,19 +75,15 @@ private:
 	int16_t		K_min;
 	int16_t		K_max;
 	int16_t		displayCount;
-	DSPCOMPLEX	*fft_vector;
-	fftwf_plan	hetPlan;
-	float		get_timeOffset		(int, int);
+//	float		get_timeOffset		(int, int, int *);
 	int		get_intOffset		(int base,
-                                                 int nrSymbols, int range);
+	                                         int nrSymbols,
+	                                         int range);
 	double		compute_mmse		(int, int);
 signals:
-	void		show_coarseOffset	(float);
 	void		show_fineOffset		(float);
-	void		show_timeOffset		(float);
-	void		show_timeDelay		(float);
-	void		show_clockOffset	(float);
-	void		show_angle		(float);
+	void		show_coarseOffset	(float);
+	void		set_channel_3		(const QString &);
 };
 
 #endif

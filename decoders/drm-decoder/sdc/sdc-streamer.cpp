@@ -1,22 +1,23 @@
 #
 /*
- *    Copyright (C) 2014
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the SDRunoPlugin_drm
+ *
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
@@ -25,6 +26,7 @@
 //	raw bit streams), demapping, depuncturing and deconvolving the
 //	data
 
+//#include	<windows.h>
 #include	"sdc-streamer.h"
 #include	"mapper.h"
 #include	"viterbi-drm.h"
@@ -58,10 +60,14 @@ void	SDC_streamer::handle_stream (metrics *softBits,
 	                             uint8_t *reconstr,
 	                             uint8_t *out, bool flag) {
 int16_t	i, Cnt	= 0;
-metrics	unmappedBits [2 * nrCells];
-metrics	theBits [deconvolveLength + 600];
-uint8_t temp [deconvolveLength + 600];
-uint8_t	recomputedBits [2 * nrCells];
+metrics *unmappedBits	=
+	         (metrics *)alloca ((2 * nrCells) * sizeof (metrics));
+metrics *theBits	=
+	         (metrics *)alloca ((deconvolveLength + 600) * sizeof (metrics));
+uint8_t *temp = 
+	         (uint8_t *)alloca ((deconvolveLength + 600) * sizeof(uint8_t));
+uint8_t	*recomputedBits	=
+	         (uint8_t *)alloca ((2 * nrCells) * sizeof (uint8_t));
 
 	for (i = 0; i < 2 * nrCells; i ++)
 	   unmappedBits [demapper -> mapIn (i)] = softBits [i];

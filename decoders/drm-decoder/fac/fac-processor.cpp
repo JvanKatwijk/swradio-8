@@ -1,35 +1,32 @@
 #
 /*
- *    Copyright (C) 2013
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the drm receiver
+ *    This file is part of the SDRunoPlugin_drm
  *
- *    drm receiver is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    drm receiver is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with drm receiver; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
 #include	"fac-processor.h"
 #include	"fac-tables.h"
 #include	"state-descriptor.h"
-#include	"drm-decoder.h"
-#include	"basics.h"
-#include	"mapper.h"
 #include	"qam4-metrics.h"
-#include	"prbs.h"
-#include	"checkcrc.h"
+#include	"mer4-values.h"
+#include	"drm-decoder.h"
 
 #define	FAC_BITS	64
 #define	FAC_CRC		8
@@ -46,20 +43,19 @@ const uint16_t crcPolynome [] = {
 //	complex values, constituing the FAC code in the current frame.
 //	If no valid FAC can be found, return false
 //
-	facProcessor::facProcessor (drmDecoder	*theDecoder,
+	facProcessor::facProcessor (drmDecoder	*m_form,
 	                            smodeInfo	*modeInfo):
-	                            myMapper (2 * FAC_SAMPLES, 21),
-	                            thePRBS   (FAC_BITS + FAC_CRC),
-	                            theCRC   (8, crcPolynome),
-	                            deconvolver (FAC_BITS + FAC_CRC) {
-	this	-> theDecoder	= theDecoder;
+	                               myMapper (2 * FAC_SAMPLES, 21),
+	                               thePRBS   (FAC_BITS + FAC_CRC),
+	                               theCRC   (8, crcPolynome),
+	                               deconvolver (FAC_BITS + FAC_CRC) {
+	this	-> m_form	= m_form;
 	this	-> modeInf	= modeInfo;
 	this	-> Mode		= modeInfo -> Mode;
 	this	-> Spectrum	= modeInfo -> Spectrum;
 	this	-> facTable	= getFacTableforMode (Mode);
-
-	connect (this, SIGNAL (showSNR (float)),
-	         theDecoder, SLOT (showSNR (float)));
+	connect (this, SIGNAL (show_fac_mer (float)),
+	         m_form, SLOT (show_fac_mer (float)));
 }
 
 	facProcessor::~facProcessor (void) {
@@ -85,47 +81,31 @@ uint8_t punctureTable [] = {
 //	5. dispersion
 //	6. CRC checking, resulting in 64 nice bits
 //
-bool	facProcessor:: processFAC (float	meanEnergy,
-	                           std::complex<float> **H,
-	                           myArray<theSignal> *outbank,
+bool	facProcessor:: processFAC (myArray<theSignal> *outbank,
 	                           stateDescriptor *theState) {
 theSignal       facVector [100];
-float           sqrdNoiseSeq [100];
-float           sqrdWeightSeq [100];
-int16_t         i;
-float   sum_WMERFAC     = 0;
-float   sum_weight_FAC  = 0;
-int16_t nFac            = 0;
-float   WMERFAC;
 uint8_t	 facBits [2 * (FAC_BITS + FAC_CRC)];
+mer4_compute computeMER;
 
-	for (i = 0; facTable [i]. symbol != -1; i ++) {
+//	first extract data from the cells for the FAC
+	for (int i = 0; facTable [i]. symbol != -1; i ++) {
 	   int16_t symbol	= facTable [i]. symbol;
 	   int16_t index	= facTable [i]. carrier -
 	                               Kmin (Mode, Spectrum);
 	   facVector [i]	= outbank -> element (symbol)[index];
-	   sqrdNoiseSeq [i]	= abs (facVector [i]. signalValue) - sqrt (0.5);
-	   sqrdNoiseSeq [i]	*= sqrdNoiseSeq [i];
-	   sqrdWeightSeq [i]	= real (H [symbol][index] *
-	                                    conj (H [symbol][index]));
-	   sum_WMERFAC		+= sqrdNoiseSeq [i] * 
-	                                (sqrdWeightSeq [i] + 1.0E-10);
-	   sum_weight_FAC	+= sqrdWeightSeq [i];
 	}
-	nFac		= i;
-	WMERFAC		= -10 * log10 (sum_WMERFAC /
-	                     (meanEnergy * (sum_weight_FAC + nFac * 1.0E-10)));
-	showSNR (WMERFAC);
+	DRM_FLOAT mer	= computeMER. computemer (facVector, FAC_SAMPLES);
+	show_fac_mer (mer);
 
 	fromSamplestoBits (facVector, facBits);
 //	first: dispersion
-	thePRBS. doPRBS (facBits);
-
+	thePRBS.doPRBS(facBits);
+	
 //	next CRC
 	if (!theCRC. doCRC (facBits, FAC_BITS + FAC_CRC)) {
 	   return false;
 	}
-
+	
 	theState	-> mscCells	= mscCells (Mode, Spectrum);
 	theState	-> muxSize	= theState -> mscCells / 3;
 	interpretFac (facBits, theState);
@@ -138,7 +118,8 @@ void	facProcessor::fromSamplestoBits (theSignal *v, uint8_t *outBuffer) {
 metrics rawBits 	[2 * FAC_SAMPLES];
 metrics demappedBits 	[2 * FAC_SAMPLES];
 int16_t	bufferSize	= 6 * (FAC_BITS + FAC_CRC + 6);
-metrics	deconvolveBuffer [bufferSize];
+metrics *deconvolveBuffer =
+	               (metrics *)alloca (bufferSize * sizeof (metrics));
 int16_t	deconvolveCnt   = 0;
 int16_t	inputCnt	= 0;
 int16_t	i;
@@ -260,9 +241,9 @@ uint8_t shortId		= (v [24] << 1) | v [25];
 	st	-> streams [shortId]. serviceId = serviceId;
 	st	-> streams [shortId]. shortId	= shortId;
 
-        set_serviceLanguage	(shortId, &v [27], st);
+	set_serviceLanguage	(shortId, &v [27], st);
 	st	-> streams [shortId]. isAudio = v [31] == 0;
-        set_serviceDescriptor	(shortId, &v [32], st);
+	set_serviceDescriptor	(shortId, &v [32], st);
 }
 
 //	Language is a 4 bit field

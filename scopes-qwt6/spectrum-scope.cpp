@@ -22,11 +22,12 @@
  */
 #include	"spectrum-scope.h"
 #include	<qwt_picker_machine.h>
+#include	<QPen>
 
 	spectrumScope::spectrumScope (QwtPlot *plot, int16_t displaySize):
 	                                      virtualScope (plot, displaySize) {
 
-	plotgrid	-> setCanvasBackground (Qt::black);
+	plotgrid	-> setCanvasBackground (Qt::darkBlue);
 	grid		= new QwtPlotGrid;
 #if defined QWT_VERSION && ((QWT_VERSION >> 8) < 0x0601)
 	grid		-> setMajPen (QPen(Qt::white, 0, Qt::DotLine));
@@ -53,7 +54,7 @@
 	
 	Marker		= new QwtPlotMarker ();
 	Marker		-> setLineStyle (QwtPlotMarker::VLine);
-	Marker		-> setLinePen (QPen (Qt::white));
+	Marker		-> setLinePen (QPen (Qt::red));
 	Marker		-> attach (plotgrid);
 	QwtText MarkerLabel             = QwtText ("label");
         MarkerLabel. setColor (Qt::white);
@@ -146,7 +147,7 @@ double binVal = 0;
 	   Marker       -> detach ();
 	   Marker       = new QwtPlotMarker ();
 	   Marker       -> setLineStyle (QwtPlotMarker::VLine);
-	   Marker       -> setLinePen (QPen (Qt::white, 3.0));
+	   Marker       -> setLinePen (QPen (Qt::red, 3.0));
 	   Marker       -> setLabel (MarkerLabel);
 	   Marker       -> attach (plotgrid);
 	   Marker       -> setXValue (markerValue);

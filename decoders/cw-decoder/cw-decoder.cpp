@@ -2,7 +2,7 @@
 /*
  *    Copyright (C) 2011, 2012, 2013
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of swradio
  *
@@ -266,7 +266,7 @@ std::complex<float> outV [2000];
 static int ddd = 0;
 	   ddd ++;
 	   if ((ddd > workingRate / 4) && (offs != -100)) {
-	      fprintf (stderr, "offset %d (%d)\n", offs, 4 * offs);
+//	      fprintf (stderr, "offset %d (%d)\n", offs, 4 * offs);
 	      cw_IF += offs / 2;
 	      ddd = 0;
 	   }

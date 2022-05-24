@@ -4,26 +4,28 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the SDRunoPLugin_drm
+ *
+ *    SDRunoPlugin_drm is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    SDRunoPlugin_drm is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with SDRunoPLugin_drm; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
 //
 //	the real msc work is to be done by descendants of the mscHandler
-//
-#include	"drm-decoder.h"
+
+#include	<vector>
+//#include	<windows.h>
 #include	"msc-handler-qam16.h"
 #include	"msc-streamer.h"
 #include	"state-descriptor.h"
@@ -31,15 +33,16 @@
 #include	"basics.h"
 #include	"prbs.h"
 #include	"protlevels.h"
-
 #include	"mer16-values.h"
+#include	"drm-decoder.h"
 //
 //	For each of the "levels" (qam16 => 2 levels), we create a
 //	separate handler. From "samples to bitstreams" is done here
 //	as is the bit-deinterleaving
-	QAM16_SM_Handler::QAM16_SM_Handler	(drmDecoder *m,
-	                                         stateDescriptor *theState):
-	                                             mscHandler (m, theState),
+	QAM16_SM_Handler::QAM16_SM_Handler	(stateDescriptor *theState,
+	                                         drmDecoder *m_form):
+	                                             mscHandler (m_form,
+	                                                           theState),
 	                                             myDecoder () {
 int16_t	RYlcm, i;
 float	denom;
@@ -47,14 +50,15 @@ float	denom;
 //	apply the formula from page 112 (section 7.2.1.1) to determine
 //	the number of QAM cells in the A part, then the number of QAM cells
 //	in the lower protected part (the B part) follows
+
 	this	-> theState	= theState;
-	lengthA		= 0;
+	lengthA			= 0;
 
 	for (i = 0; i < theState -> numofStreams; i ++)
 	   lengthA += theState	-> streams [i]. lengthHigh;
 
 	lengthB		= 0;
-	 for (i = 0; i < theState -> numofStreams; i ++)
+	for (i = 0; i < theState -> numofStreams; i ++)
 	   lengthB += theState	-> streams [i]. lengthLow;
 
 	if (lengthA != 0) {	// two real levels
@@ -77,10 +81,10 @@ float	denom;
 	   Y21mapper_low	= new Mapper (2 * N2, 21);
 	}
 	else {
-	   N1	= 0;
+	   N1			= 0;
 	   N2			= theState -> muxSize;
-	   Y13mapper_high	= NULL;
-	   Y21mapper_high	= NULL;
+	   Y13mapper_high	= nullptr;
+	   Y21mapper_high	= nullptr;
 	   Y13mapper_low	= new Mapper (2 * N2, 13);
 	   Y21mapper_low	= new Mapper (2 * N2, 21);
 	}
@@ -97,6 +101,8 @@ float	denom;
 	                            stream_1 -> highBits () +
 	                            stream_0 -> lowBits  () +
 	                            stream_1 -> lowBits  ());
+	connect (this, SIGNAL (show_msc_mer (float)),
+	         m_form, SLOT (show_msc_mer (float)));
 }
 
 	QAM16_SM_Handler::~QAM16_SM_Handler	(void) {
@@ -114,27 +120,44 @@ int16_t	highProtectedbits	= stream_0 -> highBits () +
 	                          stream_1 -> highBits ();
 int16_t	lowProtectedbits	= stream_0 -> lowBits () +
 	                          stream_1 -> lowBits ();
-uint8_t	bitsOut [highProtectedbits + lowProtectedbits];
-uint8_t	bits_0 [stream_0 -> highBits () + stream_0 -> lowBits ()];
-uint8_t	bits_1 [stream_1 -> highBits () + stream_1 -> lowBits ()];
+std::vector<uint8_t>	bitsOut;
+std::vector<uint8_t>	bits_0;
+std::vector<uint8_t>	bits_1;
 
-metrics Y0	[2 * theState -> muxSize];
-metrics Y1	[2 * theState -> muxSize];
-uint8_t	level_0	[2 * theState -> muxSize];
-uint8_t	level_1	[2 * theState -> muxSize];
+std::vector<metrics> Y0;
+std::vector<metrics> Y1;
+std::vector<uint8_t> level_0;
+std::vector<uint8_t> level_1;
 
-mer16_compute	computeMER;
-float	mer	= 10 * log10 (computeMER. computemer (v, theState -> muxSize));
-	show_mer (mer);
-	
+
+mer16_compute computeMER;
+float mer = 10 * log10 (computeMER. computemer (v, theState -> muxSize));
+        show_msc_mer  (mer);
+
+	bitsOut. resize (highProtectedbits + lowProtectedbits);
+	bits_0. resize (stream_0 -> highBits () + stream_0 -> lowBits ());
+	bits_1. resize (stream_1 -> highBits () + stream_1 -> lowBits ());
+	Y0. resize (2 * theState -> muxSize);
+	Y1. resize (2 * theState -> muxSize);
+	level_0. resize (2 * theState -> muxSize);
+	level_1. resize (2 * theState -> muxSize);
+
+	for (int i = 0; i < 4; i ++) {
 //	First the "normal" decoding. leading to two bit rows
-	myDecoder. computemetrics (v, theState -> muxSize, 0, Y0,
-	                                   false, level_0, level_1);
-	stream_0	-> process	(Y0, bits_0, level_0);
-	myDecoder. computemetrics (v, theState -> muxSize, 1, Y1,
-	                                   false, level_0, level_1);
-	stream_1	-> process	(Y1, bits_1, level_1); 
-//
+	   myDecoder. computemetrics (v, theState -> muxSize, 0, Y0. data (),
+//	                              false,
+	                              i != 0,
+	                              level_0. data (), level_1. data ());
+	   stream_0	-> process	(Y0. data (),
+	                                 bits_0. data (), level_0. data ());
+	   myDecoder. computemetrics (v, theState -> muxSize, 1, Y1. data (),
+//	                              false,
+	                              true,
+	                              level_0. data (), level_1. data ());
+	   stream_1	-> process	(Y1. data (),
+	                                 bits_1. data (), level_1. data ()); 
+	}
+
 	memcpy (&bitsOut [0],
 	        &bits_0 [0],
 	        stream_0 -> highBits ());
@@ -152,7 +175,8 @@ float	mer	= 10 * log10 (computeMER. computemer (v, theState -> muxSize));
 	        stream_1 -> lowBits ());
 	          
 //	apply PRBS
+//	m_form -> set_messageLabel ("sm16 process fase 2");
 	thePRBS -> doPRBS (&bitsOut [0]);
-	memcpy (o, bitsOut, (lengthA + lengthB) * BITSPERBYTE);
+	memcpy (o, bitsOut.data (), (lengthA + lengthB) * BITSPERBYTE);
 }
 

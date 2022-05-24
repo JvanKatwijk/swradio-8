@@ -4,33 +4,35 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the drm receiver
+ *    This file is part of the SDRunoPlugin_drm
  *
- *    drm receiver is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    drm receiver is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with drm receiver; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
+//#include	<windows.h>
+#include	"sdc-include.h"
+#include	"sdc-streamer.h"
 #include	"sdc-processor.h"
-#include	"drm-decoder.h"
 #include	"state-descriptor.h"
 #include	"referenceframe.h"
 #include	"prbs.h"
-#include	"sdc-include.h"
-#include	"sdc-streamer.h"
+#include	"viterbi-drm.h"
 #include	"qam16-metrics.h"
 #include	"qam4-metrics.h"
-#include	"viterbi-drm.h"
+#include	"mapper.h"
+#include	"drm-decoder.h"
 
 #include	"mer4-values.h"
 #include	"mer16-values.h"
@@ -72,31 +74,24 @@ int16_t	index;
 //	determined by Mode and spectrum and stateDescriptor
 //	refers to the database structure
 
-	sdcProcessor::sdcProcessor (drmDecoder	*master,
+	sdcProcessor::sdcProcessor (drmDecoder	*m_form,
 	                            smodeInfo	*modeInf,
-	                            std::vector<sdcCell> * sdcTable,
+	                            std::vector<sdcCell> &sdcTable,
 	                            stateDescriptor	*theState):
 	                                  theCRC (16, crcPolynome),
-	                                  Y13Mapper (2 * sdcTable -> size (), 13),
-	                                  Y21Mapper (2 * sdcTable -> size () ,21) {
-	this	-> sdcTable	= sdcTable;
-	this	-> nrCells	= sdcTable	-> size ();
+	                                  Y13Mapper (2 * sdcTable. size (), 13),
+	                                  Y21Mapper (2 * sdcTable. size () ,21) {
+	this	-> m_form	= m_form;
+	this	-> sdcTable	= &sdcTable;
+	this	-> nrCells	= sdcTable. size ();
 	this	-> Mode		= theState	-> Mode;
 	this	-> Spectrum	= theState	-> Spectrum;
 	this	-> theState	= theState;
 //
-	connect (this, SIGNAL (show_stationLabel (const QString &, int)),
-	         master, SLOT (show_stationLabel (const QString &, int)));
-	connect (this, SIGNAL (show_timeLabel    (const QString &)),
-	         master, SLOT (show_timeLabel    (const QString &)));
-	connect (this, SIGNAL (show_mer (float)),
-	         master, SLOT (show_mer_sdc (float)));
-
 	rmFlag	= theState	-> RMflag;
 	SDCmode	= theState	-> sdcMode;
 	qammode	= (rmFlag == 0 && SDCmode == 0) ? QAM16 : QAM4;
 	if (qammode == QAM4) {
-//	   fprintf (stderr, "qammode = QAM4\n");
 	   my_qam4_metrics	= new qam4_metrics ();
 	   stream_0		= new SDC_streamer (1, 2, &Y21Mapper, nrCells);
 	   stream_1		= nullptr;
@@ -104,7 +99,6 @@ int16_t	index;
 	   thePRBS		= new prbs (stream_0 -> lengthOut ());
 	}
 	else {
-//	   fprintf (stderr, "qammode = QAM16\n");
 	   my_qam16_metrics	= new qam16_metrics ();
 	   stream_0		= new SDC_streamer (1, 3, &Y13Mapper, nrCells);
 	   stream_1		= new SDC_streamer (2, 3, &Y21Mapper, nrCells);
@@ -112,6 +106,18 @@ int16_t	index;
 	   thePRBS		= new prbs (stream_0 -> lengthOut () +
 	                                    stream_1 -> lengthOut ());
 	}
+	connect (this, SIGNAL (show_sdc_mer (float)),
+	         m_form, SLOT (show_sdc_mer (float)));
+	connect (this, SIGNAL (set_timeLabel (const QString &)),
+	         m_form, SLOT (set_timeLabel (const QString &)));
+	connect (this, SIGNAL (set_channel_1 (const QString &)),
+	         m_form, SLOT (set_channel_1 (const QString &)));
+	connect (this, SIGNAL (set_channel_2 (const QString &)),
+	         m_form, SLOT (set_channel_2 (const QString &)));
+	connect (this, SIGNAL (set_channel_3 (const QString &)),
+	         m_form, SLOT (set_channel_3 (const QString &)));
+	connect (this, SIGNAL (set_channel_4 (const QString &)),
+	         m_form, SLOT (set_channel_4 (const QString &)));
 }
 
 	sdcProcessor::~sdcProcessor (void) {
@@ -127,15 +133,25 @@ int16_t	index;
 
 //	actual processing of a SDC block. 
 bool	sdcProcessor::processSDC (myArray<theSignal> *outbank) {
-int16_t valueIndex      = 0;
-theSignal sdcVector [sdcTable -> size ()];
+std::vector<theSignal> sdcVector;
+int nrSymbols	=  symbolsperFrame (Mode);
+int i, symbol, carrier;
 
-        for (int i = 0; i < sdcTable -> size (); i ++) {
-           int symbol   = (*sdcTable) [i]. symbol;
-           int carrier  = (*sdcTable) [i]. carrier;
-           sdcVector [valueIndex ++] =
-                  outbank -> element (symbol)[carrier - Kmin (Mode, Spectrum)];
-        }
+	sdcVector. resize (nrCells);
+	try {
+	   for (i = 0; i < nrCells; i++) {
+	      symbol   = (*sdcTable) [i]. symbol;
+	      carrier  = (*sdcTable) [i]. carrier;
+              sdcVector [i] =
+//	         outbank -> element (symbol)[carrier - Kmin (Mode, Spectrum)];
+	         outbank -> elementValue (symbol, carrier - Kmin (Mode, Spectrum));
+	   }
+        } catch (int e) {
+	   std::string err = "error for " + std::to_string (i) +
+	                               " " + std::to_string (symbol) + " " +
+	                               std::to_string (carrier);
+	   fprintf (stderr, "%s \n", err. c_str ());
+	}
 
 	if (qammode == QAM4) 
 	   return processSDC_QAM4 (sdcVector);
@@ -143,15 +159,18 @@ theSignal sdcVector [sdcTable -> size ()];
 	   return processSDC_QAM16 (sdcVector);
 }
 
-bool	sdcProcessor::processSDC_QAM4 (theSignal *v) {
-uint8_t sdcBits [4 + stream_0 -> lengthOut ()];
-metrics	rawBits [2 * nrCells];
-uint8_t	reconstructed [2 * nrCells];
+bool	sdcProcessor::processSDC_QAM4 (std::vector<theSignal> &v) {
+uint8_t	*sdcBits	=
+	(uint8_t *)alloca ((4 + stream_0 -> lengthOut ()) * sizeof (uint8_t));
+metrics *rawBits	=
+	(metrics*)alloca  ((2 * nrCells) * sizeof(metrics));
+uint8_t	*reconstructed	=
+	(uint8_t *)alloca ((2 * nrCells) * sizeof (uint8_t));
 mer4_compute   computeMER;
-float   mer     = 10 * log10 (computeMER. computemer (v, nrCells));
-        show_mer (mer);
+float   mer     = 10 * log10 (computeMER. computemer (v. data (), nrCells));
+        show_sdc_mer (mer);
 
-	my_qam4_metrics -> computemetrics (v, nrCells, rawBits);
+	my_qam4_metrics -> computemetrics (v. data (), nrCells, rawBits);
 	stream_0	-> handle_stream (rawBits, reconstructed,
 	                                     &sdcBits [4], false);
 //
@@ -167,53 +186,52 @@ float   mer     = 10 * log10 (computeMER. computemer (v, nrCells));
 	return true;
 }
 
-bool sdcProcessor::processSDC_QAM16 (theSignal *v) {
-uint8_t sdcBits [4 + stream_0 -> lengthOut () + stream_1 -> lengthOut ()];
-metrics *Y0_stream = new metrics [2 * nrCells];
-metrics *Y1_stream = new metrics [2 * nrCells];
-uint8_t *level_0   = new uint8_t [2 * nrCells];
-uint8_t *level_1   = new uint8_t [2 * nrCells];
-int16_t i;
-mer16_compute   computeMER;
-float mer = 10 * log10 (computeMER. computemer (v, nrCells));
-        show_mer (mer);
+bool sdcProcessor::processSDC_QAM16 (std::vector<theSignal> &v) {
+std::vector<uint8_t> sdcBits;
+std::vector<metrics> Y0_stream;
+std::vector<metrics> Y1_stream;
+std::vector<uint8_t> level_0;
+std::vector<uint8_t> level_1;
+mer16_compute	computeMER;
+DRM_FLOAT	mer	= 10 * log10 (computeMER. computemer (v. data (), nrCells));
+	show_sdc_mer (mer);
+	
+	sdcBits. resize (4 + stream_0 -> lengthOut() + stream_1->lengthOut());
+	Y0_stream.resize (2 * nrCells);
+	Y1_stream.resize (2 * nrCells);
+	level_0.resize (2 * nrCells);
+	level_1.resize (2 * nrCells);
 
-	for (i = 0; i < 4; i ++) {
-	   my_qam16_metrics	-> computemetrics (v, nrCells, 0, 
-	                                           Y0_stream, 
+	for (int i = 0; i < 4; i ++) {
+	   my_qam16_metrics	-> computemetrics (v. data (),
+	                                           nrCells, 0, 
+	                                           Y0_stream. data (), 
 	                                           i != 0,
-	                                           level_0, level_1);
-	   stream_0		-> handle_stream  (Y0_stream,
-	                                           level_0,
+	                                           level_0. data (), level_1. data ());
+	   stream_0		-> handle_stream  (Y0_stream. data (),
+	                                           level_0. data (),
 	                                           &sdcBits [4],
 	                                           true);
-	   my_qam16_metrics	-> computemetrics (v, nrCells, 1, 
-	                                           Y1_stream,
-	                                           true,
-	                                           level_0, level_1);
-	   stream_1		-> handle_stream  (Y1_stream,
-	                                           level_1,
-	                                           &sdcBits [4 + stream_0 -> lengthOut ()],
-	                                           true);
+	   my_qam16_metrics	-> computemetrics (v. data (), nrCells, 1, 
+	                                           Y1_stream. data (),
+		                                   true,
+	                                           level_0. data (), level_1. data ());
+	   stream_1	->	handle_stream (Y1_stream. data (),
+		                               level_1. data (),
+		                               &sdcBits [4 + stream_0 -> lengthOut()],
+	                                       true);
 	}
 //
 //	apply PRBS
 	thePRBS -> doPRBS (&sdcBits [4]);
-	delete [] Y0_stream; 
-	delete [] Y1_stream;
-	delete [] level_0;
-	delete [] level_1;
 
 	sdcBits [0] = sdcBits [1] = sdcBits [2] = sdcBits [3] = 0;
-	if (!theCRC. doCRC (sdcBits, 4 + lengthofSDC)) {
+	if (!theCRC. doCRC (sdcBits. data (), 4 + lengthofSDC)) {
 	   return false;
 	}
-
-	interpretSDC (sdcBits, lengthofSDC, theState);
+	interpretSDC (sdcBits. data (), lengthofSDC, theState);
 	return theState -> set;
 }
-//
-
 //
 //	The data in the SDC vector is organised as
 //	4 bits are zero (just inserted for the CRC)
@@ -262,6 +280,7 @@ int16_t	lengthofDatafield	= (size - 16 - 4) / 8;
 	   index	+= lengthofBody * 8 + 4;
 	}
 	theState -> set =  sdcCorrect;
+
 }
 //
 //	SDC data is organized similar to the FIC data in DAB, i.e. a
@@ -276,7 +295,7 @@ void	sdcProcessor::set_SDCData (stateDescriptor *theState,
 	                           int8_t	lengthofBody) {
 uint8_t	shortId, rfu;
 int16_t	i;
-QString s = QString();
+std::string	s;
 uint8_t	language [3], country [2];
 
 	(void)afs;
@@ -284,14 +303,13 @@ uint8_t	language [3], country [2];
 	   return;
 //
 //	The bits are sequentially stored in v, so let's go
-
-//	fprintf (stderr, "SDC data with %d\n", dataType);
 	switch (dataType) {
 //	up to 4 streams can be carried. However, not all
 //	of these streams have to be audio!!
 	   case 0:	// multiplex description data
 	      if ((lengthofBody < 0) || (lengthofBody / 3 > 4)) {
 	         sdcCorrect = false;
+	         return;
 	      }
 
 	      theState	-> numofStreams	= lengthofBody / 3;
@@ -313,6 +331,7 @@ uint8_t	language [3], country [2];
 	                                theState -> streams [i]. lengthHigh;
 	         theState	-> streams [i]. inUse = true;
 	      }
+	
 	      return;
 
 	   case 1:	// label entity, first 4 bits are:
@@ -321,17 +340,34 @@ uint8_t	language [3], country [2];
 //	for now:
 	      (void)shortId; (void)rfu;
 //	the "full" bits are
-	      s = "";
-	      for (i = 0; i < lengthofBody; i ++) {
-	          s. append (get_SDCBits (v, 4 + 8 * i, 8));
-	      }
-	      s. append (char (0));
+	      for (i = 0; i < lengthofBody; i ++) 
+	          s. push_back (get_SDCBits (v, 4 + 8 * i, 8));
+	      s. push_back (char (0));
 	      if (lengthofBody > 1) {
-//	         char *s2 = s. toLatin1 (). data ();
-	         strcpy (theState -> streams [shortId]. serviceName,
-	                         s. toLatin1 (). data ());
-	      }
-	      show_stationLabel (QString (s), shortId);
+	         for (i = 0; i < theState -> numofStreams; i ++) 
+	            if ((theState -> streams [i]. inUse) &&
+	                (theState -> streams [i]. shortId == shortId)) {
+	               if (theState -> streams [i]. serviceName [0] != 0)
+	                  break;
+	               strcpy (theState -> streams [i]. serviceName,
+	                                          s. c_str ());
+	               switch (shortId) {
+	                  case 0:
+	                     set_channel_1 (QString::fromStdString (s));
+	                     break;
+	                  case 1:
+	                     set_channel_2 (QString::fromStdString (s));
+	                     break;
+	                  case 2:
+	                     set_channel_3 (QString::fromStdString (s));
+	                     break;
+	                  case 3:
+	                     set_channel_4 (QString::fromStdString (s));
+	                     break;
+	               }
+	               return;
+	            }
+	         }
 	      return;
 
 	   case 2:	// conditional access parameters
@@ -402,15 +438,16 @@ uint8_t	language [3], country [2];
 	            uint8_t f     = get_SDCBits (v, 30, 1);
 	            hours += f ? - offset : offset;
 	         }
-	         QString t = QString::number (hours);
+	         std::string t = std::to_string (hours);
 	         t. append (":");
-	         t. append (QString::number (minutes));
-	         show_timeLabel (t);
+	         t. append (std::to_string (minutes));
+	         set_timeLabel (QString::fromStdString (t));
 	      }
 	      return;
 
 	   case 9:	// streams information data entity
 	      {  int16_t index = get_SDCBits (v, 2, 2);
+//	         m_form->set_countryLabel(std::to_string(index) + " audiostream");
 	         theState -> streams [index]. soort  
 	                                      = stateDescriptor::AUDIO_STREAM;
 	         theState -> streams [index]. shortId
@@ -433,6 +470,16 @@ uint8_t	language [3], country [2];
 	                                      = get_SDCBits (v, 14, 5);
 	         theState -> streams [index]. rfa
 	                                      = get_SDCBits (v, 19, 1);
+//
+//      if xHE-AAC we need to collect the decoderspecific data
+	         if (theState -> streams [index]. audioCoding == 03) {
+	            int bytes = (index + 16 + 8 * lengthofBody - 20) / 8;
+	            theState -> streams [index]. xHE_AAC. resize (0);
+	            for (int i = 0; i < bytes; i ++) {
+	               uint8_t t = get_SDCBits (v, 20 + 8 * i, 8);
+	               theState -> streams [index]. xHE_AAC. push_back (t);
+	            }
+	         }
 	      }
 	      return;
 

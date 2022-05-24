@@ -10,9 +10,9 @@
 #include        <QStringList>
 
 typedef struct {
-int     low;
-int     high;
-QString	label;
+	int     low;
+	int     high;
+	QString	label;
 } bandElement;
 
 class	bandPlan {

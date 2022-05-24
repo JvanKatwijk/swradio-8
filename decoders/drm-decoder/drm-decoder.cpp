@@ -1,158 +1,524 @@
-#
-/*
- *    Copyright (C) 2020
- *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Computing
- *
- *    This file is part of the drm receiver
- *
- *    drm receiver is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- *
- *    drm receiver is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with drm receiver; if not, write to the Free Software
- *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-//	
-#
-#include	<QSettings>
-#include	<QFrame>
-#include	<QWidget>
-#include	<QSettings>
-#include	<QMessageBox>
-#include	<cstring>
+
+//#include	<sstream>
+//#include	<unoevent.h>
+#include	<vector>
+#include	<chrono>
+
 #include	"drm-decoder.h"
-#include	"radio.h"
-#include	"basics.h"
-#include	"frame-processor.h"
-#include	"iqdisplay.h"
+
+//
+//	drm specifics
+
+#include	"drm-bandfilter.h"
+#include	"drm-shifter.h"
+#include	"utilities.h"
+
+#include	"timesync.h"
+#include	"freqsyncer.h"
+#include	"word-collector.h"
+#include	"correlator.h"
+#include	"my-array.h"
+#include	"referenceframe.h"
+#include	"equalizer-1.h"
+#include	"fac-processor.h"
+#include	"fac-tables.h"
+#include	"sdc-processor.h"
 #include	"eqdisplay.h"
-/*
- */
-		drmDecoder::drmDecoder (int32_t		inRate,
-	                                RingBuffer<std::complex<float> > *audioBuffer,
-	                                QSettings *s):
-	                                   virtualDecoder (inRate,
-	                                                   audioBuffer),
-	                                   myFrame (nullptr),
-	                                   iqBuffer (32768),
-	                                   eqBuffer (32768),
-	                                   buffer   (12000),
-	                                   Filter_10 (21, 5500, inRate) {
+#include	"iqdisplay.h"
 
-QString	temp;
-int16_t	symbs;
+#define  _USE_MATH_DEFINES
+#include	<math.h>
 
-	this			-> workingRate	= inRate;
-	this			-> audioOut	= audioBuffer;
-	(void)s;
-        setupUi (&myFrame);
-	my_iqDisplay		= new IQDisplay (iqPlotter, 512);
-	my_eqDisplay		= new EQDisplay (equalizerDisplay);
-        myFrame. show ();
-	theRate			= inRate;
-	decimatorFlag		= false;
-	timeSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
-	facSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
-	sdcSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
-	faadSyncLabel	-> setStyleSheet ("QLabel {background-color:red}");
+	drmDecoder::drmDecoder (RadioInterface *theRadio,
+	                        RingBuffer<std::complex<float>> *audioBuffer,
+	                        QSettings *s) :
+	                           virtualDecoder (12000,
+	                                           audioBuffer),
+	                                 myFrame (nullptr),
+	                                 m_worker (nullptr),
+	                                 inputBuffer  (16 * 32768),
+	                                 iqBuffer (32768),
+	                                 eqBuffer (32768),
+	                                 my_Reader (&inputBuffer,
+	                                           2 * 16384, this),
+#ifdef	__WITH_FDK_AAC__
+#ifdef	__MINGW32__
+	                                 aacFunctions (0),
+#endif
+#endif
+	                                 my_backendController (this, 4,
+#ifdef	__WITH_FDK_AAC__
+#ifdef	__MINGW32__
+	                                                       &aacFunctions,
+#endif
+#endif
+	                                                       audioBuffer,
+	                                                       &iqBuffer),
+	                                theState (1, 3) {
+	this	-> theRadio	= theRadio;
+	setupUi (&myFrame);
+	my_eqDisplay            = new EQDisplay (equalizerDisplay);
+	my_iqDisplay            = new IQDisplay (iqPlotter, 512);
 
-	
+	myFrame. show ();
+	running. store (false);
 
-	localOscillator. resize (12000);
-	for (int i = 0; i < 12000; i ++)
-	   localOscillator [i] =
-	         std::complex<float> (cos ((float)i * 2 * M_PI / 12000),
-	                              sin ((float)i * 2 * M_PI / 12000));
+	drmError		= false;
+	nSymbols		= 25;
+	modeInf. Mode		= 2;
+	modeInf. Spectrum	= 3;
 
-	channel_1	-> hide ();
-	channel_2	-> hide ();
-	channel_3	-> hide ();
-	channel_4	-> hide ();
+	connect (this, SIGNAL (setTimeSync (bool)),
+                 this, SLOT (executeTimeSync (bool)));
+        connect (this, SIGNAL (setFACSync (bool)),
+                 this, SLOT (executeFACSync (bool)));
+        connect (this, SIGNAL (setSDCSync (bool)),
+                 this, SLOT (executeSDCSync (bool)));
+        connect (this, SIGNAL (show_Mode (int)),
+                 this, SLOT (execute_showMode (int)));
+        connect (this, SIGNAL(show_Spectrum (int)),
+                 this, SLOT (execute_showSpectrum (int)));
+	connect (channel_1, SIGNAL (clicked ()),
+                 this, SLOT (select_channel_1 ()));
+        connect (channel_2, SIGNAL (clicked ()),
+                 this, SLOT (select_channel_2 ()));
 
-	symbs			= 45;
-	int8_t windowDepth 	= 2;
-	int8_t qam64Roulette 	= 4;
-	connect (channel_1, SIGNAL (clicked (void)),
-	         this, SLOT (selectChannel_1 (void)));
-	connect (channel_2, SIGNAL (clicked (void)),
-	         this, SLOT (selectChannel_2 (void)));
-	connect (channel_3, SIGNAL (clicked (void)),
-	         this, SLOT (selectChannel_3 (void)));
-	connect (channel_4, SIGNAL (clicked (void)),
-	         this, SLOT (selectChannel_4 (void)));
-	theFilter	= &Filter_10;
-	running			= true;
-
-	my_frameProcessor	= new frameProcessor (this,
-	                                              &buffer,
-	                                              &iqBuffer,
-	                                              &eqBuffer,
-	                                              12000,
-	                                              symbs,
-	                                              windowDepth,
-	                                              qam64Roulette);
-	my_frameProcessor	-> start	();
-	setDetectorMarker	(0);
-	currentPhase		= 0;
-	phaseOffset		= 0;
+	m_worker	=
+	       new std::thread (&drmDecoder::WorkerFunction, this);
 }
 
-	drmDecoder::~drmDecoder		(void) {
-	running		= false;
-	my_frameProcessor -> stop ();
-	while (my_frameProcessor -> isRunning ())
-	   usleep (10);
-	delete	my_frameProcessor;
-}
-
-//	Basically a simple approach. The "frameProcessor" does the
-//	work, it will read from the buffer that is filled here
-void	drmDecoder::processBuffer (std::complex<float>  *dataIn, int amount) {
-}
-
-void	drmDecoder::process (std::complex <float> v) {
-std::complex<float> x = theFilter -> Pass (v);
-	buffer. putDataIntoBuffer (&x, 1);
-}
-
-bool	drmDecoder::haltSignal		(void) {
-	return !running;
+	drmDecoder::~drmDecoder () {	
+	running. store (false);
+	my_Reader. stop ();
+	m_worker        -> join ();
+	delete m_worker;
+	m_worker = nullptr;
+	delete	my_eqDisplay;
+	delete	my_iqDisplay;
 }
 //
-void	drmDecoder::show_coarseOffset (float offset) {
-	show_int_offset	-> display (offset);
+//	Called by the underlying system
+//
+void	drmDecoder::
+	         processBuffer (std::complex<float>* buffer, int length) {
+	(void)buffer; (void)length;
 }
 
-void	drmDecoder::show_fineOffset (float offset) {
-	show_small_offset -> display (offset);
+void	drmDecoder::process (std::complex<float> v) {
+	inputBuffer. putDataIntoBuffer (&v, 1);
 }
 
-void	drmDecoder::show_angle		(float angle) {
-	angleDisplay	-> display (angle);
+void	drmDecoder::WorkerFunction () {
+int16_t	blockCount      = 0;
+bool	inSync;
+int16_t	symbol_no       = 0;
+bool	frameReady;
+int counter = 0;
+float     deltaFreqOffset         = 0;
+float     sampleclockOffset       = 0;
+
+
+	running. store (true);
+	while (running. load ()) {
+	   try {
+	      if (!running. load ())
+	         throw (21);
+	      counter++;
+	      emit setTimeSync (false);
+	      emit setFACSync (false);
+	      emit setSDCSync (false);
+	      theState. cleanUp ();
+	      my_Reader. waitfor (Ts_of (Mode_A));
+	  
+//      First step: find mode and starting point
+	      modeInf. Mode = -1;
+	      while (running. load () && (modeInf. Mode == -1)) {
+	         my_Reader. shiftBuffer (Ts_of (Mode_A) / 3);
+	         getMode (&my_Reader, &modeInf);
+	      }
+
+	      if (!running. load ())
+	         throw (20);
+
+	      setTimeSync (true);
+	      my_Reader. shiftBuffer (modeInf. timeOffset_integer);
+	      frequencySync (&my_Reader, &modeInf);
+
+	      show_Mode		(modeInf. Mode);
+	      show_Spectrum	(modeInf. Spectrum);
+//	      show_coarseOffset	(modeInf. freqOffset_integer);
+//	      show_fineOffset	(modeInf. freqOffset_fractional);
+
+	      theState. Mode		= modeInf. Mode;
+	      theState. Spectrum	= modeInf. Spectrum;
+	      int nrSymbols		= symbolsperFrame (modeInf. Mode);
+	      int nrCarriers       = Kmax (modeInf. Mode, modeInf. Spectrum) -
+	                             Kmin (modeInf. Mode, modeInf. Spectrum) + 1;
+
+	      myArray<std::complex<float>> inbank (nrSymbols, nrCarriers);
+	      myArray<theSignal> outbank (nrSymbols, nrCarriers);
+	      correlator myCorrelator (&modeInf);
+	      equalizer_1 my_Equalizer (this,
+	                                modeInf.Mode,
+	                                modeInf.Spectrum,
+	                                1,
+	                                &eqBuffer);
+	      std::vector<std::complex<float>> displayVector;
+	      displayVector. resize (Kmax (modeInf. Mode, modeInf. Spectrum) -
+	                             Kmin (modeInf. Mode, modeInf. Spectrum) + 1);
+	      wordCollector my_wordCollector (this,
+	                                      &my_Reader,
+	                                      &modeInf,
+	                                      WORKING_RATE);
+	      facProcessor my_facProcessor (this, &modeInf);
+
+//	   we know that - when starting - we are not "in sync" yet
+	      inSync	= false;
+//
+//	   we read one full frame after which we start looking for a 
+//	   match
+	      for (int symbol = 0; symbol < nrSymbols - 1; symbol ++) {
+	         my_wordCollector. getWord (inbank. element (symbol),
+	                                    modeInf. freqOffset_integer,
+	                                    modeInf. timeOffset_fractional,
+	                                    modeInf. freqOffset_fractional
+	                                   );
+	         myCorrelator. correlate (inbank. element (symbol), symbol);
+	       }
+
+	      int  lc      = nrSymbols - 1;
+//      We keep on reading here until we are satisfied that the
+//      frame that is in, looks like a decent frame, just by the
+//      correlation on the first word
+	      while (running. load ()) {
+	         my_wordCollector. getWord (inbank. element (lc),
+	                                    modeInf. freqOffset_integer,
+	                                    modeInf. timeOffset_fractional,
+	                                    modeInf. freqOffset_fractional
+	                                   );
+	         myCorrelator. correlate (inbank. element (lc), lc);
+	         lc = (lc + 1) % symbolsperFrame (modeInf. Mode);
+	         if (myCorrelator. bestIndex (lc))  {
+	            break;
+	         }
+	      }
+		
+//      from here on, we know that in the input bank, the frames occupy the
+//      rows "lc" ... "(lc + symbolsinFrame) % symbolsinFrame"
+//      so, once here, we know that the frame starts with index lc,
+//      so let us equalize the last symbolsinFrame words in the buffer
+	      for (symbol_no = 0; symbol_no < nrSymbols; symbol_no ++)
+	         (void) my_Equalizer.
+	            equalize (inbank. element ((lc + symbol_no) % nrSymbols),
+	                      symbol_no,
+	                      &outbank,
+                              &modeInf. timeOffset_fractional,
+                              &deltaFreqOffset,
+                              &sampleclockOffset,
+	                      displayVector);
+
+	      lc           = (lc + symbol_no) % symbol_no;
+	      symbol_no    = 0;
+	      frameReady   = false;
+	      while (running. load () && !frameReady) {
+		  my_wordCollector.getWord (inbank.element(lc),
+				   modeInf.freqOffset_integer,
+				  lc == 0,        // no-op
+				  modeInf.timeOffset_fractional,
+				  deltaFreqOffset,  // tracking value
+				  sampleclockOffset); // tracking value
+
+	         frameReady = my_Equalizer. 
+	                            equalize (inbank. element (lc),
+	                                      symbol_no,
+	                                      &outbank,
+	                                      &modeInf. timeOffset_fractional,
+                                              &deltaFreqOffset,
+                                              &sampleclockOffset,
+	                                      displayVector);
+			
+	         lc = (lc + 1) % nrSymbols;
+	         symbol_no = (symbol_no + 1) % nrSymbols;
+	      }
+
+	      if (!running.load())
+	         throw (37);
+
+//	when we are here, we do have  our first full "frame".
+//	so, we will be convinced that we are OK when we have a decent FAC
+	      inSync = my_facProcessor.  processFAC  (&outbank, &theState);
+
+	  //	one test:
+	      if (!inSync)
+	         throw (33);
+	      if (modeInf. Spectrum != getSpectrum (&theState))
+	         throw (34);
+	      emit setFACSync (true);
+		
+//
+//	prepare for sdc processing
+//	Since computing the position of the sdc Cells depends (a.o)
+//	on FAC and other data cells, we better create the table here.
+	      sdcTable. resize (sdcCells (&modeInf));
+	      set_sdcCells (&modeInf);
+	      sdcProcessor my_sdcProcessor (this, &modeInf,
+	                                    sdcTable, &theState);
+
+	      bool	superframer		= false;
+	      int	missers			= 0;
+	      bool	firstTime		= true;
+	      float	deltaFreqOffset		= 0;
+	      float	sampleclockOffset	= 0;
+		  
+		
+	      while (true) {
+//	when we are here, we can start thinking about  SDC's and superframes
+//	The first frame of a superframe has an SDC part
+	         if (isFirstFrame (&theState)) {
+	            bool sdcOK = my_sdcProcessor. processSDC (&outbank);
+	            emit setSDCSync (sdcOK);
+	            if (sdcOK) {
+	               blockCount	= 0;
+	            }
+//
+//	if we seem to have the start of a superframe, we
+//	re-create a backend with the right parameters
+	            if (!superframer && sdcOK)
+	               my_backendController. reset (&theState);
+	            superframer	= sdcOK;
+	         }
+//
+//	when here, add the current frame to the superframe.
+//	Obviously, we cannot garantee that all data is in order
+	         if (superframer)
+	            addtoSuperFrame (&modeInf, blockCount ++, &outbank);
+
+//	when we are here, it is time to build the next frame
+	         frameReady	= false;
+	         for (int i = 0; !frameReady && (i < nrSymbols); i ++) {
+	            my_wordCollector.
+	               getWord (inbank. element ((lc + i) % nrSymbols),
+	                        modeInf. freqOffset_integer,	// initial value
+	                        (lc + i) % nrSymbols == 0,
+	                        modeInf. timeOffset_fractional,
+	                        deltaFreqOffset,	// tracking value
+	                        sampleclockOffset	// tracking value
+	                      );
+	            firstTime	= false;
+	            frameReady =
+	                  my_Equalizer.
+	                         equalize (inbank. element ((lc + i) % nrSymbols),
+	                                   (symbol_no + i) % nrSymbols,
+	                                   &outbank,
+	                                   &modeInf. timeOffset_fractional,
+	                                   &deltaFreqOffset,
+	                                   &sampleclockOffset,
+	                                   displayVector);
+	         }
+	
+	         if (!frameReady)	// should not happen???
+	            throw (36);
+			 
+//	OK, let us check the FAC
+	         bool success  = my_facProcessor.
+	                          processFAC (&outbank, &theState);
+	         if (success) {
+	            emit setFACSync	(true);
+	            missers = 0;
+	         }
+	         else {
+	            emit setFACSync	(false);
+	            emit setSDCSync	(false);
+	            superframer		= false;
+	            if (missers++ < 2)
+	               continue;
+	            throw (35);	// ... or give up and start all over
+	         }
+	      }	// end of main loop
+	   } catch (int e) {
+	   if (!running. load ())
+	      return;
+	   }
+	}
 }
 
-void	drmDecoder::show_timeOffset	(float offset) {
-	timeOffsetDisplay	-> display (offset);
+//      just for readability
+uint8_t drmDecoder::getSpectrum     (stateDescriptor *f) {
+uint8_t val = f -> spectrumBits;
+	return val <= 5 ? val : 3;
+}
+//
+
+void	drmDecoder::getMode (Reader *my_Reader, smodeInfo *m) {
+timeSyncer  my_Syncer (my_Reader, WORKING_RATE,  nSymbols);
+	my_Syncer. getMode (m);
 }
 
-void	drmDecoder::show_timeDelay	(float del) {
-	timeDelayDisplay	-> display (del);
+void    drmDecoder::frequencySync (Reader *my_Reader, smodeInfo *m) {
+freqSyncer my_Syncer (my_Reader, m, WORKING_RATE, this);
+	my_Syncer. frequencySync (m);
 }
 
-void	drmDecoder::show_clockOffset	(float o) {
-	clockOffsetDisplay	-> display (o);
+int16_t	drmDecoder::sdcCells (smodeInfo *m) {
+static
+int m1_table []	= {167, 190, 359, 405, 754, 846};
+static
+int m2_table [] = {130, 150, 282, 322, 588, 1500};
+
+	switch (m -> Mode) {
+	   case Mode_A:
+	      return m1_table [m -> Spectrum];
+
+	   default:
+	   case Mode_B:
+	      return m2_table [m -> Spectrum];
+
+	   case Mode_C:
+	      return 288;
+
+	   case Mode_D:
+	      return 152;
+	}
+	return 288;
 }
 
-void	drmDecoder::showMessage (QString m) {
-	messageLabel -> setText (m);
+void	drmDecoder::set_sdcCells (smodeInfo *modeInf) {
+uint8_t	Mode	= modeInf -> Mode;
+uint8_t	Spectrum = modeInf -> Spectrum;
+int	carrier;
+int	cnt	= 0;
+	for (carrier = Kmin(Mode, Spectrum);
+	     carrier <= Kmax(Mode, Spectrum); carrier++) {
+	   if (isSDCcell (modeInf, 0, carrier)) {
+		  sdcTable[cnt].symbol = 0;
+		  sdcTable[cnt].carrier = carrier;
+		  cnt++;
+	   }
+	}
+	
+	for (carrier = Kmin (Mode, Spectrum);
+	     carrier <= Kmax (Mode, Spectrum); carrier ++) {
+	   if (isSDCcell (modeInf, 1, carrier)) {
+	      sdcTable [cnt]. symbol = 1;
+	      sdcTable [cnt]. carrier = carrier;
+	      cnt ++;
+	   }
+	}
+	   
+	if ((Mode == Mode_C) || (Mode == Mode_D)) {
+	   for (carrier = Kmin (Mode, Spectrum);
+	        carrier <= Kmax (Mode, Spectrum); carrier ++) 
+	      if (isSDCcell (modeInf, 2, carrier)) {
+	         sdcTable [cnt]. symbol = 2;
+	         sdcTable [cnt]. carrier = carrier;
+	         cnt ++;
+	      }
+	}
+
+	fprintf (stderr, "for Mode %d, spectrum %d, we have %d sdc cells\n",
+	                       Mode, Spectrum, cnt);
+}
+
+bool	drmDecoder::isFACcell (smodeInfo *m,
+	                             int16_t symbol, int16_t carrier) {
+int16_t	i;
+struct facElement *facTable     = getFacTableforMode (m -> Mode);
+
+//	we know that FAC cells are always in positive carriers
+	if (carrier < 0)
+	   return false;
+	for (i = 0; facTable [i]. symbol != -1; i ++) {
+	   if (facTable [i]. symbol > symbol)
+	      return false;
+	   if ((facTable [i]. symbol == symbol) &&
+	       (facTable [i]. carrier == carrier))
+	      return true;
+	}
+	return false;
+}
+
+bool	drmDecoder::isSDCcell (smodeInfo *m,
+	                             int16_t symbol, int16_t carrier) {
+	if (carrier == 0)
+	   return false;
+	if ((m -> Mode == 1) && ((carrier == -1) || (carrier == 1)))
+	   return false;
+
+	if (symbol > 2)
+	   return false;
+	if (isTimeCell (m -> Mode, symbol, carrier))
+	   return false;
+	if (isFreqCell (m -> Mode, symbol, carrier))
+	   return false;
+	if (isPilotCell (m -> Mode, symbol, carrier))
+	   return false;
+	if (isFACcell (m, symbol, carrier))
+	   return false;
+	return true;
+}
+
+bool	drmDecoder::isDatacell (smodeInfo *m,
+	                              int16_t symbol,
+	                              int16_t carrier, int16_t blockno) {
+	if (carrier == 0)
+	   return false;
+	if (m -> Mode == 1 && (carrier == -1 || carrier == 1))
+	   return false;
+//
+//	these are definitely SDC cells
+	if ((blockno == 0) && ((symbol == 0) || (symbol == 1)))
+	   return false;
+//
+	if ((blockno == 0) && ((m -> Mode == 3 ) || (m -> Mode == 4)))
+	   if (symbol == 2)
+	      return false;
+	if (isFreqCell (m -> Mode, symbol, carrier))
+	   return false;
+	if (isPilotCell (m -> Mode, symbol, carrier))
+	   return false;
+	if (isTimeCell (m -> Mode, symbol, carrier))
+	   return false;
+	if (isFACcell (m, symbol, carrier))
+	   return false;
+
+	return true;
+}
+
+bool	drmDecoder::isFirstFrame (stateDescriptor *f) {
+uint8_t val     = f -> frameIdentity;
+	return ((val & 03) == 0) || ((val & 03) == 03);
+}
+
+bool	drmDecoder::isLastFrame (stateDescriptor *f) {
+uint8_t val     = f -> frameIdentity;
+	return ((val & 03) == 02);
+}
+
+//
+//	adding the contents of a frame to a superframe
+void	drmDecoder::addtoSuperFrame (smodeInfo *m,
+	                                 int16_t blockno, 
+	                                 myArray<theSignal> *outbank) {
+static	int	teller	= 0;
+int16_t	symbol, carrier;
+int16_t	   K_min		= Kmin (m -> Mode, m -> Spectrum);
+int16_t	   K_max		= Kmax (m -> Mode, m -> Spectrum);
+
+	if (isFirstFrame (&theState))
+	   my_backendController. newFrame (&theState);
+
+	for (symbol = 0; symbol < symbolsperFrame (m -> Mode); symbol ++) {
+	   for (carrier = K_min; carrier <= K_max; carrier ++)
+	      if (isDatacell (&modeInf, symbol, carrier, blockno)) {
+	         my_backendController. addtoMux (blockno, teller ++,
+	                                     outbank -> element (symbol)[carrier - K_min]);
+	      }
+	}
+
+	if (isLastFrame (&theState)) {
+	   my_backendController. endofFrame ();
+	   teller = 0;
+	}
 }
 
 void	drmDecoder::executeTimeSync	(bool f) {
@@ -182,172 +548,101 @@ void	drmDecoder::executeSDCSync	(bool f) {
 	}
 }
 
-void	drmDecoder::show_stationLabel (const QString &s, int stream) {
-	switch (stream) {
-	   default:
-	   case 0:
-	      channel_1	-> setText (s);
-	      channel_1	-> show ();
-	      break;
-	   case 1:
-	      channel_2	-> setText (s);
-	      channel_2	-> show ();
-	      break;
-	   case 2:
-	      channel_3	-> setText (s);
-	      channel_3	-> show ();
-	      break;
-	   case 3:
-	      channel_4	-> setText (s);
-	      channel_4	-> show ();
-	      break;
-	}
+void    drmDecoder::execute_showMode            (int l) {
+        if (1 <= l && l <= 4)
+           modeIndicator        -> setText (QString (char ('A' + (l - 1))));
 }
 
-void	drmDecoder::show_timeLabel	(const QString &s) {
-//	timedisplayLabel	-> setText (s);
-}
-
-void	drmDecoder::execute_showMode		(int l) {
-	if (1 <= l && l <= 4)
-	   modeIndicator	-> setText (QString (char ('A' + (l - 1))));
-}
-
-void	drmDecoder::execute_showSpectrum	(int l) {
-	if (0 <= l && l < 6)
-	   spectrumIndicator	-> setText (QString (char ('0' + l)));
-}
-
-void	drmDecoder::show_channels	(int audio, int data) {
-	if (audio > 0)
-	   channel_1	-> show ();
-	if (audio > 1)
-	   channel_2	-> show ();
-	else
-	   channel_2	-> hide ();
-	if (audio == 0)
-	   channel_1	-> hide ();
-
-	if (data > 0)
-	   channel_3	-> show ();
-	if (data > 1)
-	   channel_4	-> show ();
-	else
-	   channel_4	-> hide ();
-	if (data == 0)
-	   channel_3	-> hide ();
-}
-
-void	drmDecoder::show_audioMode	(QString s) {
-	audioModelabel	-> setText (s);
-}
-
-static std::complex<float> lbuf [4800];
-static int fillP	= 0;
-void	drmDecoder::sampleOut		(float re, float im) {
-std::complex<float> z	= std::complex<float> (re, im);
-	lbuf [fillP] = z;
-	fillP ++;
-	if (fillP >= 4800) {
-	   audioOut	-> putDataIntoBuffer (lbuf, 4800);
-	   audioAvailable (audioOut -> GetRingBufferReadAvailable (), 48000);
-	   fillP = 0;
-	}
-}
-
-void	drmDecoder::showSNR		(float snr) {
-	snrDisplay	-> display (snr);
-}
-
-static	bool audio_channel_1	= true;
-static	bool audio_channel_2	= false;
-static	bool data_channel_1	= true;
-static	bool data_channel_2	= false;
-
-void	drmDecoder::selectChannel_1	(void) {
-	audio_channel_1 = true;
-	audio_channel_2 = false;
-}
-
-void	drmDecoder::selectChannel_2	(void) {
-	audio_channel_1 = false;
-	audio_channel_2 = true;
-}
-
-void	drmDecoder::selectChannel_3	(void) {
-	data_channel_1	= true;
-	data_channel_2	= false;
-}
-
-void	drmDecoder::selectChannel_4	(void) {
-	data_channel_1	= false;
-	data_channel_2	= true;
-}
-
-int16_t	drmDecoder::getAudioChannel	(void) {
-	return audio_channel_1 ? 0 : 1;
-}
-
-int16_t	drmDecoder::getDataChannel	(void) {
-int16_t	c = 0;
-	if (channel_1 -> isHidden ()) c ++;
-	if (channel_2 -> isHidden ()) c ++;
-	return data_channel_1 ? 2 - c : 
-	          data_channel_2 ? 3 - c: -1;
-}
-
-static	int	faadCounter	= 0;
-static	int	goodfaad	= 0;
-void	drmDecoder::faadSuccess		(bool b) {
-	faadCounter ++;
-	if (b)
-	   faadSyncLabel -> setStyleSheet ("QLabel {background-color:green}");
-	else
-	   faadSyncLabel -> setStyleSheet ("QLabel {background-color:red}");
-	if (b)
-	   goodfaad ++;
-	if (faadCounter > 500) {
-	   fprintf (stderr, "faad ratio is %f\n", (float)goodfaad / faadCounter);
-	   goodfaad	= 0;
-	   faadCounter	= 0;
-	}
-}
-
-void	drmDecoder::aacData (QString text) {
-	aacDataLabel -> setText (text);
-}
-
-//	showMOT is triggered by the MOT handler,
-//	the GUI may decide to ignore the data sent
-//	since data is only sent whenever a data channel is selected
-void	drmDecoder::showMOT		(QByteArray data, int subtype) {
-	if (!running)
-	   return;
-
-	QPixmap p;
-	p. loadFromData (data, subtype == 0 ? "GIF" :
-	                       subtype == 1 ? "JPEG" :
-	                       subtype == 2 ? "BMP" : "PNG");
-//	pictureLabel ->  setPixmap (p);
-//	pictureLabel ->  show ();
-}
-
-void    drmDecoder::set_phaseOffset (int f) {
-        phaseOffset += f;
-	phaseOffsetDisplay	-> display (phaseOffset);
+void    drmDecoder::execute_showSpectrum        (int l) {
+        if (0 <= l && l < 6)
+           spectrumIndicator    -> setText (QString (char ('0' + l)));
 }
 
 
-void	drmDecoder::show_country (QString s) {
-	countryLabel	-> setText (s);
+void    drmDecoder::set_audioModeLabel	(const QString &s) {
+        audioModelabel  -> setText (s);
 }
 
-void	drmDecoder::show_programType (QString s) {
-	programTypeLabel	-> setText (s);
+void	drmDecoder::show_fineOffset	(float f) {
+	show_small_offset -> display (f);
 }
 
-void	drmDecoder::show_time	(QString s) {
-	timeLabel		-> setText (s);
+void	drmDecoder::show_coarseOffset	(float f) {
+	show_int_offset	-> display (f);
+}
+
+void	drmDecoder::set_faadSyncLabel	(bool b) {
+static  int     faadCounter     = 0;
+static  int     goodfaad        = 0;
+        faadCounter ++;
+        if (b)
+           faadSyncLabel -> setStyleSheet ("QLabel {background-color:green}");
+        else
+           faadSyncLabel -> setStyleSheet ("QLabel {background-color:red}");
+        if (b)
+           goodfaad ++;
+        if (faadCounter > 500) {
+           float ratio = goodfaad / 500.0;
+           channel_4 -> setText (QString::number (ratio));
+           goodfaad     = 0;
+           faadCounter  = 0;
+        }
+}
+
+void	drmDecoder::set_messageLabel	(const QString &s) {
+	messageLabel	-> setText (s);
+}
+
+void	drmDecoder::set_timeLabel	(const QString &s) {
+	timeLabel	-> setText (s);
+}
+
+void	drmDecoder::show_fac_mer	(float f) {
+	fac_mer	-> display (f);;
+}
+
+void	drmDecoder::show_sdc_mer	(float f) {
+	sdc_mer -> display (f);
+}
+
+void    drmDecoder::show_msc_mer        (float f) {
+        msc_mer -> display (f);
+}
+
+void	drmDecoder::set_aacDataLabel	(const QString &s) {
+	aacDataLabel	-> setText (s);
+}
+
+void	drmDecoder::set_channel_1	(const QString &s) {
+	channel_1	-> setText (s);
+	selectedService	-> setText (s);
+}
+
+void	drmDecoder::set_channel_2	(const QString &s) {
+	channel_2	-> setText (s);
+}
+
+void	drmDecoder::set_channel_3	(const QString &s) {
+	channel_3	-> setText (s);
+}
+
+void	drmDecoder::set_channel_4	(const QString &s) {
+	channel_4	-> setText (s);
+}
+
+void	drmDecoder::set_datacoding	(const QString &s) {
+	datacoding	-> setText (s);
+}
+
+void	drmDecoder::audioAvailable	() {
+	audioAvailable (0, 48000);
+}
+
+void    drmDecoder::show_eqsymbol       (int amount) {
+std::complex<float> line [amount];
+
+        eqBuffer. getDataFromBuffer (line, amount);
+        my_eqDisplay    -> show (line, amount);
 }
 
 void    drmDecoder::showIQ  (int amount) {
@@ -369,22 +664,11 @@ int     scopeWidth      = scopeSlider -> value();
 	my_iqDisplay -> DisplayIQ (Values, scopeWidth / avg);
 }
 
-void	drmDecoder::show_eqsymbol	(int amount) {
-std::complex<float> line [amount];
-
-	eqBuffer. getDataFromBuffer (line, amount);
-	my_eqDisplay	-> show (line, amount);
+void	drmDecoder::select_channel_1	() {
+	theState. activate_channel_1 ();
 }
 
-void	drmDecoder::show_datacoding	(QString s) {
-	datacoding -> setText (s);
-}
-
-void	drmDecoder::show_mer_sdc	(float f) {
-	mer_sdc -> display (f);
-}
-
-void	drmDecoder::show_mer_msc	(float f) {
-	mer_msc	-> display (f);
+void	drmDecoder::select_channel_2	() {
+	theState. activate_channel_2 ();
 }
 

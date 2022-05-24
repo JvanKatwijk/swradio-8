@@ -25,7 +25,7 @@
 #include	<QHBoxLayout>
 #include	<QLabel>
 #include	"sdrplay-handler.h"
-#include	"sdrplayselect.h"
+//#include	"sdrplayselect.h"
 #include	"radio.h"
 
 //
@@ -118,7 +118,7 @@ int16_t	bank_rsp1 (int32_t freq) {
 mir_sdr_ErrT err;
 float	ver;
 mir_sdr_DeviceT devDesc [4];
-sdrplaySelect	*sdrplaySelector;
+//sdrplaySelect	*sdrplaySelector;
 
 	this	-> outputRate	= outputRate;
 	this	-> sdrplaySettings	= s;
@@ -275,21 +275,22 @@ ULONG APIkeyValue_length = 255;
 	   throw (25);
 	}
 
-	if (numofDevs > 1) {
-           sdrplaySelector       = new sdrplaySelect ();
-           for (deviceIndex = 0; deviceIndex < numofDevs; deviceIndex ++) {
-#ifndef	__MINGW32__
-              sdrplaySelector ->
-                   addtoList (devDesc [deviceIndex]. DevNm);
-#else
-              sdrplaySelector ->
-                   addtoList (devDesc [deviceIndex]. SerNo);
-#endif
-           }
-           deviceIndex = sdrplaySelector -> QDialog::exec ();
-           delete sdrplaySelector;
-        }
-	else
+//	if (numofDevs > 1) {
+//           sdrplaySelector       = new sdrplaySelect ();
+//           for (deviceIndex = 0; deviceIndex < numofDevs; deviceIndex ++) {
+//#ifndef	__MINGW32__
+//              sdrplaySelector ->
+//                   addtoList (devDesc [deviceIndex]. DevNm);
+//#else
+//              sdrplaySelector ->
+//                   addtoList (devDesc [deviceIndex]. SerNo);
+//#endif
+//           }
+//           deviceIndex = sdrplaySelector -> QDialog::exec ();
+//           delete sdrplaySelector;
+//        }
+//	else
+	if (numofDevs >= 1)
 	   deviceIndex = 0;
 
 	serialNumber -> setText (devDesc [deviceIndex]. SerNo);

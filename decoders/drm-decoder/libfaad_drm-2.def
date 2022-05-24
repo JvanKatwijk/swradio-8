@@ -1,0 +1,19 @@
+
+EXPORTS
+;
+; from libfaad_drm-2.dll
+;
+NeAACDecAudioSpecificConfig  @1
+NeAACDecClose @2
+NeAACDecDecode @3
+NeAACDecDecode2 @4
+NeAACDecGetCapabilities @5
+NeAACDecGetCurrentConfiguration @6
+NeAACDecGetErrorMessage @7
+NeAACDecGetVersion @8
+NeAACDecInit @9
+NeAACDecInit2 @10
+NeAACDecInitDRM @11
+NeAACDecOpen @12
+NeAACDecPostSeekReset @13
+NeAACDecSetConfiguration @14

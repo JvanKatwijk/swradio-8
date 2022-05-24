@@ -24,6 +24,9 @@
 #include	"up-filter.h"
 #define  _USE_MATH_DEFINES
 #include <math.h>
+#ifndef M_PI
+# define M_PI           3.14159265358979323846  /* pi */
+#endif
 
 static inline
 std::complex<float> cmul (std::complex<float> in, float y) {
@@ -40,11 +43,10 @@ std::complex<float> cdiv (std::complex<float> in, float y) {
 	upFilter::upFilter (int bufferSize, int  inRate, int outRate):
 	                                    kernel (bufferSize * (outRate / inRate)),
 	                                    buffer (bufferSize) {
-float	tmp  [bufferSize * (outRate / inRate)];
+float	* tmp = (float *)alloca (bufferSize * (outRate / inRate) * sizeof (float));
 float	f	= (float)(inRate / 2) / outRate;
 float	sum	= 0;
 
-	fprintf (stderr, "upFilter %d %d %d\n", bufferSize, inRate, outRate);
 	this	-> multiplier	= outRate / inRate;
 	this	-> order	= bufferSize * multiplier;
 	this	-> ip		= 0;
@@ -73,7 +75,6 @@ float	sum	= 0;
 	upFilter::~upFilter	() {
 }
 //
-static bool first_time = false;
 void	upFilter::Filter (std::complex<float> in, std::complex<float> *res) {
 
 	buffer [ip] = in;

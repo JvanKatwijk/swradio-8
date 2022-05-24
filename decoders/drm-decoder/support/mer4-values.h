@@ -31,7 +31,7 @@ class	mer4_compute {
 public:
 	mer4_compute	();
 	~mer4_compute	();
-float	computemer	(theSignal	*signalVector,
+DRM_FLOAT computemer	(theSignal	*signalVector,
 	                                 int32_t	amount);
 };
 #endif

@@ -80,9 +80,9 @@ int	i;
 //
 //	See if there are settings from previous incarnations
 	hackrfSettings		-> beginGroup ("hackrfSettings");
-	lnagainSlider 		-> setValue (
+	lnaGainSlider 		-> setValue (
 	            hackrfSettings -> value ("hack_lnaGain", DEFAULT_GAIN). toInt ());
-	vgagainSlider 		-> setValue (
+	vgaGainSlider 		-> setValue (
 	            hackrfSettings -> value ("hack_vgaGain", DEFAULT_GAIN). toInt ());
 
 	hackrfSettings	-> endGroup ();
@@ -146,12 +146,12 @@ int	i;
 	                                     inputRate,
 	                                     inputRate / outputRate);
 
-	setLNAGain	(lnagainSlider	-> value ());
-	setVGAGain	(vgagainSlider	-> value ());
+	setLNAGain	(lnaGainSlider	-> value ());
+	setVGAGain	(vgaGainSlider	-> value ());
 //	and be prepared for future changes in the settings
-	connect (lnagainSlider, SIGNAL (valueChanged (int)),
+	connect (lnaGainSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (setLNAGain (int)));
-	connect (vgagainSlider, SIGNAL (valueChanged (int)),
+	connect (vgaGainSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (setVGAGain (int)));
 
 	hackrf_device_list_t *deviceList = this -> hackrf_device_list ();
@@ -172,9 +172,9 @@ int	i;
 	stopReader ();
 	hackrfSettings	-> beginGroup ("hackrfSettings");
 	hackrfSettings	-> setValue ("hack_lnaGain",
-	                                 lnagainSlider -> value ());
+	                                 lnaGainSlider -> value ());
 	hackrfSettings -> setValue ("hack_vgaGain",
-	                                 vgagainSlider	-> value ());
+	                                 vgaGainSlider	-> value ());
 	hackrfSettings	-> endGroup ();
 	delete myFrame;
 	this	-> hackrf_close (theDevice);

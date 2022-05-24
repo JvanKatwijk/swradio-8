@@ -1,11 +1,11 @@
 
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
-#define MyAppName "swradio-8.1"
-#define MyAppVersion "8.1"
+#define MyAppName "swradio-8.3"
+#define MyAppVersion "8.3"
 #define MyAppPublisher "Lazy Chair Computing"
 #define MyAppURL "https://github.com/JvanKatwijk/swradio-8"
-#define MyAppExeName "swradio-8.1.exe";
+#define MyAppExeName "swradio-8.3.exe";
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -34,7 +34,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\sdr-j-development\windows-swradio\swradio-8.1.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\sdr-j-development\windows-swradio\swradio-8.3.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\sdr-j-development\windows-swradio\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\Users\JvanK\Downloads\SDRplay_RSP_API-Windows-2.13.1.exe"; DestDir: "{app}"; AfterInstall : install_sdrplayApi
 

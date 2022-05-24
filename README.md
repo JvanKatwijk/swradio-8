@@ -1,7 +1,7 @@
-# swradio-8 [![Build Status](https://travis-ci.org/JvanKatwijk/swradio-8.svg?branch=master)](https://travis-ci.org/JvanKatwijk/swradio-8)
+# swradio-9 [![Build Status](https://travis-ci.org/JvanKatwijk/swradio-9.svg?branch=master)](https://travis-ci.org/JvanKatwijk/swradio-8)
 
 ------------------------------------------------------------------
-Introduction
+Introduction (Revised version 9)
 ------------------------------------------------------------------
 
 swradio is software for Linux and windows for listening to short wave radio.
@@ -11,37 +11,11 @@ The software supports hackrf devices, rtlsdr devices
 (For the rtlsdr based devices, use was made of a special version of the
 library, the one by Oliver Jowett. Sources are included in the source tree of
 this program.)
+It can be configured to use the "classic" PMSDR device, the precompiled
+versions for Linux (i.e. an AppImage) and Windows (i.e. an installer)
+are configured for the other ones.
 
-
-![swradio-8](/swradio-picture-1.png?raw=true)
-
-One of the less common decoders is a *drm-decoder*, the picture shows
-the reception of Nigeria. There are not that many drm transmissions,
-but Kuwait, Tiganesti (i.e. Romenia), and Nigeria are received very well here.
-The current version is limited to drm transmissions with a spectrum
-equal to or less than 10 KHz.
-
-Classical decoders are - obviously - available as well. Early evening there
-is always - at least here - the "Nederlandstalig amateurnet" is well received.
-
-![swradio-8](/swradio-picture-2.png?raw=true)
-
-------------------------------------------------------------------------------
-Implemented decoders
------------------------------------------------------------------------------
-
-*Decoders** are:
-* am
-* ssb, with selection for usb or lsb;
-* psk, with a wide selection of modes and settings and with a visual tuning aid,
-* mfsk, with a visual tuning aid,
-* rtty, with a wide selection of modes and settings;
-* cw, with (almost) automatic selection of speed and a visual tuning aid,
-* drm, limited to 10 k bandwidth;
-* navtex (amtor), with a wide selection of options;
-* weatherfax decoder, with selection of a variety of settings.
-
-![swradio-8](/swradio-picture-3.png?raw=true)
+![swradio-8](/swradio-overview.png?raw=true)
 
 The "main screen" shows - next to the spectrum (or, if the widget
 is touched with the right mouse button a waterfall) -the selected
@@ -52,117 +26,207 @@ which the selected frequency belongs.
 Touching a screen with the right mouse button will change the view on
 the spectrum from "classical" spectrum view to "waterfall" (and back).
 
-![swradio-8](/swradio-picture-4.png?raw=true)
+![swradio-8](/swradio-waterfall.png?raw=true)
 
 This feature applies to both the display showing the full spectrum as
 the display showing the "decoder" spectrum.
 
+--------------------------------------------------------------------------
+Device selection
+--------------------------------------------------------------------------
+
+Different from previous versions, a device selector will show upon starting
+the program. The selector shows the configured devices
+
+![swradio-8](/swradio-device-selection.png?raw=true)
+
+Other than the previous versions, on program start up a small menu appears
+from which a device can be selected. New is support for the 3.0X library
+for SDRplay devices. However, other than for Qt-DAB,
+it is not possible to select another device while the program is running.
+
 -------------------------------------------------------------------------
-bandwidth selection and decoders
+Bandwidth selection and samplerates
 -------------------------------------------------------------------------
 
-Since in this version the "IF" for decoding most of the implemented
-modes is 0 Hz, some additional bandwidth selections are added
-These selections are all centered around 0 Hz,
-so, a selection of 200 Hz, means from -100 .. 100.
+Decoders for the various transmission modes on shortwave require
+a bandwidth of a few Hz to 10 KHz (e.g. psk31 vs DRM).
+The assumed inputrate for the software is therefore 96 KHz, with a
+samplerate of 96 KHz. The output samplerate for devices like the
+RSP's are much higher, for the RSP's 2000000 samples/second. It is
+assumed that the device handlers decimate the incoming samplestream to
+96000 (for the SDRplay the samplerate is set to 2112 KHz, such that
+a simple integer decimation can be applied).
 
-This is different from the selection of the usb or lsb band, since these
-activate filtering from 0 .. 2500 Hz resp. -2500 .. 0 Hz.
+The "front end" of the software shows the spectrum of the incoming 
+samplestream, and will apply some further filtering and decimation
+to end up with a samplerate of 12 KHz. A samplestream with that 
+rate is handed over to the decoders.
 
-Many typical amateur signals have a small bandwidth, making tuning harder.
-Take as example Bpsk32, the width of the signal is just a couple of tens of Hz.
+The front end, however, can be set to do additional filtering.
+With the second combobox above the main spectrum a choice can be made
+among a list of bandwidths symmetrical around 0 (200, 500, 1000, 1500, 2000,
+am (9 KHz) and wide (full 12 KHz), as well as selectors for usb (upper band) and lsb (lower band), each of 2500 Hz).
+
+It is assumed that - if needed - the decoder implmementation will do further
+filtering an decimation (as an example, the CW and PSK decoders use 2000 Hz
+as "operating" samplerate).
 
 Some decoders are therefore equipped with an additional "scope" widget, just
 showing the signal in the contex of a few hundred Hz.
 
-![swradio-8](/swradio-loupe.png?raw=true)
+------------------------------------------------------------------------------
+Implemented decoders
+-----------------------------------------------------------------------------
 
-Clicking with the mouse on a location on such a window will adapt
-the frequency.
-The picture shows the "magnifying glass" for psk. It shows that the
-actual width of the received signal is less than 50 Hz.
+Decoders** are:
+* am
+* ssb, with selection for usb or lsb;
+* psk, with a wide selection of modes and settings and with a visual tuning aid,
+* rtty, with a wide selection of modes and settings;
+* cw, with (almost) automatic selection of speed and a visual tuning aid,
+* ft8, a listener for ft8 messages,
+* navtex (amtor), with a wide selection of options,
+* weatherfax decoder, with selection of a variety of settings.
+* drm, limited to 10 k bandwidth;
 
 -------------------------------------------------------------------------
-a note on drm reception
+A note on AM/SSB detection
 -------------------------------------------------------------------------
 
-![swradio-8](/swradio-picture-drm.png?raw=true)
+AM and SSB decoding are obviously the very basic modes for the software,
+For AM broadcast reception, the "am" bandwidth provides some filtering for
+a 9 KHz band, for SSB one may choose the usb or lsb width selectors.
+
+-------------------------------------------------------------------------
+A note on the CW decoder
+-------------------------------------------------------------------------
+
+CW is usually a small signal, and most amateur CW messages are brief.
+Tuning is always an issue. The CW decoder therefore has a small
+**magnifying glass** widget, showing a waterfall of the
+spectrum of the selected few hundred Hz.
+
+![swradio-8](/swradio-cw-widget.png?raw=true)
+
+New is that the CW widget tries to tune to the strongest signal
+in the window.
+
+-------------------------------------------------------------------------
+A note on the psk decoder
+-------------------------------------------------------------------------
+
+What holds for CW signals, certainly holds for PSK signals, their
+spectrum is small, and usually the transmissions are brief.
+As for the CW decoder, a "magnifying widget" will show a waterfall
+of a small spectrum around the selected frequency.
+
+![swradio-8](/swradio-psk-widget.png?raw=true)
+
+There are quite some PSK modes, the decoder widget shows a
+selector for choosing one.
+The decoder furthermore shows the progress of the phase difference.
+As known, (B)PSK is encoded using phase jumps of 180 degrees, while
+(Q)PSK is encoded using jumps of 90 degrees. The "clock" gives a
+reasonable idea of the stability of the phase jumps, and therefore
+of the success in decoding.
+
+-------------------------------------------------------------------------
+A note on the amtor (navtex) decoder
+-------------------------------------------------------------------------
+
+Navtex signals can be heard (at least here) on 518 KHz.
+The signal is a small fsk signal, with some error correction.
+
+Selectors on thr widget allow selecting "strict" and "non strict" decoding
+and showing only validated messages or all text.
+
+![swradio-8](/swradio-navtex-widget.png?raw=true)
+
+-------------------------------------------------------------------------
+A note on the RTTY decoder
+-------------------------------------------------------------------------
+
+While the use of RTTY on amateur bands seems to decrease, it is an interesting
+mode. I used to listen around 14080 KHz, but do not see much activity on
+RTTY there.
+
+Of course there are lots of parameters.
+Amateurs use RTTY with a shift of 170 Hz and a baudrate of 45. Sometimes
+one sees commercial transmissions with much larger shifts and higher
+baudrates.
+
+To aid is tuning - a 170 Hz signal remains small - there are some indicators
+on the left side of the widget
+
+ * the frequency offset, as measured between the mark and the space;
+ * the guessed baudrate
+
+![swradio-8](/swradio-rtty-widget.png?raw=true)
+
+-------------------------------------------------------------------------
+A note on the ft8 decoder
+-------------------------------------------------------------------------
+
+Very small signals seem to be very popular in amateur circles.
+Looking for some documentation about this types of mode, I decoded to
+experiment, just to see what it was.
+There was a partial implementation of Karlis Goba that provided some
+insight in how a decoder could be build.
+While the decoder differs significantly, it contains some parts that are
+derived from his work.
+
+Anyway, FT8 is a small signal, using tones with a predefined length
+and a well defined distance between successive ones. The signal width
+is 7 times 6.25 Hz, i.e. about 45 Hz, and messages have a defined
+length of 79 tones, with 6 tones per second.
+
+The decoder has three control elements
+
+ * the number of iterations for the LDPC detector. Error correction is with a LDPC based algorthm;
+
+ * the indicator for the search range, selectable to 5.5 KHz
+
+ * a file button for selecting a file where the received messages are stored.
+
+Note: the decoder is experimental and will definitly not catch all transmitted messages.
+
+![swradio-8](/swradio-ft8-widget.png?raw=true)
+
+-------------------------------------------------------------------------
+a note on the weatherfax decoder
+-------------------------------------------------------------------------
+
+Even in this time of internet and satelites, weatherfaxes still can be 
+received on a variety of frequencies. In my region, I can receive
+faxes on 3588, 4610, 7880 and 8020 KHz.
+
+![swradio-8](/swradio-wfax-widget.png?raw=true)
+
+
+Receiving a fax takes quite some time, and tuning into the frequency will
+show a running transmission. To " pop-in", the decoder has a "cheat"
+button, a button with which a synchronization can be faked and the
+data is decoded. Of course, the picture will be out of sync, the white
+margin will show somewhere in the picture.
+
+-------------------------------------------------------------------------
+a note on the DRM decoder
+-------------------------------------------------------------------------
 
 DRM, Digital Radio Mondiale, is digital radio over shortwave. 
 There are not many drm transmissions these days, but it is interesting
 to compare drm with DAB. The latter of course on much higher frequencies
 with a much higher bandwidth.
 
-DRM is in two ways more complex than DAB. First of all, the
-DAB frames are preceded by a null period, i.e. a period with a
-low-amplitude signal, making it easy to detect the start of a frame
-and synchronize in time.
-DRM on the other hand does not. It is therefore more resource intensive
-to detect the start of a frame. The fact that there are different DRM modes,
-with different profiles, does not make identification easier.
+![swradio-8](/swradio-drm-widget.png?raw=true)
 
-Since there are differences - whatever small -
-in clocks between transmitter and receiver, it is inevitable to continuously
-apply some computing to find the correct start of a frame.
+The decoder widget gives quite some information. The "scopes" show the
+correction to be applied to the signal (blue line is the phase, red line
+the amplitude), as well as the constellation.
 
-The second issue making DRM harder to detect that DAB is the demodulation,
-while DAB uses a form of Differential PSK, DRM uses coherent demodulation,
-with up to QAM64 signals. This means that the receiver has to restore
-the received signal as it was at the transmitter.
-
-The process to do that is equalizing, a DRM frame contains some special
-signals helping the equalization, i.e. signals with predefined values,
-but equalization takes some effort.
-The picture shows (red line) the correction to be applied to the amplitude
-of the values for a frame, and (blue line) the correciton to
-be applied to the phase of the values for a frame.
-
-The resulting values - here QAM64 - are given. With some imagination
-one can see the 64 dots, the possible values of the signals.
-
-Values as given here are good enough to be decoded further.
-
-![swradio-8](/swradio-picture-drm-2.png?raw=true)
-
-The second picture shows a reception of Radio Nigeria, with a mode
-where QAM16 is used as encoding for the content. The picture shows the
-16 possible signal values clearly.
-
---------------------------------------------------------------------------
-Using the swradio
----------------------------------------------------------------------------
-
-If a configured device is connected to the computer where the program runs,
-the device will be connected and opened. If no device is detected,
-it is assumed that file input is requested and a file selection
-menu will appear (input files in PCM format, with a 2 channel,
-96000 samples/second configuration will be accepted.)
-
-Most controls are on the main widget. Touching the frequency select
-button will cause a keypad to be shown where the frequency can be
-types in (in KHz or MHz).
-
-One may select among a number of different filterings:
-* wide, used for e.g. DRM decoding, uses the full 12 k bandwidth;
-* am, used - as the name suggests - for am decoding, uses 9 k;
-* usb, used for smallband decoding in the upper side band, has a width of 2500 Hz;
-* lsb, used for ssb decoding is the lower sideband, has a width of 2500 Hz
-
-The input can be written to a file, that file can be processed later on.
-
-Frequency presets
-can be stored, together with a user defined label (a program name).
-A table of preferred frequencies (programs) is
-maintained between program invocations.
-A selected frequency can be stored by pressing the save frequency button.
-If touched, one is asked to specify a name to be used to label that frequency.
-The pair (name, frequency) then is added to the list.
-
-Selecting such a "preferred program" is just by clicking the mouse on 
-the programname or the associated field with the frequency.
-
-Buttons and slider are equipped with a *tooltip*, touching the button or
-slider will show a brief description of the function.
+Note that, other than in previous versions, the drm decoder now 
+uses the fdk-aac library. Therefore, the decoder is able to handle both AAC and xHE-AAC encoded services.
 
 ----------------------------------------------------------------------------
 A bandplan
@@ -185,221 +249,24 @@ SDRplay device.
 -------------------------------------------------------------------------------
 Linux
 -------------------------------------------------------------------------------
-For Linux there is a description of how to create an executable, it is written
-for Ubuntu, it is, however, simply to translate to scripts to be used with other
-distros. 
 
-Furthermore there is an "appImage", to be found in the releases section
-(while the indicator at the top mentions "failure", the appImage is correct).
-The appImage was created - using the travis service - in an Ubuntu 14 environment,
-it contains the required libraries and should run on any more or less recent Linux
-environment. (Note that a passwd is asked form since the software tries to install
-the udev rules for the devices).
-
+For Linux an "appImage" can be found in the releases section.
+It is of course possible to create your own executable, the ".pro" file
+for use with qmake and the CMakeList.txt file for use with cmake
+can be used to generate a makefile.
 
 -------------------------------------------------------------------------
 Using a pmSDR device and a soundcard
 -------------------------------------------------------------------------
 
-I dusted off my old pmSDR, dating from the era that the data was entering the
-computer through the soundcard. Now, in that time I bought an HP Pavilion
-since - according to the specs - it could deliver samples with a rate
-of 192K, sufficient to do experiments with FM demodulation, which is
-what I wanted to do at that time.
-
-And indeed, samples could be read with a speed of 192k, however,
-some internal filtering in the stupid computer halved the signal in bandwidth,
-so receiving a signal sampled at 192k gave me a signal with a bandwidth of
-less than 96k, completely useless for FM decoding (it is a time ago
-but still pretty frustrated about it).
-
-(*frustration section:*)
-Even further, when sampling on 96k, the band was halved as well,
-so the effective bandwidth then would only be 48k. 
-Of course a solution to get 96K was to decimate (in software)
-a signal sampled at 192k with a factor 2, but it was not why I bought the
-stupid thing.
-
-I'll not report on the discussion I had with the HP service desk
-(bad for my health), I cannot remember to have met such unwilling (ignorant?)
-people (and I can assure you that I met lots of them).
-They, the HP people, (c/w)ould not confirm or falsify that the band was halved. They
-claimed that they did not have a program to verify my claim, so my claim
-was ("by definition") false. Seems a little silly for a large
-organization like HP. 
-Of course, the programs that I wrote to show the bandwidth/samplerates were mine, not from HP, so results
-I sent them (nice spectrum pictures) were "not admissable as evidence", so after
-some talking they decided that there was no problem whatsoever, so no need to communicate
-further. Needless to say that I'll never buy an HP laptop again. (*end of frustration section*)
-
-Anyway, for using a soundcard, I had to buy an external card, an EMU-202 with
-which I did all kinds of FM decoding at the time in combination with the pmSDR.
-Here we need "only" 96k, it works well under Linux and at the time it worked on W7.
-However, it does not like Windows-10, using it under W10 leads to a crash.
-
-![swradio-8](/swradio-pmsdr-drm.png?raw=true)
-
---------------------------------------------------------------------
-Windows
---------------------------------------------------------------------
-
-An installer for windows is available. 
-The supported devices are the good old SDRplay (with support for the 2.13
-library), the hackRF and - limited - the RTLSDR devices
-
-------------------------------------------------------------------
-Ubuntu Linux
-------------------------------------------------------------------
-
-For generating an executable under Ubuntu (16.04 or newer) one may take the
-following steps.
-
-1. Download the source tree (it is assumed that you have a git client and cmake installed.
-   ```
-   git clone https://github.com/JvanKatwijk/swradio-8
-   ```
-
-2. Fetch needed components
-   ```
-   sudo apt-get update
-   sudo apt-get install qt5-qmake build-essential g++
-   sudo apt-get install libsndfile1-dev qt5-default libfftw3-dev portaudio19-dev 
-   sudo apt-get install zlib1g-dev libusb-1.0-0-dev mesa-common-dev
-   sudo apt-get install libgl1-mesa-dev libqt5opengl5-dev libsamplerate0-dev libqwt-qt5-dev
-   sudo apt-get install qtbase5-dev
-
-   ```
-
-4. Create the faad_drm library if you want to use the drm decoder.
-   To make life easy, the sources for the faad library are included
-   in the source tree (packed).
-
-   ```
-   cd ./swradio-8
-   tar zxvf faad2-2.8.8.tar.gz
-   cd faad2-2.8.8
-   ./configure
-   make
-   sudo make install
-   cd ..
-   rm -rf faad2-2.8.8
-   ```
-
-4. Device support
-
-  a) if you have an SDRplay device, I assume you already have installed
-the library, otherwise visit "www.sdrplay.com"  and follow the instructions.
-Make sure to uncomment in swradio-8.pro the line
-
-	CONFIG += sdrplay
-
-  b) the sources for using the pmSDR device are part of the sourcetree. Note
-that for pmSDR the cardread functions are installed. The idea is to use
-either the pmSDR or the "fast" devices, reflected in the name. A configuration
-with (only) pmSDR will be named "swradio-pmsdr", a configuration with (only)
-fast input devices will be named "swradio-8".
-
-For selecting the pmSDR, make sure to uncomment in swradio-8.pro the line
-
-	CONFIG += pmsdr
-
-and to comment out the lines
-
-	#CONFIG += sdrplay
-	#CONFIG += rtlsdr
-	#CONFIG += hackrf
-
-   Create a file /etc/udev/rules.d/96-pmsdr.rules with as content
-
-	#
-	# udev rules file for Microchip 18F4455 USB Micro (PMSDR)
-	#
-	SUBSYSTEM=="usb", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="000c", MODE:="0666"
-
-   to ensure non-root access to the device through usb.
-
-   c) To make life easy, the sources for the required -non-standard - rtlsdr library used are included in the source tree,
-   again as a packed file.
-
-  ```
-   tar zxvf rtl-sdr.tgz
-   cd rtl-sdr/
-   mkdir build
-   cd build
-   cmake ../ -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON
-   make
-   sudo make install
-   rm -rf rtl-sdr
-   sudo ldconfig
-   cd ..
-   rm -rf build
-   cd ..
-  ```
-
-   Make sure that a file exists in the `/etc/udev/rules.d` directory
-   describing the device, allowing "ordinary" users to access the device.
-
-   d) Create a library for the hackrf device by downloading the sources and compiling
-
-   ```
-   git clone https://github.com/mossmann/hackrf
-   cd hackrf
-   cd host
-   mkdir build
-   cd build
-   cmake .. -DINSTALL_UDEV_RULES=ON
-   sudo make install
-  ```
-
-   Make sure that a file exists in the `/etc/udev/rules.d` directory
-   describing the device, allowing "ordinary" users to access the device. I.e.
-   add yourself to the "plugdev" group.
-   
-5. Edit the `swradio-8.pro` file for configuring the supported devices and decoders.
-   For the devices
-
-	* CONFIG	+= sdrplay
-	* CONFIG	+= hackrf
-	* CONFIG	+= rtlsdr
-   or
-	* CONFIG	+= pmsdr
-
-   Select - or deselect - decoders:
-
-	* CONFIG          += am-decoder
-	* CONFIG          += ssb-decoder
-	* CONFIG          += cw-decoder
-	* CONFIG          += amtor-decoder
-	* CONFIG          += psk-decoder
-	* CONFIG          += rtty-decoder
-	* CONFIG          += fax-decoder
-	* CONFIG          += drm-decoder
-	* CONFIG          += mfsk-decoder
-
-Note that the "faad_drm" library is (only) needed for the drm decoder.
-
-The "DESTDIR" parameter in the unix section in the ".pro" file tells where the result is to be put.
-
-6. Check the installation path to qwt. If you were downloading it from http://qwt.sourceforge.net/qwtinstall.html please mention the correct path in `qt-dab.pro` file (for other installation change it accordingly): 
-  ```
-  INCLUDEPATH += /usr/local/include  /usr/local/qwt-6.1.3
-  ````
-
-7. Build and make
-  ```
-  qmake swradio-8.pro
-  make
-  ```
-Alternatively, you could use the "cmake" route. The file CMakeLists.txt-qt5 can be used for qt-5,
-the file CMakeLists.txt-qt4 is merely used for the construction of the appImage.
-The configurations here include the three mentioned "fast" devices.
+The software can be configured to use the PMSDR.
 
 -------------------------------------------------------------------------
 --------------------------------------------------------------------------
 
 # Copyright
 
-	Copyright (C)  2013, 2014, 2015, 2016, 2017, 2018
+	Copyright (C)  2013, 2014, 2015, 2016, 2017, 2018, 2020, 2022
 	Jan van Katwijk (J.vanKatwijk@gmail.com)
 	Lazy Chair Computing
 

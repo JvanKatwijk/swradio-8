@@ -1,16 +1,17 @@
 #
 /*
- *    Copyright (C) 2013
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the SDRunoPlugin_drm
+ *
+ *    SDRunoPlugin_drm is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    SDRunoPlugin_drm is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
@@ -23,20 +24,22 @@
 #ifndef	__MSC_HANDLER_QAM64__
 #define	__MSC_HANDLER_QAM64__
 
-#include	"radio-constants.h"
-#include	"msc-handler.h"
+#include	<QObject>
 #include	"basics.h"
 #include	"qam64-metrics.h"
+#include	"msc-handler.h"
 
-class	drmDecoder;
 class	stateDescriptor;
 class	MSC_streamer;
 class	Mapper;
+class	drmDecoder;
 
-class	QAM64_SM_Handler : public mscHandler {
+class	QAM64_SM_Handler : public QObject, public mscHandler {
+Q_OBJECT
 public:
-		QAM64_SM_Handler	(drmDecoder *,
-	                                 stateDescriptor *, int8_t);
+		QAM64_SM_Handler	(stateDescriptor *, int8_t, 
+	                                 drmDecoder *
+	                                 );
 		~QAM64_SM_Handler	(void);
 	void	process			(theSignal *, uint8_t *);
 private:
@@ -55,6 +58,15 @@ private:
 	Mapper		*Y13mapper_low;
 	Mapper		*Y21mapper_low;
 	metrics		makeMetrics	(uint8_t);
+	std::vector<uint8_t>	bitsOut;
+	std::vector<uint8_t>	bits_0;
+	std::vector<uint8_t>	bits_1;
+	std::vector<uint8_t>	bits_2;
+	std::vector<metrics>	Y0;
+	std::vector<metrics>	Y1;
+	std::vector<metrics>	Y2;
+signals:
+	void		show_msc_mer	(float);
 };
 
 #endif

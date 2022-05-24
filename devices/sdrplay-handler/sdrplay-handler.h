@@ -98,15 +98,15 @@ public:
 	                                 int32_t	outputRate,
 	                                 RingBuffer<DSPCOMPLEX> *,
 	                                 QSettings	*);
-		~sdrplayHandler		(void);
-	int32_t	getRate			(void);
+		~sdrplayHandler		();
+	int32_t	getRate			();
 	void	setVFOFrequency		(quint64);
-	quint64	getVFOFrequency		(void);
+	quint64	getVFOFrequency		();
 
-	bool	restartReader		(void);
-	void	stopReader		(void);
-	void	resetBuffer		(void);
-	int16_t	bitDepth		(void);
+	bool	restartReader		();
+	void	stopReader		();
+	void	resetBuffer		();
+	int16_t	bitDepth		();
 //
 //	This buffer is used in the callback, it therefore
 //	should be visible

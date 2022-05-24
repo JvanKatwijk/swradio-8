@@ -32,7 +32,7 @@ class	mer16_compute {
 public:
 	mer16_compute	();
 	~mer16_compute	();
-float	computemer	(theSignal	*signalVector,
+DRM_FLOAT	computemer	(theSignal	*signalVector,
 	                                 int32_t	amount);
 };
 #endif

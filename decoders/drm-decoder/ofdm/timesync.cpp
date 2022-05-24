@@ -1,23 +1,23 @@
 #
 /*
- *    Copyright (C) 2013 .. 2017
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the drm decoder
+ *    This file is part of the SDRuno plugin for drm
  *
- *    drm decoder is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    drm decoder is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with drm decoder; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *	The "getMode" function is a reimplementation of the
@@ -25,23 +25,20 @@
  *	are taken over (or at least inspired by) the RXAMADRM software
  *	and its origin, diorama. 
  */
+//#include	<windows.h>
+#include	"../basics.h"
 #include	"timesync.h"
 #include	"reader.h"
-#include	"drm-decoder.h"
-#include	"basics.h"
-
 
 	timeSyncer::timeSyncer (Reader *theReader,
-	                        int32_t	sampleRate, int16_t nSymbols) {
-
+	                        int32_t	sampleRate, int16_t nrSymbols) {
 	this	-> theReader	= theReader;
 	this	-> sampleRate	= sampleRate;
-	this	-> nSymbols	= nSymbols;
-//	for mode determination:
-	this	-> nSamples	= nSymbols * Ts_of (Mode_A);
+	this	-> nrSymbols	= nrSymbols;
 }
 
 	timeSyncer::~timeSyncer (void) {
+	
 }
 //
 //	Formula 5.16 from Tsai reads
@@ -56,16 +53,12 @@ float	gammaRelative;
 float	list_gammaRelative 	[]	= {0.0, 0.0, 0.0, 0.0};
 float	list_epsilon		[]	= {0.0, 0.0, 0.0, 0.0};
 int16_t	list_Offsets 		[]	= {0,   0,   0,   0};
-int16_t mode;
-int32_t i;
-int16_t b [nSymbols];
-int16_t	averageOffset	= 0;
 int16_t	theMode;
 
-	theReader -> waitfor (nSamples + 100);
+	theReader -> waitfor (nrSymbols * Ts_of (Mode_A) + Ts_of (Mode_A));
 
 //	just try all modes
-	for (mode = Mode_A; mode <= Mode_D; mode++) {
+	for (int mode = Mode_A; mode < Mode_D; mode++) {
 	   compute_gammaRelative (mode,
 	                          &list_gammaRelative	[mode - Mode_A],
 	                          &list_epsilon		[mode - Mode_A],
@@ -76,7 +69,7 @@ int16_t	theMode;
 //	now decide for the mode to be detected 
 	theMode		= Mode_B;		// default
 	gammaRelative	= -1.0E20;
-	for (i = Mode_A; i <= Mode_D; i++) {
+	for (int i = Mode_A; i < Mode_D; i++) {
 	   if (list_gammaRelative [i - Mode_A] > gammaRelative) {
 	      gammaRelative = list_gammaRelative [i - Mode_A];
 	      theMode = i;
@@ -90,9 +83,9 @@ int16_t	theMode;
 //	if (gammaRelative < 0.5)
 	   maxOK = false;
 	else
-	for (i = Mode_A; i <= Mode_D; i++) {
-	   if ((i != theMode) && (list_gammaRelative [i - Mode_A] >
-	                           0.50 * gammaRelative))
+	for (int mode = Mode_A; mode < Mode_D; mode++) {
+	   if ((mode != theMode) && (list_gammaRelative [mode - Mode_A] >
+	                           0.75 * gammaRelative))
 	      maxOK = false;
 	}
 	
@@ -102,7 +95,7 @@ int16_t	theMode;
 	   result	-> timeOffset_integer	= 0;
 	   result	-> timeOffset_fractional	= 0;
 	   result	-> freqOffset_integer	= 0;
-	   result	-> freqOffset_fract	= 0.0;
+	   result	-> freqOffset_fractional	= 0.0;
 	   return;
 	}
 //
@@ -110,15 +103,12 @@ int16_t	theMode;
 //	OK, we seem to have a mode "theMode". The offset indicates the
 //	offset in the buffer, and from that we compute the timeoffset.
 
-	averageOffset = list_Offsets [theMode - 1];
 //
-
 	result	-> Mode			= theMode;
 	result	-> sampleRate_offset	= 0;
 	result	-> timeOffset_integer	= list_Offsets [theMode - Mode_A];
 	result	-> timeOffset_fractional = 0;
-	result	-> freqOffset_integer	= 0;
-	result -> freqOffset_fract	= list_epsilon [theMode - Mode_A];
+	result	-> freqOffset_fractional	= list_epsilon [theMode - Mode_A];
 }
 
 void	timeSyncer::compute_gammaRelative (uint8_t	mode,
@@ -128,25 +118,23 @@ void	timeSyncer::compute_gammaRelative (uint8_t	mode,
 int16_t	Ts		= Ts_of (mode);
 int16_t Tu		= Tu_of (mode);
 int16_t Tg		= Ts - Tu;
-std::complex<float> gamma	[Ts];	// large enough
-float	squareTerm	[Ts];
-int32_t i, j, k, theOffset;
+std::complex<float> *gamma	=
+	  (std::complex<float> *)alloca (Ts * sizeof (std::complex<float>));	// large enough
+float *squareTerm = (float*)alloca (Ts * sizeof(float));
+int32_t theOffset;
 
-	memset (gamma,	0, Ts * sizeof (std::complex<float>));
-	memset (squareTerm, 0, Ts * sizeof (float));
-
-	for (i = 0; i < Ts; i ++) {
+	for (int i = 0; i < Ts; i ++) {
 	   gamma [i]	= std::complex<float> (0, 0);
 	   squareTerm [i] = float (0);
-	   int32_t base = theReader -> currentIndex + i;
-	   int32_t mask = theReader -> bufSize - 1;
-	   for (j = 0; j < nSymbols; j ++) {
-	      for (k = 0; k < Tg; k ++) {
+	   for (int j = 0; j < nrSymbols; j ++) {
+	      int32_t base = theReader -> currentIndex + i;
+	      int32_t mask = theReader -> bufSize - 1;
+	      for (int k = 0; k < Tg; k ++) {
 	         std::complex<float> f1	=
 	               theReader -> data [(base + j * Ts + k     ) & mask];
 	         std::complex<float> f2	=
 	               theReader -> data [(base + j * Ts + Tu + k) & mask];
-	         gamma [i]	+=  f1 * conj (f2);
+	         gamma [i]	+= f1 * conj (f2);
 	         squareTerm [i] += (real (f1 * conj (f1)) +
 	                                  real (f2 * conj (f2)));
 	      }
@@ -155,14 +143,14 @@ int32_t i, j, k, theOffset;
 
 	theOffset		= 0;
 	float minValue		= 10000.0;
-	for (i = 0; i < Ts; i ++) {
-	   float mmse = abs (squareTerm [i] - 2 * abs (gamma [i]));
+	for (int i = 0; i < Ts; i ++) {
+	   float mmse = abs (squareTerm [i] - 2 * abs (real (gamma [i])));
 	   if (mmse < minValue) {
 	      minValue = mmse;
 	      theOffset = i;
 	   }
 	}
-	*gammaRelative	= abs (gamma [theOffset]) / squareTerm [theOffset];
+	*gammaRelative	= abs (real (gamma [theOffset])) / squareTerm [theOffset];
 	*Epsilon	= (float) arg (gamma [theOffset]);
 	*Offsets	= theOffset;
 }

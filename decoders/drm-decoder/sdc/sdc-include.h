@@ -24,6 +24,7 @@
 //
 #ifndef	__SDC_INCLUDE
 #define	__SDC_INCLUDE
+#include	<stdint.h>
 
 static	inline
 uint16_t	get_SDCBits (uint8_t *v, int16_t offset, int16_t nr) {

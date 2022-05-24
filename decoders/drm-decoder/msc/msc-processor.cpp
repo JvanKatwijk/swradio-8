@@ -4,20 +4,20 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the drm receiver
+ *    This file is part of the SDRunoPlugin_drm
  *
- *    drm receiver is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    drm receiver is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with drm receiver; if not, write to the Free Software
+ *    along with drm drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
@@ -37,18 +37,34 @@
 //	actual processor. The mscConfig is updated regularly
 //	and checked once per superframe here
 	mscProcessor::mscProcessor	(stateDescriptor *theState,
-	                                 drmDecoder	*drm,
-	                                 int8_t		qam64Roulette) {
+		                         drmDecoder	*m_form,
+	                                 int8_t		qam64Roulette,
+#ifdef	__WITH_FDK_AAC__
+#ifdef	__MINGW32__
+	                                 aacHandler *aacFunctions,
+#endif
+#endif
+	                                 RingBuffer<std::complex<float>> *b
+	                                 ):
+	                                    my_dataProcessor (theState, 
+	                                                      m_form,
+#ifdef	__WITH_FDK_AAC__
+#ifdef	__MINGW32__
+	                                                      aacFunctions,
+#endif
+#endif
+	                                                      b) {
 	this	-> theState	= theState;
-	drmMaster		= drm;
 	this	-> qam64Roulette	= qam64Roulette;
+	this	-> audioBuffer	= b;
 	this	-> mscMode	= theState	-> mscMode;
 	this	-> protLevelA	= theState	-> protLevelA;
 	this	-> protLevelB	= theState	-> protLevelB;
 	this	-> numofStreams	= theState	-> numofStreams;
 	this	-> QAMMode	= theState	-> QAMMode;
-	my_dataProcessor	= new dataProcessor (theState, drmMaster);
 
+	connect (this, SIGNAL (set_datacoding (const QString &)),
+	         m_form, SLOT (set_datacoding (const QString &)));
 	this	-> muxsampleLength	= theState -> mscCells / 3;
 	this	-> muxsampleBuf	= new theSignal [muxsampleLength];
 	this	-> tempBuffer	= new theSignal [muxsampleLength];
@@ -63,31 +79,35 @@
 	if (QAMMode == QAM64) {
 	   switch (mscMode) {
 	      case stateDescriptor::SM:
-	         my_mscHandler = new QAM64_SM_Handler (drmMaster, theState,
-	                                               qam64Roulette);
+	         set_datacoding ("QAM64");
+	         my_mscHandler = new QAM64_SM_Handler (theState,
+	                                               qam64Roulette,
+	                                               m_form);
 	         break;
 
 	      default:  
-	         fprintf (stderr, "not implemented yet\n");
-	         my_mscHandler = new QAM64_SM_Handler  (drmMaster, theState,
-	                                                qam64Roulette);
+	         set_datacoding ("Not here");
+	         my_mscHandler = new QAM64_SM_Handler  (theState,
+	                                                qam64Roulette,
+				                        m_form);
 	         break;
 	   }
 	}
 	else
-	if (QAMMode == QAM16) 	// mscMode == SM
-	   my_mscHandler	= new QAM16_SM_Handler (drmMaster, theState);
+	if (QAMMode == QAM16) {	// mscMode == SM
+	   set_datacoding ("QAM16");
+	   my_mscHandler = new QAM16_SM_Handler (theState, m_form);
+	}
 	else
-	   my_mscHandler	= new mscHandler (drmMaster, theState);
+	   my_mscHandler	= new mscHandler (m_form, theState);
 	bufferP		= 0;
 }
 
 	mscProcessor::~mscProcessor	(void) {
 	delete []       muxsampleBuf;
         delete []       tempBuffer;
-        delete          my_deInterleaver;
+	delete          my_deInterleaver;
         delete          my_mscHandler;
-	delete		my_dataProcessor;
 }
 
 //
@@ -110,11 +130,12 @@ void	mscProcessor::addtoMux	(int16_t blockno, int32_t cnt, theSignal v) {
 	(void)blockno; (void)cnt;
 	tempBuffer [bufferP ++] = v;
 	if (bufferP >= muxsampleLength) {
-           uint8_t dataBuffer [theState -> dataLength * BITSPERBYTE + 100];
+	   uint8_t *dataBuffer =
+	    (uint8_t *)alloca ((theState -> dataLength * BITSPERBYTE + 100) * sizeof (uint8_t));
 	   my_deInterleaver -> deInterleave (tempBuffer,
 	                                     this -> muxsampleBuf);
 	   my_mscHandler    -> process (this -> muxsampleBuf, dataBuffer);
-	   my_dataProcessor -> process (dataBuffer, theState -> dataLength);
+	   my_dataProcessor. process (dataBuffer, theState -> dataLength);
 	   bufferP	= 0;
 	}
 }

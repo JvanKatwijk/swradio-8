@@ -1,33 +1,35 @@
 #
 /*
- *    Copyright (C) 2013
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the drm receiver
+ *    This file is part of the SDRunoPlugin_drm
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
+#include	<stdio.h>
+#include	<vector>
 #include	"msc-streamer.h"
 #include	"state-descriptor.h"
 #include	"viterbi-drm.h"
-#include	<stdio.h>
 #include	"puncture-tables.h"
 #include	"mapper.h"
 #include	"protlevels.h"
+#include	"drm-decoder.h"
 
 //	streamhandler, invoked for each of the streams of
 //	the Standard Method with QAM16 or QAM64
@@ -111,33 +113,37 @@ int32_t	MSC_streamer::lowBits (void) {
 //	  the output.
 int16_t	MSC_streamer::process (metrics *softBits,
 	                       uint8_t *out, uint8_t *better) {
-metrics	temp	[2 * (N1 + N2)];	// incoming bits
-uint8_t	xxTemp	[2 * (N1 + N2)];	// recomputed input
+int32_t	deconvolveLength = 6 * (highProtectedbits + lowProtectedbits + 6);
+std::vector<metrics>	temp;
+std::vector<uint8_t>	xxTemp;
+std::vector<metrics>	UTemp;
+std::vector<uint8_t>	hulpVec;
 metrics	*temp1;
 metrics	*temp2;
-int32_t	deconvolveLength = 6 * (highProtectedbits + lowProtectedbits + 6);
-metrics	UTemp	[deconvolveLength];
-uint8_t	hulpVec [deconvolveLength];
 int32_t	pntr	= 0;
 int32_t	next	= 0;
 int16_t	i;
+	temp. 	resize (2 * (N1 + N2));	// incoming bits
+	xxTemp. resize (2 * (N1 + N2));	// recomputed input
+	UTemp.	resize 	(deconvolveLength);
+	hulpVec. resize (deconvolveLength);
 
 //	first step: deinterleaving
 //	According to the standard (7.3.3.3), mapping is within the section
 //	i.e. HP bits are mapped separately from LP bits
 //	we first map the HP part
 	if (hpMapper == NULL)	// just an eep stream or stream 0
-	   memcpy (temp, softBits, (2 * N1) * sizeof (metrics));
+	   memcpy (temp. data (), softBits, (2 * N1) * sizeof (metrics));
 	else
 	   for (i = 0; i < 2 * N1; i ++)
 	      temp [hpMapper -> mapIn (i)] = softBits [i];
 //
 	temp1	= &softBits [2 * N1];
-	temp2	= &temp     [2 * N1];
-	
+	temp2	= &(temp. data () [2 * N1]);
+
 //	Next the LP bits
-	if (lpMapper == NULL)	// stream 0 for SM 64
-	   memcpy (temp2, temp1, (2 * N2) * sizeof (metrics));
+	if (lpMapper == nullptr)	// stream 0 for SM 64
+	   memcpy (temp2 , temp1, (2 * N2) * sizeof (metrics));
 	else
 	   for (i = 0; i < 2 * N2; i ++)
 	      temp2 [lpMapper -> mapIn (i)] = temp1 [i];
@@ -187,17 +193,15 @@ int16_t	i;
 	      UTemp [pntr]. rTow1 = 0;
 	   }
 
-	deconvolver	-> deconvolve (UTemp,
+	deconvolver	-> deconvolve (UTemp. data (),
 	                               highProtectedbits + lowProtectedbits,
 	                               out);
-//
 //	what we do next is try to reconstruct what should have been
 //	in the input vector, such that that may be used for improving
 //	the decoding process
 	deconvolver	-> convolve (out,
 	                             highProtectedbits + lowProtectedbits,
-	                             hulpVec);
-//
+	                             hulpVec. data ());
 //	Now back, 
 //	second step: get the higher protected bits
 	next	= 0;
@@ -213,7 +217,7 @@ int16_t	i;
 	   if (punctureLow [(pntr - 6 * highProtectedbits) % (6 * RX_Low)] == 1)
 	      xxTemp [next ++] = hulpVec [pntr];
 	   }
-//
+
 //	We should have eaten 2 * muxSize - residu bits here
 //	The residual bits, to form the last 36 bits in the
 //	deconvolver
@@ -227,16 +231,15 @@ int16_t	i;
 	   for (i = 0; i < 2 * N1; i ++)
 	      better [i] = xxTemp [hpMapper -> mapIn (i)];
 	else
-	   memcpy (better, xxTemp, 2 * N1 * sizeof (uint8_t));
-
+	   memcpy (better, xxTemp. data (), 2 * N1 * sizeof (uint8_t));
 //	Next the LP bits
 	if (lpMapper != NULL)	// stream > 0 for SM 64
 	   for (i = 0; i < 2 * N2; i ++) 
 	      better [2 * N1 + i] = xxTemp [2 * N1 + lpMapper -> mapIn (i)];
-	else
-	   memcpy (&better [2 * N1],
-	           &xxTemp [2 * N1], 2 * N2 * sizeof (uint8_t));
-
+	else {
+		memcpy(&better[2 * N1],
+			&xxTemp[2 * N1], 2 * N2 * sizeof(uint8_t));
+	}
 	return highProtectedbits + lowProtectedbits;
 }
 

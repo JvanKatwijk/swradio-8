@@ -1,31 +1,30 @@
 #
 /*
- *    Copyright (C) 2015
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    This file is part of the SDRunoPlugin_drm
+ *
+ *    SDRunoPlugin_drm is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    SDRunoPlugin_drm is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with SDRunoPlugin_drm; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#include	<QObject>
-#include	"radio-constants.h"
 #include	<cstring>
-#include	"drm-decoder.h"
-#include	"drm-aacdecoder.h"
+//#include	"drm-aacdecoder.h"
 #include	"message-processor.h"
+#include	"drm-decoder.h"
 
 #define	M_IDLE		0100
 #define	M_HEADER	0101
@@ -35,14 +34,14 @@
 static
 uint16_t crc16_bytewise (uint8_t in [], int32_t N);
 
-	messageProcessor::messageProcessor	(drmDecoder *drm) {
-	this	-> drm	= drm;
-	messageState	= M_IDLE;
-	connect (this, SIGNAL (sendMessage (QString)),
-	         drm, SLOT (showMessage (QString)));
+	messageProcessor::messageProcessor	(drmDecoder *m_form) {
+	this	-> m_form	= m_form;
+	messageState		= M_IDLE;
+	connect (this, SIGNAL (set_messageLabel (const QString &)),
+	         m_form, SLOT (set_messageLabel (const QString &)));
 }
 
-	messageProcessor::~messageProcessor	(void) {
+	messageProcessor::~messageProcessor	() {
 }
 //
 //	we have 4 byte segments, forming a "segment"
@@ -116,12 +115,12 @@ uint8_t firstFlag	= (v [0] >> 6) & 01;
 uint8_t lastFlag	= (v [0] >> 5) & 01;
 
 	if (firstFlag != 0)
-	   myMessage	= QString ();
+	   myMessage	=std::string ("");
 	for (i = 0; i < cnt - 4; i ++)
-	   myMessage = myMessage. append (QChar (v [2 + i]));
+	    myMessage. push_back (char (v [2 + i]));
 	if (lastFlag != 0)
-	   myMessage = myMessage. append ("<<<");
-	sendMessage (myMessage);
+	   myMessage. append ("<<<");
+	set_messageLabel (QString::fromStdString (myMessage));
 }
 
 static

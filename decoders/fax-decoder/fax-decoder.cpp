@@ -783,8 +783,7 @@ QString saveName	= getSaveName ();
 
 void	faxDecoder::saveImage_single () {
 QFile outFile;
-QString saveName = 
-	saveName = QFileDialog::getSaveFileName (nullptr,
+QString saveName = QFileDialog::getSaveFileName (nullptr,
                                                  tr ("save file as .."),
                                                  QDir::homePath (),
                                                  tr ("Images (*.png)"));

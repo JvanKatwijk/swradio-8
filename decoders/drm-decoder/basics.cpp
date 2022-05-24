@@ -4,26 +4,30 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the drm receiver
+ *    This file is part of the SDRunoPlugin_drm
 
- *    drm receiver is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    drm receiver is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with drm receiver; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
 #include	"basics.h"
 #include	<math.h>
 #define	KK	1
+
+#ifndef M_PI
+# define M_PI           3.14159265358979323846  /* pi */
+#endif
 
 int16_t	Ts_of (uint8_t Mode) {
 	switch (Mode) {
@@ -121,31 +125,31 @@ int16_t	Kmin	(uint8_t Mode, uint8_t s) {
 	             s == 2 ? -91 :
 	             s == 3 ? -103 :
 	             s == 4 ? -87 : -99;
-	   case 3:
+	   case Mode_C:
 	      return s == 3 ? -69 : -67;
-	   case 4:
+	   case Mode_D:
 	      return s == 3 ? -44 : -43;
 	}
 }
 
 int16_t	Kmax	(uint8_t Mode, uint8_t s) {
 	switch (Mode) {
-	   case 1:
+	   case Mode_A:
 	      default:
 	      return s == 0 ? 102 : 
 	             s == 1 ? 114 :
 	             s == 2 ? 102:
 	             s == 3 ? 114:
 	             s == 4 ? 314: 350;
-	   case 2:
+	   case Mode_B:
 	      return s == 0 ? 91 :
 	             s == 1 ? 103 :
 	             s == 2 ? 91 :
 	             s == 3 ? 103 :
 	             s == 4 ? 279 : 311;
-	   case 3:
+	   case Mode_C:
 	      return s == 3 ? 69 : 213;
-	   case 4:
+	   case Mode_D:
 	      return s == 4 ? 44 : 135;
 	}
 }
@@ -160,7 +164,7 @@ int16_t	ususedCarriers	(uint8_t Mode) {
 }
 
 #define	DBL_EPSILON	(0.000015)
-float	sinc	(float f) {
+DRM_FLOAT	sinc	(DRM_FLOAT f) {
 	if (fabs (f) < DBL_EPSILON)
 	   return 1.0;
 	return sin (M_PI * f) / (M_PI * f);

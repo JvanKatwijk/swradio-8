@@ -1,0 +1,87 @@
+﻿  word-collector.cpp
+C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\ofdm\reader.h(28,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\ofdm\word-collector.cpp(42,26): warning C4244: '=': conversion from 'int16_t' to 'uint8_t', possible loss of data
+C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\ofdm\word-collector.cpp(83,20): warning C4244: 'initializing': conversion from 'double' to 'DRM_FLOAT', possible loss of data
+C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\ofdm\word-collector.cpp(86,50): warning C4244: 'argument': conversion from 'DRM_FLOAT' to 'int32_t', possible loss of data
+C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\ofdm\word-collector.cpp(158,22): warning C4244: '=': conversion from 'double' to 'DRM_FLOAT', possible loss of data
+C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\ofdm\word-collector.cpp(160,19): warning C4305: '+=': truncation from 'double' to 'DRM_FLOAT'
+C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\ofdm\word-collector.cpp(164,19): warning C4305: '-=': truncation from 'double' to 'DRM_FLOAT'
+C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\ofdm\word-collector.cpp(168,32): warning C4244: 'initializing': conversion from 'double' to 'DRM_FLOAT', possible loss of data
+C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\ofdm\word-collector.cpp(171,62): warning C4244: 'argument': conversion from 'DRM_FLOAT' to 'int32_t', possible loss of data
+  Creating Release\SDRunoPlugin_drm.res
+  
+  Using codepage 1252 as default
+  
+  SDRunoPlugin_drm.rc.
+  Writing BITMAP:104,	lang:0x809,	size 602520.
+  Writing BITMAP:106,	lang:0x809,	size 522692.
+  Writing BITMAP:107,	lang:0x1009,	size 940.
+  Writing BITMAP:108,	lang:0x1009,	size 940.
+  Writing BITMAP:109,	lang:0x1009,	size 940.
+  Writing BITMAP:110,	lang:0x1009,	size 940.
+  Writing BITMAP:112,	lang:0x1009,	size 1840.
+  Writing BITMAP:113,	lang:0x1009,	size 1840.
+  Writing BITMAP:114,	lang:0x1009,	size 7400
+     Creating library C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\SDRunoPlugin_drm.lib and object C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\SDRunoPlugin_drm.exp
+  Generating code
+  Finished generating code
+nana_v141_Release_x86.lib(basic_types.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(basic_types.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(basis.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(basis.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(events_operation.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(events_operation.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(image.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(image.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(programming_interface.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(programming_interface.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(widget.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(widget.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(place.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(place.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(form.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(form.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(wvl.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(wvl.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(button.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(button.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(label.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(label.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(picture.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(picture.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(dragger.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(dragger.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(bedrock_pi.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(bedrock_pi.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(bedrock_windows.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(bedrock_windows.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(graphics.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(graphics.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(pixel_buffer.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(pixel_buffer.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(charset.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(charset.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(platform.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(platform.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(platform_abstraction.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(platform_abstraction.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(color_schemes.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(color_schemes.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(deploy.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(deploy.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(drawer.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(drawer.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(native_window_interface.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(native_window_interface.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(window_manager.obj) : warning LNK4099: PDB '' was not found with 'nana_v141_Release_x86.lib(window_manager.obj)' or at ''; linking object as if no debug info
+nana_v141_Release_x86.lib(basic_window.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(basic_window.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(window_layout.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(window_layout.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(internationalization.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(internationalization.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(tooltip.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(tooltip.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(tabbar.obj) : warning LNK4099: PDB '' was not found with 'nana_v141_Release_x86.lib(tabbar.obj)' or at ''; linking object as if no debug info
+nana_v141_Release_x86.lib(effects.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(effects.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(text_renderer.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(text_renderer.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(element.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(element.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(drawing.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(drawing.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(any.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(any.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(panel.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(panel.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(unicode_bidi.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(unicode_bidi.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(layout_utility.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(layout_utility.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(platform_spec_windows.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(platform_spec_windows.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(element_store.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(element_store.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(msgbox.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(msgbox.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(notifier.obj) : warning LNK4099: PDB '' was not found with 'nana_v141_Release_x86.lib(notifier.obj)' or at ''; linking object as if no debug info
+nana_v141_Release_x86.lib(native_paint_interface.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(native_paint_interface.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(image_process_provider.obj) : warning LNK4099: PDB '' was not found with 'nana_v141_Release_x86.lib(image_process_provider.obj)' or at ''; linking object as if no debug info
+nana_v141_Release_x86.lib(timer.obj) : warning LNK4099: PDB '' was not found with 'nana_v141_Release_x86.lib(timer.obj)' or at ''; linking object as if no debug info
+nana_v141_Release_x86.lib(screen.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(screen.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(menu.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(menu.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(filebox.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(filebox.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(checkbox.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(checkbox.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(spinbox.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(spinbox.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(datetime.obj) : warning LNK4099: PDB '' was not found with 'nana_v141_Release_x86.lib(datetime.obj)' or at ''; linking object as if no debug info
+nana_v141_Release_x86.lib(combox.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(combox.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(textbox.obj) : warning LNK4099: PDB '' was not found with 'nana_v141_Release_x86.lib(textbox.obj)' or at ''; linking object as if no debug info
+nana_v141_Release_x86.lib(filesystem.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(filesystem.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(text_editor.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(text_editor.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(float_listbox.obj) : warning LNK4099: PDB '' was not found with 'nana_v141_Release_x86.lib(float_listbox.obj)' or at ''; linking object as if no debug info
+nana_v141_Release_x86.lib(dataexch.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(dataexch.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(content_view.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(content_view.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+nana_v141_Release_x86.lib(scroll.obj) : warning LNK4099: PDB 'nana.pdb' was not found with 'nana_v141_Release_x86.lib(scroll.obj)' or at 'C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\nana.pdb'; linking object as if no debug info
+  SDRunoPlugin_drm.vcxproj -> C:\Users\JvanK\Source\Repos\plugins\SDRunoPlugin_drm\Release\SDRunoPlugin_drm.dll

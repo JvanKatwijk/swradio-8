@@ -67,7 +67,8 @@ public:
 	                        int		inputRate,
 	                        int		decoderRate,
 	                        QWidget		*parent = NULL);
-		~RadioInterface	(void);
+		~RadioInterface	();
+	int32_t	tunedFrequency	();
 private:
 	struct band {
 	   int32_t	lowF;
@@ -114,7 +115,8 @@ private:
         programList     *myList;
         QLineEdit       *myLine;
         void            adjust          (int32_t);
-	
+
+	int32_t		theFrequency;
 private slots:
         deviceHandler	*setDevice		(
 	                                      RingBuffer<std::complex<float>> *);

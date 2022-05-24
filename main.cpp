@@ -107,7 +107,7 @@ QString	bandplanFile	= QDir::homePath ();
  *	Before we connect control to the gui, we have to
  *	instantiate
  */
-	int rate	= ISettings -> value ("workingRate", 96000). toInt ();
+//	int rate	= ISettings -> value ("workingRate", 96000). toInt ();
 	bandPlan my_bandPlan (bandplanFile);
         MyRadioInterface = new RadioInterface (ISettings,
 	                                       stationList,
@@ -125,4 +125,5 @@ QString	bandplanFile	= QDir::homePath ();
 	fprintf (stderr, "we gaan deleten\n");
 	delete MyRadioInterface;
 //	ISettings	-> ~QSettings ();
+	return 0;
 }

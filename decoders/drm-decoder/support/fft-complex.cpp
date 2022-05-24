@@ -24,14 +24,21 @@
  */
 
 #include "fft-complex.h"
+#define _USE_MATH_DEFINES
+#include	<math.h>
 #include	<string.h>
+
+
+#ifndef M_PI
+# define M_PI           3.14159265358979323846  /* pi */
+#endif
 
 // Private function prototypes
 static size_t reverse_bits (size_t val, int width);
 static void *memdup (const void *src, size_t n);
 
 
-bool	Fft_transform (std::complex<double> vec[], size_t n, bool inverse) {
+bool	Fft_transform (std::complex<DRM_FLOAT> vec[], size_t n, bool inverse) {
 	if (n == 0)
 	   return true;
 	else
@@ -41,7 +48,7 @@ bool	Fft_transform (std::complex<double> vec[], size_t n, bool inverse) {
 	   return Fft_transformBluestein (vec, n, inverse);
 }
 
-bool	Fft_transformRadix2 (std::complex<double> vec[],
+bool	Fft_transformRadix2 (std::complex<DRM_FLOAT> vec[],
 	                                   size_t n, bool inverse) {
 // Length variables
 int levels = 0;  // Compute levels = floor(log2(n))
@@ -53,22 +60,22 @@ int levels = 0;  // Compute levels = floor(log2(n))
 	   return false;  // n is not a power of 2
 	
 	// Trigonometric tables
-	if (SIZE_MAX / sizeof(std::complex<double>) < n / 2)
+	if (SIZE_MAX / sizeof(std::complex<DRM_FLOAT>) < n / 2)
 	   return false;
 
-	std::complex<double> *exptable =
-	 (std::complex<double> *)malloc ((n / 2) * sizeof (std::complex<double>));
+	std::complex<DRM_FLOAT> *exptable =
+	 (std::complex<DRM_FLOAT> *)malloc ((n / 2) * sizeof (std::complex<DRM_FLOAT>));
 	if (exptable == NULL)
 	   return false;
 	for (size_t i = 0; i < n / 2; i++)
 	   exptable [i] = std::exp (
-	         std::complex<double> (0, (inverse ? 2 : -2) * M_PI * i / n));
+	         std::complex<DRM_FLOAT> (0, (inverse ? 2 : -2) * M_PI * i / n));
 	
 // Bit-reversed addressing permutation
 	for (size_t i = 0; i < n; i++) {
 	   size_t j = reverse_bits(i, levels);
 	   if (j > i) {
-	      std::complex<double> temp = vec[i];
+	      std::complex<DRM_FLOAT> temp = vec[i];
 	      vec [i] = vec [j];
 	      vec [j] = temp;
 	   }
@@ -81,7 +88,7 @@ int levels = 0;  // Compute levels = floor(log2(n))
 	   for (size_t i = 0; i < n; i += size) {
 	      for (size_t j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
 	         size_t l = j + halfsize;
-	         std::complex<double> temp = vec [l] * exptable [k];
+	         std::complex<DRM_FLOAT> temp = vec [l] * exptable [k];
 	         vec [l] = vec [j] - temp;
 	         vec [j] += temp;
 	      }
@@ -96,7 +103,7 @@ int levels = 0;  // Compute levels = floor(log2(n))
 }
 
 
-bool	Fft_transformBluestein (std::complex<double> vec[],
+bool	Fft_transformBluestein (std::complex<DRM_FLOAT> vec[],
 	                                   size_t n, bool inverse) {
 bool status = false;
 	
@@ -109,17 +116,17 @@ size_t m = 1;
 	}
 	
 // Allocate memory
-	if ((SIZE_MAX / sizeof (std::complex<double>) < n) ||
-	               (SIZE_MAX / sizeof (std::complex<double>) < m))
+	if ((SIZE_MAX / sizeof (std::complex<DRM_FLOAT>) < n) ||
+	               (SIZE_MAX / sizeof (std::complex<DRM_FLOAT>) < m))
 	   return false;
-	std::complex<double> *exptable =
-	        (std::complex<double> *)malloc(n * sizeof (std::complex<double>));
-	std::complex<double> *avec =
-	     (std::complex<double> *)calloc (m, sizeof (std::complex<double>));
-	std::complex<double> *bvec =
-	     (std::complex<double> *)calloc (m, sizeof (std::complex<double>));
-	std::complex<double> *cvec =
-	     (std::complex<double> *) malloc (m * sizeof (std::complex<double>));
+	std::complex<DRM_FLOAT> *exptable =
+	        (std::complex<DRM_FLOAT> *)malloc(n * sizeof (std::complex<DRM_FLOAT>));
+	std::complex<DRM_FLOAT> *avec =
+	     (std::complex<DRM_FLOAT> *)calloc (m, sizeof (std::complex<DRM_FLOAT>));
+	std::complex<DRM_FLOAT> *bvec =
+	     (std::complex<DRM_FLOAT> *)calloc (m, sizeof (std::complex<DRM_FLOAT>));
+	std::complex<DRM_FLOAT> *cvec =
+	     (std::complex<DRM_FLOAT> *) malloc (m * sizeof (std::complex<DRM_FLOAT>));
 	if (exptable == NULL || avec == NULL || bvec == NULL || cvec == NULL)
 		goto cleanup;
 	
@@ -127,7 +134,7 @@ size_t m = 1;
 	for (size_t i = 0; i < n; i++) {
 	   uintmax_t temp = ((uintmax_t)i * i) % ((uintmax_t)n * 2);
 	   double angle = (inverse ? M_PI : -M_PI) * temp / n;
-	   exptable [i] = std::exp (std::complex<double> (0, angle));
+	   exptable [i] = std::exp (std::complex<DRM_FLOAT> (0, angle));
 	}
 	
 	// Temporary vectors and preprocessing
@@ -155,20 +162,20 @@ cleanup:
 	return status;
 }
 
-bool Fft_convolve (const std::complex<double> xvec[],
-	           const std::complex<double> yvec[],
-	           std::complex<double> outvec [], size_t n) {
+bool Fft_convolve (const std::complex<DRM_FLOAT> xvec[],
+	           const std::complex<DRM_FLOAT> yvec[],
+	           std::complex<DRM_FLOAT> outvec [], size_t n) {
 	
 bool status = false;
 
-	if (SIZE_MAX / sizeof (std::complex<double>) < n)
+	if (SIZE_MAX / sizeof (std::complex<DRM_FLOAT>) < n)
 	   return false;
-	std::complex<double> *xv =
-	     (std::complex<double> *) memdup (xvec,
-	                                     n * sizeof (std::complex<double>));
-	std::complex<double> *yv =
-	     (std::complex<double> *) memdup (yvec,
-	                                     n * sizeof (std::complex<double>));
+	std::complex<DRM_FLOAT> *xv =
+	     (std::complex<DRM_FLOAT> *) memdup (xvec,
+	                                     n * sizeof (std::complex<DRM_FLOAT>));
+	std::complex<DRM_FLOAT> *yv =
+	     (std::complex<DRM_FLOAT> *) memdup (yvec,
+	                                     n * sizeof (std::complex<DRM_FLOAT>));
 	if (xv == NULL || yv == NULL)
 	   goto cleanup;
 	
@@ -182,7 +189,7 @@ bool status = false;
 	   goto cleanup;
 // Scaling (because this FFT implementation omits it)
 	for (size_t i = 0; i < n; i++)
-	   outvec[i] =  std::complex<double> (real (xv[i]) / n, imag (xv [i]) / n);
+	   outvec[i] =  std::complex<DRM_FLOAT> (real (xv[i]) / n, imag (xv [i]) / n);
 	status = true;
 	
 cleanup:

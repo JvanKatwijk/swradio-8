@@ -1,9 +1,33 @@
-
+#
+/*
+ *    Copyright (C) 2020
+ *    Jan van Katwijk (J.vanKatwijk@gmail.com)
+ *    Lazy Chair Computing
+ *
+ *    This file is part of the SDRunoplugin_drm
+ *
+ *    drm plugin is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ *
+ *    drm plugin is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with drm plugin; if not, write to the Free Software
+ *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 #include	"correlator.h"
+#ifndef M_PI
+# define M_PI           3.14159265358979323846  /* pi */
+#endif
 
 static inline
-std::complex<float>	valueFor (float amp, int16_t phase) {
-	return std::complex<float> (amp * cos (2 * M_PI * phase / 1024),
+std::complex<DRM_FLOAT>	valueFor (DRM_FLOAT amp, int16_t phase) {
+	return std::complex<DRM_FLOAT> (amp * cos (2 * M_PI * phase / 1024),
 	                            amp * sin (2 * M_PI * phase / 1024));
 }
 
@@ -17,9 +41,9 @@ struct workCells CellsforModeA [] = {
 	{32, 952},
 	{33, 440},
 	{39, 856},
-	{40, 88},
-	{41, 88},
-	{53, 68},
+	{40,  88},
+	{41,  88},
+	{53,  68},
 	{54, 836},
 	{55, 836},
 	{56, 836},
@@ -136,9 +160,9 @@ void	correlator::cleanUp	() {
 	   corrTable [i] = 0;
 }
 
-void	correlator::correlate (std::complex<float> *input, int wordNo) {
-float	sum	= 0;
-float	sqrt_2	= sqrt (2);
+void	correlator::correlate (std::complex<DRM_FLOAT> *input, int wordNo) {
+DRM_FLOAT	sum	= 0;
+DRM_FLOAT	sqrt_2	= sqrt (2);
 
 	for (int i = 0; refTable [i]. index != -1; i ++)
 	   sum +=  (real (input [refTable [i]. index - K_min] *
@@ -148,7 +172,7 @@ float	sqrt_2	= sqrt (2);
 
 int	correlator::maxIndex	() {
 int	maxIndex	= 0;
-float	max		= corrTable [0];
+DRM_FLOAT	max		= corrTable [0];
 
 	for (int i = 1 ; i < corrTable. size (); i ++) {
 	   if (corrTable [i] > max) {
@@ -160,7 +184,7 @@ float	max		= corrTable [0];
 }
 
 bool	correlator::bestIndex	(int ind) {
-float	maxV	= corrTable [ind];
+DRM_FLOAT	maxV	= corrTable [ind];
 
 	for (int i = 0; i < corrTable. size (); i ++) 
 	   if ((i != ind) && (corrTable [i] > maxV))

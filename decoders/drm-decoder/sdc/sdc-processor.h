@@ -1,23 +1,23 @@
 #
 /*
- *    Copyright (C) 2013
+ *    Copyright (C) 2020
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the drm receiver
+ *    This file is part of the SDRunoPlugin_drm
  *
- *    drm receiver is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    drm receiver is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with drm receiver; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
@@ -28,32 +28,32 @@
 #define	__SDC_PROCESSOR
 
 #include	<QObject>
-#include	"radio-constants.h"
+#include	<stdint.h>
+#include	<vector>
 #include	"basics.h"
-#include	"mapper.h"
 #include	"checkcrc.h"
 #include	"my-array.h"
+#include	"mapper.h"
 
-class	drmDecoder;
 class	stateDescriptor;
 class	prbs;
 class	SDC_streamer;
 class	qam4_metrics;
 class	qam16_metrics;
-class	Mapper;
+class	drmDecoder;
 
-class	sdcProcessor : public QObject {
+class	sdcProcessor: public QObject {
 Q_OBJECT
 public:
 		sdcProcessor	(drmDecoder	*,
 	                         smodeInfo	*,
-	                         std::vector<sdcCell> *,
+	                         std::vector<sdcCell> &,
 	                         stateDescriptor	*);
-		~sdcProcessor	(void);
+		~sdcProcessor	();
 	bool	processSDC	        (myArray<theSignal>  *);
 private:
-	bool	processSDC_QAM4		(theSignal *v);
-	bool	processSDC_QAM16	(theSignal *v);
+	bool	processSDC_QAM4		(std::vector<theSignal> &v);
+	bool	processSDC_QAM16	(std::vector<theSignal> &v);
 	void	interpretSDC		(uint8_t *v, int16_t size,
                                           stateDescriptor *theState);
 	void	set_SDCData		(stateDescriptor *theState,
@@ -62,7 +62,8 @@ private:
                                          uint8_t versionFlag,
                                          int8_t lengthofBody);
         std::vector<sdcCell> *sdcTable;
-	bool	sdcCorrect;
+	drmDecoder	*m_form;
+	bool		sdcCorrect;
 	qam16_metrics	*my_qam16_metrics;
 	qam4_metrics	*my_qam4_metrics;
 	SDC_streamer	*stream_0;
@@ -80,8 +81,11 @@ private:
 	uint8_t		rmFlag;
 	uint8_t		SDCmode;
 signals:
-	void		show_stationLabel (const QString &, int);
-	void		show_timeLabel	(const QString &);
-	void		show_mer	(float);
+	void		show_sdc_mer	(float);
+	void		set_timeLabel	(const QString &);
+	void		set_channel_1	(const QString &);
+	void		set_channel_2	(const QString &);
+	void		set_channel_3	(const QString &);
+	void		set_channel_4	(const QString &);
 };
 #endif

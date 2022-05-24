@@ -4,30 +4,33 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the drm receiver
+ *    This file is part of the SDRunoPlugin_drm
  *
- *    drm receiver is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    drm receiver is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with drm receiver; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
 #include	<stdio.h>
 #include	<float.h>
+#include	<vector>
+//#include	<windows.h>
 #include	<math.h>
-#include	"basics.h"
 #include	"aac-processor-faad.h"
+#include	"basics.h"
 #include	"drm-decoder.h"
 #include	"state-descriptor.h"
+#include	"up-converter.h"
 
 static	inline
 uint16_t	get_MSCBits (uint8_t *v, int16_t offset, int16_t nr) {
@@ -40,40 +43,41 @@ uint16_t	res	= 0;
 	return res;
 }
 
-	aacProcessor_faad::aacProcessor_faad	(
-	                                 stateDescriptor *theState,
-	                                 drmDecoder *drm):
-	                                      upFilter_24000 (5, 12000, 48000),
-	                                      upFilter_12000 (5, 6000, 48000) {
-	
+	aacProcessor_faad::aacProcessor_faad	(stateDescriptor *theState,
+		                                 drmDecoder *m_form,
+	                                         RingBuffer<std::complex<float>> *out):
+	                                            upFilter_12000 (5, 12000, 48000),
+	                                            upFilter_24000 (5, 24000, 48000) {
 	this	-> theState		= theState;
-	this	-> drmMaster		= drm;
+	this	-> m_form		= m_form;
+	this	-> audioOut		= out;
 	this	-> theDecoder		= nullptr;
 //
 //	these are "previous values"
-	SBR_flag        = false;
-	audioMode       = 0x77;
-        audioRate       = 0x77;
+	SBR_flag			= false;
+	audioMode			= 0x77;
+        audioRate			= 0x77;
 
-        connect (this, SIGNAL (aacData (QString)),
-                 drm,  SLOT (aacData (QString)));
-	connect (this, SIGNAL (putSample (float, float)),
-	         drmMaster, SLOT (sampleOut (float, float)));
-	connect (this, SIGNAL (faadSuccess (bool)),
-	         drmMaster, SLOT (faadSuccess (bool)));
+	goodFrames			= 0;
+	badFrames			= 0;
+	connect (this, SIGNAL (set_faadSyncLabel (bool)),
+	         m_form, SLOT (set_faadSyncLabel (bool)));
+	connect (this, SIGNAL (set_aacDataLabel (const QString &)),
+	         m_form, SLOT (set_aacDataLabel (const QString &)));
+	connect (this, SIGNAL (audioAvailable ()),
+	         m_form, SLOT (audioAvailable ()));
 }
 
-	aacProcessor_faad::~aacProcessor_faad	(void) {
+	aacProcessor_faad::~aacProcessor_faad	() {
 	closeDecoder ();
 }
 
 //	little confusing: start- and length specifications are
 //	in bytes, we are working internally in bits
 void	aacProcessor_faad::process_aac (uint8_t *v, int16_t mscIndex,
-	                                int16_t startHigh,
-	                                int16_t lengthHigh,
-	                                int16_t startLow,
-	                                int16_t lengthLow) {
+	                                int16_t startHigh, int16_t lengthHigh,
+	                                int16_t startLow,  int16_t lengthLow) {
+
 	if (lengthHigh != 0) 
 	   handle_uep_audio (v, mscIndex, startHigh, lengthHigh,
 	                            startLow, lengthLow - 4);
@@ -83,13 +87,17 @@ void	aacProcessor_faad::process_aac (uint8_t *v, int16_t mscIndex,
 
 static
 int16_t outBuffer [8 * 960];
+typedef struct frame {
+        int16_t length, startPos;
+        uint8_t aac_crc;
+        uint8_t audio [512];
+} audioFrame;
+
 static
 audioFrame f [20];
 void	aacProcessor_faad::handle_uep_audio (uint8_t *v, int16_t mscIndex,
-	                                int16_t startHigh,
-	                                int16_t lengthHigh,
-	                                int16_t startLow,
-	                                int16_t lengthLow) {
+	                                int16_t startHigh, int16_t lengthHigh,
+	                                int16_t startLow, int16_t lengthLow) {
 int16_t	headerLength, i, j;
 int16_t	usedLength	= 0;
 int16_t	crcLength	= 1;
@@ -107,7 +115,6 @@ int16_t	payloadLength;
 	      return;
 	   usedLength += f [i]. length;
 	}
-
 //	the length of the last segment is to be computed
 	f [numFrames - 1]. length = payloadLength - usedLength;
 
@@ -165,8 +172,7 @@ int16_t		crc_start;
 int16_t		payLoad_start;
 int16_t		payLoad_length = 0;
 
-	numFrames = theState -> streams [mscIndex].
-	                             audioSamplingRate == 1 ? 5 : 10;
+	numFrames = theState -> streams [mscIndex]. audioSamplingRate == 1 ? 5 : 10;
 	headerLength = numFrames == 10 ? (9 * 12 + 4) / 8 : (4 * 12) / 8;
 
 //	startLow in bytes!!
@@ -179,7 +185,7 @@ int16_t		payLoad_length = 0;
 	   f [i - 1]. length = f [i]. startPos - f [i - 1]. startPos;
 	   if (f [i - 1]. length < 0 ||
 	       f [i - 1]. length >= lengthLow) {
-	      faadSuccess (false);
+	      set_faadSyncLabel (false);
 	      return;
 	   }
 	   payLoad_length += f [i - 1]. length;
@@ -189,7 +195,7 @@ int16_t		payLoad_length = 0;
 	                            (headerLength + numFrames) -
 	                            payLoad_length;
 	if (f [numFrames - 1]. length < 0) {
-	   faadSuccess (false);
+	   set_faadSyncLabel (false);
 	   return;
 	}
 //
@@ -210,7 +216,6 @@ int16_t		payLoad_length = 0;
 	playOut (mscIndex);
 }
 
-
 void	aacProcessor_faad::playOut (int16_t	mscIndex) {
 int16_t	i;
 uint8_t	audioSamplingRate	= theState -> streams [mscIndex].
@@ -220,8 +225,24 @@ uint8_t	SBR_flag		= theState -> streams [mscIndex].
 uint8_t	audioMode		= theState -> streams [mscIndex].
 	                                                   audioMode;
 
+std::vector<uint8_t>audioDescriptor;
+uint8_t	xxx			= 0;
+
+	xxx	= theState -> streams [mscIndex]. audioCoding << 6;
+	xxx	|= theState -> streams [mscIndex]. SBR_flag << 5;
+	xxx	|= theState -> streams [mscIndex]. audioMode << 3;
+	xxx	|= theState -> streams [mscIndex]. audioSamplingRate;
+//fprintf (stderr, "samplingrate %d\n", 
+//	             theState -> streams [mscIndex]. audioSamplingRate);
+	audioDescriptor. push_back (xxx);
+
+	xxx	= theState -> streams [mscIndex]. textFlag << 7;
+	xxx	|= theState -> streams [mscIndex]. enhancementFlag << 6;
+	xxx	|= theState -> streams [mscIndex]. coderField << 1;
+	audioDescriptor. push_back (xxx);
+	
 	if (!checkfor (audioSamplingRate, SBR_flag, audioMode)) {
-	   faadSuccess (false);
+	   set_faadSyncLabel (false);
 	   return;
 	}
 
@@ -231,63 +252,78 @@ uint8_t	audioMode		= theState -> streams [mscIndex].
 	   int16_t	cnt;
 	   int32_t	rate;
 	   decodeFrame ((uint8_t *)(&f [index]. aac_crc),
-	                            f [index]. length + 1,
-	                            &convOK,
-	                            outBuffer,
-	                            &cnt, &rate);
+	                                 f [index]. length + 1,
+	                                 &convOK,
+	                                 outBuffer,
+	                                 &cnt, &rate);
 	   if (convOK) {
-	      faadSuccess (true);
+	      set_faadSyncLabel (true);
+	      goodFrames ++;
 	      writeOut (outBuffer, cnt, rate);
 	   }
 	   else
-	      faadSuccess (false);
+	      set_faadSyncLabel (false);
+	     badFrames ++;
+	}
+
+	if (goodFrames + badFrames >= 100) {
+	   float ratio = goodFrames * 100.0 / (goodFrames + badFrames);
+	   (void)ratio;
+//	   m_form -> set_channel_4 (std::to_string (ratio));
+	   goodFrames	= 0;
+	   badFrames	= 0;
 	}
 }
 //
-void	aacProcessor_faad::toOutput (std::complex<float>*b, int16_t cnt) {
-int16_t	i;
+void	aacProcessor_faad::
+	           toOutput (std::complex<float> *b, int16_t cnt) {
 	if (cnt == 0)
 	   return;
-
-	for (i = 0; i < cnt; i ++)
-	   putSample (real (b [i]), imag (b [i]));
+	audioOut	-> putDataIntoBuffer (b, cnt);
+	if (audioOut -> GetRingBufferReadAvailable () > 4800)
+	   audioAvailable ();
 }
 
-void	aacProcessor_faad::writeOut (int16_t *buffer, int16_t cnt,
-	                             int32_t pcmRate) {
-int16_t	i;
-
+void	aacProcessor_faad::writeOut (int16_t *buffer,
+	                             int16_t cnt, int32_t pcmRate) {
 	if (pcmRate == 48000) {
-	   std::complex<float> lbuffer [cnt / 2];
-	   for (i = 0; i < cnt / 2; i ++) {
+	   std::complex<float> *lbuffer =
+	             (std::complex<float> *)alloca (cnt / 2 * sizeof (std::complex<float>));
+	   for (int i = 0; i < cnt / 2; i ++) {
 	      lbuffer [i] = std::complex<float> (
-	                                 buffer [2 * i] / 32767.0,
-	      	                         buffer [2 * i + 1] / 32767.0);
-	   }
-	   toOutput (lbuffer, cnt / 2);
+                                         buffer [2 * i] / 32767.0,
+                                         buffer [2 * i + 1] / 32767.0);
+           }
+
+           toOutput (lbuffer, cnt / 2);
 	   return;
 	}
 
 	if (pcmRate == 12000) {
-	   std::complex<float> lbuffer [2 * cnt + 4];
-	   for (i = 0; i < cnt / 2; i ++) {
-	      upFilter_12000. Filter (std::complex<float> (
-	                                    buffer [2 * i] / 32767.0,
-	                                    buffer [2 * i + 1] / 32767.0),
-	                              &lbuffer [4 * i]);
+	   std::complex<float> *lbuffer =
+	          (std::complex<float> *)alloca (2 * cnt * sizeof (std::complex<float>));
+	   for (int i = 0; i < cnt / 2; i ++) {
+              upFilter_12000. Filter (std::complex<float> (
+                                            buffer [2 * i] / 32767.0,
+                                            buffer [2 * i + 1] / 32767.0),
+                                      &lbuffer [4 * i]);
 	   }
-	   toOutput (lbuffer, 2 * cnt);
+
+           toOutput (lbuffer, 2 * cnt);
 	   return;
 	}
+
 	if (pcmRate == 24000) {
-	   std::complex<float> lbuffer [cnt];
-	   for (i = 0; i < cnt / 2; i ++) {
-	      upFilter_12000. Filter (std::complex<float> (
-	                                    buffer [2 * i] / 32767.0,
-	                                    buffer [2 * i + 1] / 32767.0),
-	                              &lbuffer [2 * i]);
-	   }
-	   toOutput (lbuffer, cnt);
+	   std::complex<float> *lbuffer =
+	          (std::complex<float> *)alloca (2 * cnt * sizeof (std::complex<float>));
+	   for (int i = 0; i < cnt / 2; i ++) {
+              upFilter_12000. Filter (std::complex<float> (
+                                            buffer [2 * i] / 32767.0,
+                                            buffer [2 * i + 1] / 32767.0),
+                                      &lbuffer [2 * i]);
+           }
+
+           toOutput (lbuffer, cnt);
 	   return;
 	}
 }
@@ -301,16 +337,15 @@ int16_t	i;
 bool	aacProcessor_faad::checkfor (uint8_t	audioRate,
 	                             bool	newSBR,
 	                             uint8_t	audioMode) {
-	if (theDecoder == NULL)
-	   theDecoder = NeAACDecOpen ();
-	if (theDecoder == NULL)		// should not happen
-	   return false;
+//	if (theDecoder == NULL)
+//	   theDecoder = NeAACDecOpen ();
+//	if (theDecoder == NULL)
+//	   return false;
 
 	if (newSBR ==  this -> SBR_flag &&
 	    audioMode == this -> audioMode &&
 	    audioRate == this -> audioRate)
 	   return true;
-
 	this	-> audioRate		= audioRate;
 	this	-> SBR_flag		= newSBR;
 	this	-> audioMode		= audioMode;
@@ -320,11 +355,11 @@ bool	aacProcessor_faad::checkfor (uint8_t	audioRate,
 
 bool	aacProcessor_faad::initDecoder (int16_t	audioSampleRate,
 	                                bool		SBR_used,
-	                                uint8_t	audioMode) {
+	                                uint8_t		audioMode) {
 int16_t aacRate = 12000;
 uint8_t	aacMode	= DRMCH_SBR_PS_STEREO;
 int	s;
-QString	text;
+std::string	text;
 
 	if (theDecoder == NULL)
 	   theDecoder = NeAACDecOpen ();
@@ -333,7 +368,7 @@ QString	text;
 
 // Only 12 kHz and 24 kHz with DRM
 	aacRate = audioSampleRate == 01 ? 12000 : 24000;
-	text = QString::number (aacRate);
+	text = std::to_string (aacRate);
 	text. append (" ");
 
 // Number of channels for AAC: Mono, PStereo, Stereo 
@@ -362,8 +397,9 @@ QString	text;
 	      break;
 	}
 
-	aacData (text);
+	set_aacDataLabel (QString::fromStdString (text));
 	s = NeAACDecInitDRM (&theDecoder, aacRate, (uint8_t)aacMode);
+	return false;
 	return s >= 0;
 }
 //
@@ -375,7 +411,7 @@ void	aacProcessor_faad::decodeFrame (uint8_t	*AudioFrame,
 	                                int16_t	*buffer,
 	                                int16_t	*samples,
 	                                int32_t	*pcmRate) {
-int16_t* outBuf = NULL;
+int16_t* outBuf	= nullptr;
 NeAACDecFrameInfo hInfo;
 uint16_t	i;
 	hInfo.channels	= 1;
@@ -383,21 +419,22 @@ uint16_t	i;
 //	ensure we have a decoder:
 	if (theDecoder == NULL) 
 	   return;
+
 	outBuf = (int16_t*) NeAACDecDecode (theDecoder,
 	                                    &hInfo,
 	                                    &AudioFrame[0],
 	                                    frameSize);
-
+//
 	*pcmRate	= hInfo. samplerate;
 	*conversionOK	= !hInfo. error;
-
+//
 	if (hInfo. error != 0) {
 	   fprintf (stderr, "Warning %s\n",
 	                     faacDecGetErrorMessage (hInfo. error));
 	   *samples	= 0;
 	   return;
 	}
-
+//
 	if (hInfo. channels == 2)
 	   for (i = 0; i < hInfo. samples; i ++)
 //	   for (i = 0; i < 2 * hInfo. samples; i ++)

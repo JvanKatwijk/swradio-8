@@ -48,14 +48,14 @@ class	deviceHandler: public QThread {
 Q_OBJECT
 public:
 			deviceHandler 	(RadioInterface *);
-virtual			~deviceHandler 	(void);
-virtual		int32_t	getRate		(void);
+virtual			~deviceHandler 	();
+virtual		int32_t	getRate		();
 virtual		void	setVFOFrequency	(quint64);
-virtual		quint64	getVFOFrequency	(void);
-virtual		bool	restartReader	(void);
-virtual		void	stopReader	(void);
-virtual		void	resetBuffer	(void);
-virtual		int16_t	bitDepth	(void);
+virtual		quint64	getVFOFrequency	();
+virtual		bool	restartReader	();
+virtual		void	stopReader	();
+virtual		void	resetBuffer	();
+virtual		int16_t	bitDepth	();
 	        int32_t	vfoOffset;
 //
 protected:

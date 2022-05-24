@@ -4,20 +4,20 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the drm receiver
+ *    This file is part of the SDRunoPlugin_drm
  *
- *    drm receiver is free software; you can redistribute it and/or modify
+ *    drm plugin is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    drm receiver is distributed in the hope that it will be useful,
+ *    drm plugin is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with drm receiver; if not, write to the Free Software
+ *    along with drm plugin; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
@@ -27,23 +27,33 @@
 #include	"msc-processor.h"
 #include	"drm-decoder.h"
 #include	"state-descriptor.h"
-#include	"deinterleaver.h"
-#include	"msc-handler.h"
-#include	"msc-handler-qam16.h"
-#include	"msc-handler-qam64.h"
 #include	"backend-controller.h"
 
 	backendController::
-	           backendController	(drmDecoder	*drmDecoder,
-	                                 RingBuffer<std::complex<float>> *iqBuffer,
-	                                 int8_t		qam64Roulette) {
-	drmMaster	= drmDecoder;
-	this	-> iqBuffer	= iqBuffer;
+	           backendController	(drmDecoder	*m_form,
+	                                 int8_t		qam64Roulette,
+#ifdef	__WITH_FDK_AAC__
+#ifdef	__MINGW32__
+	                                 aacHandler	*aacFunctions,
+#endif
+#endif
+	                                 RingBuffer<std::complex<float>> *b,
+	                                 RingBuffer<std::complex<float>> *iq) {
+	this	-> m_form		= m_form;
 	this	-> qam64Roulette	= qam64Roulette;
+#ifdef	__WITH_FDK_AAC__
+#ifdef	__MINGW32__
+	this	-> aacFunctions		= aacFunctions;
+#endif
+#endif
+	this	-> audioBuffer		= b;
+	this	-> iqBuffer		= iq;
 
 	connect (this, SIGNAL (showIQ (int)),
-	         drmMaster, SLOT (showIQ (int)));
-	theWorker	= NULL;
+	         m_form, SLOT (showIQ (int)));
+
+
+	theWorker	= nullptr;
 	mscMode		= 0;
 	protLevelA	= 0;
 	protLevelB	= 0;
@@ -52,39 +62,55 @@
 }
 
 	backendController::~backendController	() {
-	if (theWorker != NULL)
+	if (theWorker != nullptr)
 	   delete theWorker;
 }
+
 //
 //	Reset is called whenever we have the start of a new stream of
 //	superframe data
 void	backendController::reset	(stateDescriptor *theState) {
-	if (theWorker != NULL)
+	if (theWorker != nullptr)
 	   delete theWorker;
-	theWorker = new mscProcessor (theState, drmMaster, 6);
-	
+#ifdef  __WITH_FDK_AAC__ 
+	theWorker = new mscProcessor (theState, m_form, 4,
+#ifdef	__MINGW32__
+                                                 aacFunctions,
+#endif
+	                                         audioBuffer);
+#else
+	theWorker = new mscProcessor (theState, m_form, 4, audioBuffer);
+#endif
 }
 
 void	backendController::newFrame	(stateDescriptor *theState) {
-	if (theWorker == NULL)	// should not happen
-	   theWorker = new mscProcessor (theState, drmMaster, 6);
-	theWorker -> newFrame (theState);
+	if (theWorker == nullptr) 
+#ifdef __WITH_FDK_AAC__ 
+	   theWorker = new mscProcessor (theState, m_form, 4,
+#ifdef	__MINGW32__
+	                                           aacFunctions,
+#endif
+	                                           audioBuffer);
+#else
+	   theWorker = new mscProcessor (theState, m_form, 6, audioBuffer);
+#endif
+	theWorker	-> newFrame (theState);
 }
 
 void	backendController::addtoMux	(int16_t blockno,
 	                                 int cnt, theSignal v) {
-	if (theWorker == NULL)	// should not happen
+	if (theWorker == nullptr)	// should not/cannot happen
 	   return;
 
 	std::complex<float> temp = v. signalValue;
-	iqBuffer	-> putDataIntoBuffer (&temp, 1);
+	iqBuffer        -> putDataIntoBuffer (&temp, 1);
 	if (iqBuffer -> GetRingBufferReadAvailable () > 512)
 	   showIQ (512);
 	theWorker	-> addtoMux (blockno, cnt, v);
 }
 
 void	backendController::endofFrame		() {
-	if (theWorker == NULL)	// should not happen
+	if (theWorker == nullptr)	// should not/cannot happen
 	   return;
 	theWorker	-> endofFrame ();
 }

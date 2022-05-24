@@ -32,11 +32,14 @@
 #include	<deque>
 #include	<complex>
 #include	"radio-constants.h"
-#include	"fir-filters.h"
 #include	"basics.h"
 #include	"checkcrc.h"
+#include	"ringbuffer.h"
+#include	"aac-handler.h"
+#include	"message-processor.h"
 
 class	drmDecoder;
+//class	upConverter;
 class	rateConverter;
 class	stateDescriptor;
 
@@ -44,7 +47,11 @@ class	xheaacProcessor: public QObject {
 Q_OBJECT
 public:
 			xheaacProcessor	(stateDescriptor *,
-	                                 drmDecoder *);
+	                                 drmDecoder *,
+#ifdef	__MINGW32__
+	                                 aacHandler	*,
+#endif
+	                                 RingBuffer<std::complex<float>> *);
 			~xheaacProcessor	();
 	void		process_usac	(uint8_t *v, int16_t mscIndex,
                                          int16_t startHigh, int16_t lengthHigh,
@@ -52,21 +59,25 @@ public:
 private:
 	stateDescriptor	*theState;
 	drmDecoder	*parent;
+	RingBuffer<std::complex<float>> *audioOut;
 	checkCRC	theCRC;
-	LowPassFIR      upFilter_24000;
-        LowPassFIR      upFilter_12000;
+	messageProcessor	my_messageProcessor;
 	void		resetBuffers	();
-	void		processFrame	(int);
 	int		currentRate;
 	std::vector<uint8_t>
         		getAudioInformation (stateDescriptor *drm,
                                                         int streamId);
-//	deque<uint8_t>	frameBuffer;
-//	vector<uint32_t> borders;
+	std::vector<uint8_t>	frameBuffer;
+	std::vector<uint32_t> borders;
+	rateConverter	*theConverter;
+//	upConverter	*theConverter;
 	int		numFrames;
 	void		writeOut	(int16_t *, int16_t, int32_t);
-	void		toOutput	(float *, int16_t);
-	void		playOut		(std::vector<uint8_t>);
+	void		toOutput	(std::complex<float> *, int16_t);
+	void		playOut		(std::vector<uint8_t> &, int, int);
+#ifdef	__MINGW32__
+	aacHandler	*aacFunctions;
+#endif
 
 //	added to support inclusion of the last phase
 	void		reinit		(std::vector<uint8_t>, int);
@@ -89,9 +100,10 @@ private:
         uint32_t        bufferP;
         std::vector<uint8_t>    currentConfig;
 signals:
-	void            putSample       (float, float);
+	void		audioAvailable	();;
 	void            faadSuccess     (bool);
-	void		aacData		(QString);
+	void		set_aacDataLabel	(const QString &);
+
 };
 
 #endif
