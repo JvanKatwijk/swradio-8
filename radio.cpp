@@ -1,6 +1,6 @@
 #
 /*
- *    Copyright (C)  2018
+ *    Copyright (C)  2018 .. 2022
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Programming
  *
@@ -98,7 +98,6 @@
 #ifdef	HAVE_DRM_DECODER
 #include	"drm-decoder.h"
 #endif
-
 
 static inline
 int twoPower (int a) {
@@ -606,6 +605,8 @@ int	currOff	= theBand. currentOffset;
 	   hfFilter. setBand (theBand. currentOffset + theBand. lowF,
 	                      theBand. currentOffset + theBand. highF,
 	                            inputRate);
+	   theFrequency = theDevice -> getVFOFrequency () +
+	                               theBand. currentOffset;
 	}
 
 	int freq		= theDevice -> getVFOFrequency () +

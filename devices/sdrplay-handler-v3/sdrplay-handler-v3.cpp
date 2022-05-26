@@ -34,43 +34,166 @@
 #define	FAILED	0101
 #define	SUCCESS	0102
 
+
+#define	SDRPLAY_RSP1_	1
+#define	SDRPLAY_RSP1A_	255
+#define	SDRPLAY_RSP2_	2
+#define	SDRPLAY_RSPduo_	3
+#define	SDRPLAY_RSPdx_	4
+
+//
+//	lna gain reduction tables, per band.
+//	The first number in each row tells the number of valid elements
 static
-int     RSP1_Table []	= {0, 24, 19, 43};
+int     RSP1_Table [3] [5] = {{4, 0, 24, 19, 43},
+	                      {4, 0,  7, 19, 26},
+	                      {4, 0,  5, 19, 24} };
 
-static
-int     RSP1A_Table []	= {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
-
-static
-int     RSP2_Table []	= {0, 10, 15, 21, 24, 34, 39, 45, 64};
-
-static
-int	RSPduo_Table []	= {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
-
-static
-int     RSPDx_Table []  = {0, 3, 6, 9, 12, 15, 24,27, 30, 33, 36, 39, 42, 45,
-                           48, 51, 54, 57, 60, 53, 66, 69, 72, 75, 78, 81, 84};
-
-static
-int	get_lnaGRdB (int hwVersion, int lnaState) {
-	switch (hwVersion) {
-	   case 1:
-	   default:
-	      return RSP1_Table [lnaState];
-
-	   case 2:
-	      return RSP2_Table [lnaState];
-
-	   case 255: 
-	      return RSP1A_Table [lnaState];
-
-	   case 3:
-	      return RSPduo_Table [lnaState];
-
-           case 4:
-              return RSPDx_Table [lnaState];
-	}
+int16_t	bankFor_rsp1 (int freq) {
+	if (freq < MHz (420))
+	   return 0;
+	if (freq < MHz (1000))
+	   return 1;
+	return 2;
 }
 
+static
+int     RSP1A_Table [4] [11] = {
+	{7,  0, 6, 12, 18, 37, 42, 61, -1, -1, -1},
+	{10, 0, 6, 12, 18, 20, 26, 32, 38, 57, 62},
+	{10, 0, 7, 13, 19, 20, 27, 33, 39, 45, 64},
+	{9, 0, 6, 12, 20, 26, 32, 38, 43, 62, -1}};
+
+int16_t bankFor_rsp1A (int freq) {
+	if (freq < MHz (60))
+	   return 0;
+	if (freq < MHz (420))
+	   return 1;
+	if (freq < MHz (1000))
+	   return 2;
+	return 3;
+}
+
+static
+int     RSP2_Table [3] [10] = {
+	{9, 0, 10, 15, 21, 24, 34, 39, 45, 64},
+	{6, 0,  7, 10, 17, 22, 41, -1, -1, -1},
+	{6, 0,  5, 21, 15, 15, 32, -1, -1, -1}};
+
+int16_t bankFor_rsp2 (int freq) { 
+	if (freq < MHz (420))
+	   return 0;
+	if (freq < MHz (1000))
+	   return 1;
+	return 2;
+}
+
+static
+int	RSPduo_Table [4][11] = {
+	{ 7, 0, 6, 12, 18, 37, 42, 61, -1, -1, -1},
+	{10, 0, 6, 12, 18, 20, 26, 32, 38, 57, 62},
+	{10, 0, 7, 12, 19, 20, 27, 33, 39, 45, 64},
+	{ 9, 0, 6, 12, 20, 26, 32, 38, 43, 62, -1}};
+
+int16_t bankFor_rspduo (int freq) {
+	if (freq < MHz (60))
+	   return 0;
+	if (freq < MHz (420))
+	   return 1;
+	if (freq < MHz (1000))
+	   return 2;
+	return 3;
+}
+
+static
+int	RSPdx_Table [6][15] = {
+	{14, 0, 3,  6,  9, 12, 15, 24, 27, 30, 33, 36, 39, 42, 45},
+	{14, 0, 3,  6,  9, 12, 15, 18, 24, 27, 30, 33, 36, 39, 42},
+	{14, 0, 3,  6,  9, 12, 15, 24, 27, 30, 33, 36, 39, 42, 45},
+	{14, 0, 3,  6,  8, 12, 15, 18, 24, 27, 30, 33, 36, 39, 42},
+	{14, 0, 7, 10, 13, 16, 19, 22, 25, 31, 34, 37, 40, 43, 46},
+	{14, 0, 5,  8, 11, 14, 17, 20, 32, 35, 38, 41, 44, 47, 50}};
+
+
+int16_t bankFor_rspdx (int freq) {
+	if (freq < MHz (12))
+	   return 0;
+	if (freq < MHz (60))
+	   return 1;
+	if (freq < MHz (250))
+	   return 2;
+	if (freq < MHz (420))
+	   return 3;
+	if (freq < MHz (1000))
+	   return 4;
+	return 5;
+}
+
+static
+int	getBand (int hwVersion, int frequency) {
+	switch (hwVersion) {
+	   case SDRPLAY_RSP1_ :
+	      return bankFor_rsp1 (frequency);
+	   case SDRPLAY_RSP1A_ :
+	      return bankFor_rsp1A (frequency);
+	   case SDRPLAY_RSP2_ :
+	      return bankFor_rsp2 (frequency);
+	   case SDRPLAY_RSPduo_ :
+	      return bankFor_rspduo (frequency);
+	   case SDRPLAY_RSPdx_ :
+	      return bankFor_rspdx (frequency);
+	   default:
+	      return 0;
+	}
+	return 0;	// cannot happen
+}
+
+static
+int     get_lnaGRdB (int hwVersion, int lnaState, int frequency) {
+int band = getBand (hwVersion, frequency);
+
+        switch (hwVersion) {
+           case SDRPLAY_RSP1_:
+              return RSP1_Table [band][lnaState + 1];
+	   case SDRPLAY_RSP1A_:
+              return RSP1A_Table [band][lnaState + 1];
+           case SDRPLAY_RSP2_:
+              return RSP2_Table [band][lnaState + 1];
+	   case SDRPLAY_RSPduo_:
+              return RSPduo_Table [band][lnaState + 1];
+           case SDRPLAY_RSPdx_:
+              return RSPdx_Table [band][lnaState + 1];
+
+           default:
+	      return -1;	// should not happen
+        }
+}
+
+static
+int lnaStates (int hwVersion, int frequency) {
+int band	= 0;
+
+	if (hwVersion == SDRPLAY_RSP1_) {
+	   band = bankFor_rsp1 (frequency);
+	   return RSP1_Table [band][0];
+	}
+	if (hwVersion == SDRPLAY_RSP1A_) {
+	   band = bankFor_rsp1A (frequency);
+	   return RSP1A_Table [band][0];
+	}
+	if (hwVersion == SDRPLAY_RSP2_) {
+	   band = bankFor_rsp2 (frequency);
+	   return RSP2_Table [band][0];
+	}
+	if (hwVersion == SDRPLAY_RSPduo_) {
+	   band = bankFor_rspduo (frequency);
+	   return RSPduo_Table [band][0];
+	}
+	if (hwVersion == SDRPLAY_RSPdx_) {
+	   band = bankFor_rspdx (frequency);
+	   return RSPdx_Table [band][0];
+	}
+}
 
 	sdrplayHandler_v3::sdrplayHandler_v3  (RadioInterface *mr,
 	                                       int32_t	outputRate,
@@ -171,6 +294,7 @@ void	sdrplayHandler_v3::setVFOFrequency	(quint64 f) {
 restartRequest r ( (uint32_t)f);
         (void)messageHandler (&r);
 	vfoFrequency	= f;
+	lnaGainSetting -> setRange (0, lnaStates (hwVersion, f));
 }
 
 quint64	sdrplayHandler_v3::getVFOFrequency() {
@@ -210,7 +334,8 @@ int32_t	sdrplayHandler_v3::getRate	() {
 void	sdrplayHandler_v3::set_lnabounds(int low, int high) {
 	lnaGainSetting	-> setRange (low, high);
 	lnaGRdBDisplay	->
-	         display (get_lnaGRdB (hwVersion, lnaGainSetting -> value ()));
+	         display (get_lnaGRdB (hwVersion,
+	                  lnaGainSetting -> value (), vfoFrequency));
 }
 
 void	sdrplayHandler_v3::set_deviceName (const QString& s) {
@@ -237,7 +362,7 @@ lnaRequest r (lnaState);
 	if (!receiverRuns. load ())
            return;
         messageHandler (&r);
-	lnaGRdBDisplay	-> display (get_lnaGRdB (hwVersion, lnaState));
+	lnaGRdBDisplay	-> display (get_lnaGRdB (hwVersion, lnaState, vfoFrequency));
 }
 
 void	sdrplayHandler_v3::set_agcControl (int dummy) {

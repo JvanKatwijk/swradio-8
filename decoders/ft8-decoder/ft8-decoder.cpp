@@ -379,10 +379,11 @@ float workVector [end - begin + 1];
 
 	for (int index = 10; index < end - begin - 10; index ++) {
 	   if ((1.1 * workVector [index - 5] < workVector [index]) &&
-	       (1.1 * workVector [index + 5] < workVector [index])) {
-	      E. index = index + begin - 1;
-	      E. value = theBuffer [readIndex] [begin + index - 1];
-	      cache. push_back (E);
+	       (1.1 * workVector [index + 5] < workVector [index]) )
+	  {
+//	      E. index = index + begin - 1;
+//	      E. value = theBuffer [readIndex] [begin + index - 1];
+//	      cache. push_back (E);
 	      E. index = index + begin;
 	      E. value = theBuffer [readIndex] [begin + index];
 	      cache. push_back (E);
