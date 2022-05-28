@@ -26,20 +26,23 @@
 #include	"ldpc.h"
 #include	"pack-handler.h"
 #include	"ft8-processor.h"
+#include	<time.h>
 
 	ft8_processor::ft8_processor	(ft8_Decoder *theDecoder,
 	                                 int maxIterations):
+	                                        theCache (30),
 	                                        freeSlots (nrBlocks) {
-	this	-> theDecoder	= theDecoder;
+	                           
+	this	-> theDecoder		= theDecoder;
 	this	-> maxIterations = maxIterations;
 	this	-> blockToRead	= 0;
 	this	-> blockToWrite	= 0;
 
 	running. store (false);
 	connect (this,
-	         SIGNAL (showLine (const QString &, float, int, const QString &)),
+	         SIGNAL (printLine (const QString &)),
 	         theDecoder,
-	         SLOT (showLine (const QString &, float, int, const QString &)));
+	         SLOT (printLine (const QString &)));
 	threadHandle    = std::thread (&ft8_processor::run, this);
 }
 
@@ -68,6 +71,36 @@ void	ft8_processor::PassOn (int lineno,
 
 void	ft8_processor::set_maxIterations	(int n) {
 	maxIterations. store (n);
+}
+
+
+void	insertString (char *target, int pos, const QString &s) {
+	for (int i = 0; s.toLatin1 (). data () [i] != 0; i ++)
+	   target [pos + i] = s. toLatin1 (). data () [i];
+}
+
+void	insertNumber (char *target, int pos, int number) {
+QString s = QString::number (number);
+	insertString (target, pos, s);
+}
+
+QString	makeLine (QString time,
+	          int value, int freq,
+	          QString message)  {
+char res [256];
+
+static
+int posTable [] = {0, 20, 30, 45, 75};
+
+	for (int i = 0; i < 256; i ++)
+	   res [i] = ' ';
+
+	insertString (res, posTable [0], time);
+	insertNumber (res, posTable [1], value > 100 ? 101 : value);
+	insertNumber (res, posTable [2], freq);
+	insertString (res, posTable [3], message);
+	res [posTable [4]] = 0;
+	return QString (res);
 }
 
 void	ft8_processor::run () {
@@ -106,19 +139,33 @@ int	errors;
 //	crc is correct, unpack  the message
 	      QString res = unpackHandler. unpackMessage (ldpcBits);
 	      if (res != "") {
-	         time_t rawTime;
-	         struct tm *timeinfo;
-	         char buffer [100];
-	         time (&rawTime);
-	         timeinfo = localtime (&rawTime);
-	         strftime (buffer, 80, "%I:%M:%S%p", timeinfo);
-	         QString s = QString (buffer);
-	         showLine (s,
+	         showLine (theBuffer [blockToRead]. lineno,
 	                   theBuffer [blockToRead]. value,
-	                   theBuffer [blockToRead]. frequency, res);
+	                   theBuffer [blockToRead]. frequency,
+	                   res);
 	      }
 	   }
+//	prepare for the next round
+	   freeSlots. Release ();
+	   blockToRead = (blockToRead + 1) % (nrBlocks);
         }
+}
+
+void    ft8_processor::showLine (int line, int val,
+                                         int freq, const QString &res) {
+	if (theCache. update (val, freq, res. toStdString ()))
+	   return;
+
+	int currentFreq	= theDecoder -> tunedFrequency ();
+	time_t rawTime;
+	struct tm *timeinfo;
+	char buffer [100];
+	time (&rawTime);
+	timeinfo = localtime (&rawTime);
+	strftime (buffer, 80, "%I:%M:%S%p", timeinfo);
+	QString s = QString (buffer);
+	QString result = makeLine (s, val, currentFreq + freq, res);
+	printLine (result);
 }
 
 static

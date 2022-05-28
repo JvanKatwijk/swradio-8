@@ -180,7 +180,7 @@ QString	result;
 	      return "";	// should not happen
 	}
 
-	return result;
+	return result;	// cannot happen
 }
 
 QString	packHandler::handle_type0 (const uint8_t *m_in, int n3) {
@@ -211,8 +211,7 @@ QString	packHandler::handle_type0 (const uint8_t *m_in, int n3) {
 
 //	handle type 1, i.e. "standard" messages
 //	handles bot type1 and type2 messages
-//	c28 r1 c28 r1 R1 g15
-//	K1ABC/R PA0JAN/R EN35
+//	c28 r1 c28 r1 R1 g15:	K1ABC/R PA0JAN/R EN35
 QString	packHandler::handle_type1 (const uint8_t *m_in, uint8_t i3) {
 uint32_t c28a, c28b;
 uint16_t g15;
@@ -229,9 +228,8 @@ QString	result = "type 1/2: ";
 
 //	Unpack both callsigns
 	QString c1 = getCallsign (c28a);
-	if (c1 == "") {
+	if (c1 == "") 
 	   return "";
-	}
 //	Check if we should append /R or /P suffix
 	if (r1) {
 	   if (i3 == 1) {
@@ -244,9 +242,8 @@ QString	result = "type 1/2: ";
 	}
 
 	QString c2 = getCallsign (c28b);
-	if (c2 == "") {
+	if (c2 == "") 
 	   return "";
-	}
 //	Check if we should append /R or /P suffix
 	if (r2) {
 	   if (i3 == 1) {
@@ -275,7 +272,6 @@ QString	result = "type 1/2: ";
 	      result += "\t R " + QString (data);
 	   else
 	      result += "\t" + QString (data);
-	   // if (ir > 0 && strncmp(call_to, "CQ", 2) == 0) return -1;
 	}
 	else {
 //	Extract report
@@ -460,6 +456,7 @@ uint8_t b72 [72];
 	for (int i = 0; i < 71; i ++)
 	   b72 [1 + i] = m_in [i];
 	pack_bits (b72, 72, b9);
+
 	char c14 [14];
 	c14 [13] = 0;
 	for (int idx = 12; idx >= 0; idx--) {

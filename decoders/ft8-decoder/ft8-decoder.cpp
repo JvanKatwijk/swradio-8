@@ -36,7 +36,6 @@
 	                          QSettings		*settings) :
 	                                   virtualDecoder (inRate, buffer),
 	                                   myFrame (nullptr),
-	                                   theCache (30),
 	                                   theProcessor (this, 20) {
 	ft8Settings	= settings;
 	this	-> mr	= mr;
@@ -193,10 +192,10 @@ std::vector<costasValue> cache;
 
 	int	lowBin	= - spectrumWidth. load () / 2 / BINWIDTH + toneLength;
 	int	highBin	=   spectrumWidth. load () / 2 / BINWIDTH + toneLength;
-	float xxx [highBin - lowBin + 1];
+	float xxx [2 * toneLength];
 	for (int bin = lowBin + 10; bin < highBin- 10; bin ++) {
 	   float tmp = testCostas (lineno, bin);
-	   xxx [bin - lowBin] = tmp;
+	   xxx [bin] = tmp;
 	}
 
 	peakFinder (xxx, lowBin, highBin, cache);
@@ -219,7 +218,7 @@ static
 float	getScore	(float *p8, int bin, int tone) {
 	int index = bin + 2 * costasPattern [tone];
 	float res =  8 * (p8 [index] + p8 [index + 1]);
-	for (int i = -2; i < +3; i ++)
+	for (int i = -3; i < +3; i ++)
 	   res -= p8 [index + 2 * i] + p8 [index + 2 * i];;
 	return res < 0 ? 0 : res;
 }
@@ -344,51 +343,39 @@ void	ft8_Decoder::set_spectrumWidth (int n) {
 	spectrumWidth. store (n);
 }
 
-void	ft8_Decoder::showLine (const QString &s, float strength, int freq,
-	                                        const QString &res) {
-std::string a = res. toUtf8 (). data ();
-	if (!theCache. update (strength, freq, a)) {
-	   int32_t f = mr -> tunedFrequency () + freq;
-	   QString temp = s + " \t"
-	                + QString::number (strength) + "\t"
-	                + QString::number (f) + "\t"
-	                + res;
+void	ft8_Decoder::printLine (const QString &s) {
+	if (theResults. size () >= 50)
+	   theResults. pop_front ();
+	theResults += s;
 
-	   if (theResults. size () >= 50)
-	      theResults. pop_front ();
-	   theResults += temp;
-	   if (filePointer. load () != nullptr)
-	      fprintf (filePointer, "%s\n", temp. toUtf8 (). data ());
-	   fprintf (stderr, "%s\n", res. toLatin1 (). data ());
-	   showText (theResults);
-	}
+	if (filePointer. load () != nullptr)
+	   fprintf (filePointer, "%s\n", s. toUtf8 (). data ());
+	fprintf (stderr, "%s\n", s. toLatin1 (). data ());
+	showText (theResults);
 }
 
 static inline
 float	sum (float *V, int index) {
-	return V [index - 1] + V [index] + V [index + 1];
+	return V [index - 1] +  V [index] +  V [index + 1];
 }
 
 void	ft8_Decoder::peakFinder (float *V, int begin, int end,
 	                                    std::vector<costasValue> &cache) {
 costasValue	E;
-float workVector [end - begin + 1];
+float workVector [2 * toneLength];
 
-	for (int i = 3; i < end - begin - 4; i ++)
+	for (int i = begin; i < end; i ++)
 	   workVector [i] = sum (V, i);
 
-	for (int index = 10; index < end - begin - 10; index ++) {
+	for (int index = begin + 5; index < end - 5; index ++) {
 	   if ((1.1 * workVector [index - 5] < workVector [index]) &&
 	       (1.1 * workVector [index + 5] < workVector [index]) )
 	  {
-//	      E. index = index + begin - 1;
-//	      E. value = theBuffer [readIndex] [begin + index - 1];
-//	      cache. push_back (E);
-	      E. index = index + begin;
-	      E. value = theBuffer [readIndex] [begin + index];
+	      E. index = index;
+	      E. value = theBuffer [readIndex] [index];
 	      cache. push_back (E);
-	      E. index = index + begin + 1;
-	      E. value = theBuffer [readIndex] [begin + index + 1];
+	      E. index = index + 1;
+	      E. value = theBuffer [readIndex] [index + 1];
 	      cache. push_back (E);
 	      index += 10;
 	   }
@@ -416,3 +403,8 @@ void	ft8_Decoder::handle_filesaveButton	() {
 
 	filesaveButton -> setText ("saving");
 }
+
+int	ft8_Decoder::tunedFrequency	() {
+	return mr -> tunedFrequency ();
+}
+

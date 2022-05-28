@@ -31,7 +31,6 @@
 #include	<atomic>
 #include 	"virtual-decoder.h"
 #include	"ui_ft8-decoder.h"
-#include	"dl-cache.h"
 #include	"kiss_fft.h"
 #include	"ft8-constants.h"
 #include	"ldpc.h"
@@ -53,11 +52,11 @@ public:
 		~ft8_Decoder	(void);
 	void	processBuffer	(std::complex<float> *, int32_t);
 	void    process		(std::complex<float> z);
+	int	tunedFrequency	();
 
 private:	
 	QFrame		myFrame;
 	ldpc		ldpcHandler;
-	dlCache		theCache;
 	ft8_processor	theProcessor;
 	QSettings	*ft8Settings;
 	RadioInterface	*mr;
@@ -102,8 +101,7 @@ private:
 	void		showText	(const QStringList &);
 	QStringList	theResults;
 public slots:
-	void		showLine		(const QString &, float, int,
-	                                               const QString &);
+	void		printLine		(const QString &);
 private slots:
 	void		set_maxIterations	(int);
 	void		set_spectrumWidth	(int);

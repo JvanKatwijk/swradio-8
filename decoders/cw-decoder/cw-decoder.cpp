@@ -615,7 +615,7 @@ void    cwDecoder::cw_adjustFrequency (int f) {
 }
 
 void    cwDecoder::handleClick (int a) {
-	fprintf (stderr, "adjusting with %d\n", a);
+//	fprintf (stderr, "adjusting with %d\n", a);
         adjustFrequency (a / 2);
 }
 

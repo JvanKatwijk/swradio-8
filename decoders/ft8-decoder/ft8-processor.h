@@ -31,6 +31,7 @@
 #include	<QMutex>
 #include	"ft8-constants.h"
 #include	"pack-handler.h"
+#include	"dl-cache.h"
 
 class	ft8_Decoder;
 #define	nrBlocks	100
@@ -48,7 +49,8 @@ private:
 	packHandler	unpackHandler;
 	void	run		();
 	bool	check_crc_bits	(uint8_t *message, int nrBits);
-
+	void	showLine	(int, int, int, const QString &);
+	dlCache		theCache;
 	struct {
            int lineno;
 	   int value;
@@ -70,7 +72,7 @@ private:
         uint8_t         a91 [FT8_M_BYTES];
 
 signals:
-	void		showLine (const QString &, float, int, const QString &);
+	void		printLine	(const QString &);
 };
 #endif
 
