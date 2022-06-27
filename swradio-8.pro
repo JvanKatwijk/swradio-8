@@ -3,7 +3,8 @@
 ######################################################################
 TEMPLATE = app
 QT	+= widgets xml
-CONFIG	-= console
+CONFIG	+= console
+#CONFIG	-= console
 TARGET	= swradio-9
 QMAKE_CFLAGS	+= -O3 -ffast-math 
 QMAKE_CXXFLAGS	+= -O3 -ffast-math 
@@ -180,6 +181,7 @@ INCLUDEPATH += /usr/local/include
 INCLUDEPATH += C:\msys32\mingw32\include\qwt
 LIBS    += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 LIBS    += -lfftw3f
+LIBS    += -lws2_32
 LIBS    += -lportaudio
 LIBS    += -lqwt-qt5
 #LIBS    += -lqwt
@@ -187,7 +189,6 @@ LIBS    += -lusb-1.0
 LIBS    += -lsndfile
 LIBS    += -lsamplerate
 LIBS    += -lole32
-LIBS	+= -lfdk-aac-2
 LIBS    += -lwinmm
 }
 
@@ -336,6 +337,7 @@ ft8-decoder {
         HEADERS         += ./decoders/ft8-decoder/ft8-decoder.h
         HEADERS         += ./decoders/ft8-decoder/ft8-processor.h
         HEADERS         += ./decoders/ft8-decoder/pack-handler.h
+	HEADERS         += ./decoders/ft8-decoder/psk-writer.h
 	HEADERS		+= ./decoders/ft8-decoder/hashHandler.h
         HEADERS         += ./decoders/ft8-decoder/ldpc.h
         HEADERS         += ./decoders/ft8-decoder/dl-cache.h
@@ -345,11 +347,40 @@ ft8-decoder {
         SOURCES         += ./decoders/ft8-decoder/pack-handler.cpp 
         SOURCES         += ./decoders/ft8-decoder/ldpc.cpp 
 	SOURCES		+= ./decoders/ft8-decoder/hashHandler.cpp
+	SOURCES		+= ./decoders/ft8-decoder/psk-writer.cpp
         HEADERS         += ./decoders/ft8-decoder/fft/kiss_fft.h
         HEADERS         += ./decoders/ft8-decoder/fft/kiss_fftr.h
         HEADERS         += ./decoders/ft8-decoder/fft/_kiss_fft_guts.h
         SOURCES         += ./decoders/ft8-decoder/fft/kiss_fft.c 
         SOURCES         += ./decoders/ft8-decoder/fft/kiss_fftr.c 
+}
+ft8-decoder-win {
+        DEFINES         += HAVE_FT8_DECODER
+	DEFINES		+= KISSFFT_DATATYPE=double
+        INCLUDEPATH     += ./decoders/ft8-decoder-win
+        INCLUDEPATH     += ./decoders/ft8-decoder-win/fft
+        DEPENDPATH      += ./decoders/ft8-decoder-win
+        FORMS           += ./decoders/ft8-decoder-win/ft8-decoder.ui
+        HEADERS         += ./decoders/ft8-decoder-win/ft8-constants.h
+        HEADERS         += ./decoders/ft8-decoder-win/ft8-decoder.h
+        HEADERS         += ./decoders/ft8-decoder-win/ft8-processor.h
+        HEADERS         += ./decoders/ft8-decoder-win/pack-handler.h
+	HEADERS         += ./decoders/ft8-decoder-win/pskreporter.h
+	HEADERS		+= ./decoders/ft8-decoder-win/hashHandler.h
+        HEADERS         += ./decoders/ft8-decoder-win/ldpc.h
+        HEADERS         += ./decoders/ft8-decoder-win/dl-cache.h
+        HEADERS         += ./decoders/ft8-decoder-win/semaphore.h
+        SOURCES         += ./decoders/ft8-decoder-win/ft8-decoder.cpp 
+        SOURCES         += ./decoders/ft8-decoder-win/ft8-processor.cpp 
+        SOURCES         += ./decoders/ft8-decoder-win/pack-handler.cpp 
+        SOURCES         += ./decoders/ft8-decoder-win/ldpc.cpp 
+	SOURCES		+= ./decoders/ft8-decoder-win/hashHandler.cpp
+        HEADERS         += ./decoders/ft8-decoder-win/fft/kiss_fft.h
+        HEADERS         += ./decoders/ft8-decoder-win/fft/kiss_fftr.h
+        HEADERS         += ./decoders/ft8-decoder-win/fft/_kiss_fft_guts.h
+        SOURCES         += ./decoders/ft8-decoder-win/fft/kiss_fft.c 
+        SOURCES         += ./decoders/ft8-decoder-win/fft/kiss_fftr.c 
+	LIBS		+= -lPSKReporter
 }
 
 new-decoder {
@@ -391,7 +422,8 @@ drm-decoder-fdk {
 	DEFINES		+= HAVE_DRM_DECODER
 	DEFINES		+= ESTIMATOR_1
 	DEFINES		+=  __WITH_FDK_AAC__
-	LIBS		+= -lfdk-aac
+#	LIBS		+= -lfdk-aac
+	LIBS		+= -lfdk-aac-2
 	INCLUDEPATH	+= ./fdk-aac
 	DEPENDPATH	+= ./decoders/drm-decoder/ \
 	                   ./decoders/drm-decoder/ \

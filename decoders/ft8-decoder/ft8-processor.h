@@ -34,12 +34,13 @@
 #include	"dl-cache.h"
 
 class	ft8_Decoder;
+class	reporterWriter;
 #define	nrBlocks	100
 
 class	ft8_processor: public QObject {
 Q_OBJECT
 public:
-		ft8_processor	(ft8_Decoder *, int);
+		ft8_processor	(ft8_Decoder *, int, reporterWriter *);
 		~ft8_processor	();
 
 	void	PassOn		(int, float, int, float *);
@@ -47,9 +48,10 @@ public:
 
 private:
 	packHandler	unpackHandler;
-	void	run		();
-	bool	check_crc_bits	(uint8_t *message, int nrBits);
-	void	showLine	(int, int, int, const QString &);
+	reporterWriter	*theWriter;
+	void		run		();
+	bool		check_crc_bits	(uint8_t *message, int nrBits);
+	void		showLine	(int, int, int, const QString &);
 	dlCache		theCache;
 	struct {
            int lineno;
@@ -71,8 +73,10 @@ private:
 	std::thread	threadHandle;
         uint8_t         a91 [FT8_M_BYTES];
 
+	void		print_statistics	();
 signals:
 	void		printLine	(const QString &);
+	void		show_pskStatus	(bool);
 };
 #endif
 

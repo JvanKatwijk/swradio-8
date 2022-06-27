@@ -42,15 +42,15 @@ void	hashHandler::add_hash		(uint32_t key,
 	h. key = key;
 	h. value = s;
 	hashTable. push_back (h);
-	fprintf (stderr, "adding %X %s\n",
-	                  key, s. toLatin1 (). data ());
+//	fprintf (stderr, "adding %X %s\n",
+//	                  key, s. toLatin1 (). data ());
 }
 
 QString	hashHandler::lookup		(uint32_t key) {
 	for (int i = 0; i < hashTable. size (); i ++)
 	   if (hashTable. at (i). key == key)
 	      return hashTable. at (i). value;
-	fprintf (stderr, "key %X not found\n", key);
+//	fprintf (stderr, "key %X not found\n", key);
 	return "<....>";
 }
 
@@ -79,7 +79,7 @@ FILE	*f	= fopen (s. c_str (), "w");
 	   return;
 
 	for (int i = 0; i < hashTable. size (); i ++)
-	   fprintf (stderr, "<%X:%s>\n", hashTable. at (i). key,
+	   fprintf (f, "<%X:%s>\n", hashTable. at (i). key,
 	                                 hashTable. at (i). value. toLatin1 (). data ());
 	fclose (f);
 }

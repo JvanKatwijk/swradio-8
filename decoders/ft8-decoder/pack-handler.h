@@ -29,17 +29,22 @@
 #define	__PACK_HANDLER__
 #include	<stdint.h>
 #include	<string.h>
+#include	<QObject>
 #include	<QString>
+#include	<QStringList>
 #include	"hashHandler.h"
 
-class	packHandler {
+class	packHandler: public QObject {
+Q_OBJECT
 public:
 		packHandler	();
 		~packHandler	();
 
 	QString unpackMessage	(const uint8_t* m_in);
+	QStringList	extractCall	(const uint8_t* m_in);
 private:
 	hashHandler		the_hashHandler;
+	bool			pskReporterReady;
 	QString	handle_type0	(const uint8_t *m_in, int n3);
 	QString	handle_type1	(const uint8_t *m_in, uint8_t i3);
 	QString	handle_type3	(const uint8_t *m_in);
@@ -56,6 +61,11 @@ private:
 	QString number_3	(int number);
 	void	pack_bits	(const uint8_t bit_array [],
 	                         int num_bits, uint8_t packed []);
-	QString	getCallsign	(uint32_t n28);
+	QString	getCallsign	(const uint32_t n28);
+	QStringList extract_call_type_1 (const uint8_t *m_in, int type);
+
+	std::vector<uint32_t>	gehad;
+signals:
+	void	show_pskStatus	(bool);
 };
 #endif

@@ -189,9 +189,13 @@ The decoder has three control elements
 
  * a file button for selecting a file where the received messages are stored.
 
-Note: the decoder is experimental and will definitly not catch all transmitted messages.
+Note: the decoder is experimental and will definitely not catch all transmitted messages.
 
 ![swradio-8](/swradio-ft8-widget.png?raw=true)
+
+In the current version one can set a **callsign** and a **home grid**,
+if these are set, the decoder will upload details to the PSKReporter,
+so you can see yourself as monitor on the PSKreporter map.
 
 -------------------------------------------------------------------------
 a note on the weatherfax decoder

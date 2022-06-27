@@ -341,7 +341,7 @@ std::complex<float> outV [2000];
 	   for (int j = 0; j < screenwidth; j ++) 
 	      y_values [j] = 
 	           abs (outV [(screenwidth / 2 + j) % screenwidth]);
-	   pskViewer -> display (x_axis, y_values,
+	      pskViewer -> display (x_axis, y_values,
                                         amplitudeSlider -> value (), 0, 0);
 	      fillP     = 0;
 	      int offs = offset (outV);

@@ -21,11 +21,11 @@
  */
 #
 #include	<QFileDialog>
+#include	<QInputDialog>
 #include	"ft8-decoder.h"
 #include	"radio.h"
 #include	"pack-handler.h"
 #include	<QStandardItemModel>
-
 #include	"radio.h"
 
 #define	LOG_BASE	240
@@ -36,7 +36,8 @@
 	                          QSettings		*settings) :
 	                                   virtualDecoder (inRate, buffer),
 	                                   myFrame (nullptr),
-	                                   theProcessor (this, 20) {
+	                                   theWriter (settings),
+	                                   theProcessor (this, 20, &theWriter) {
 	ft8Settings	= settings;
 	this	-> mr	= mr;
 	setupUi (&myFrame);
@@ -87,6 +88,11 @@
 	         this, SLOT (set_spectrumWidth (int)));
 	connect (filesaveButton, SIGNAL (clicked ()),
 	         this, SLOT (handle_filesaveButton ()));
+	connect (identityButton, SIGNAL (clicked ()),
+	         this, SLOT (handle_identityButton ()));
+
+	show_pskStatus (theWriter. reporterReady ());
+	teller		= 0;
 }
 
 	ft8_Decoder::~ft8_Decoder	() {
@@ -117,11 +123,15 @@ void	ft8_Decoder::process		(std::complex<float> z) {
 	inBuffer [inPointer ++] = z;
 	if (inPointer < toneLength / FRAMES_PER_TONE)
 	   return;
-
+	inPointer = 0;
+static int counter = 0;
+	if (++counter >= 100) {
+	   counter = 0;
+	   theWriter. sendMessages ();
+	}
 	int content = (FRAMES_PER_TONE - 1) * toneLength / FRAMES_PER_TONE;
 	int newAmount = toneLength / FRAMES_PER_TONE;
 
-	inPointer = 0;
 //
 //	shift the inputBuffer to left
 	memmove (inputBuffer, &inputBuffer [newAmount],
@@ -406,5 +416,37 @@ void	ft8_Decoder::handle_filesaveButton	() {
 
 int	ft8_Decoder::tunedFrequency	() {
 	return mr -> tunedFrequency ();
+}
+
+bool	ft8_Decoder::pskReporterReady () {
+	return pskReady;
+}
+
+void	ft8_Decoder::handle_identityButton () {
+bool ok;
+QString text = QInputDialog::getText (nullptr, tr ("your callsign"),
+	                              "enter your callsign",
+	                              QLineEdit::Normal, tr ("NL99999"), &ok);
+	if (ok) {
+	   ft8Settings	-> beginGroup ("ft8Settings");
+           ft8Settings	-> setValue ("homeCall", text);
+	}
+	text = QInputDialog::getText (nullptr, tr ("your grid"),
+                                      "enter your grid",
+                                      QLineEdit::Normal, tr ("JO00aa"), &ok);
+	if (ok) {
+           ft8Settings	-> setValue ("homeGrid", text);
+	}
+	ft8Settings -> endGroup ();
+}
+
+void	ft8_Decoder::show_pskStatus	(bool b) {
+	if (b)
+	   pskStatus	-> setStyleSheet ("QLabel {background-color : green}");
+	else
+	   pskStatus	-> setStyleSheet ("QLabel {background-color : red}");
+}
+
+void	ft8_Decoder::print_statistics () {
 }
 

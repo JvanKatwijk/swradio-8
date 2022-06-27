@@ -26,23 +26,27 @@
 #include	"ldpc.h"
 #include	"pack-handler.h"
 #include	"ft8-processor.h"
+#include	"psk-writer.h"
 #include	<time.h>
 
-	ft8_processor::ft8_processor	(ft8_Decoder *theDecoder,
-	                                 int maxIterations):
+	ft8_processor::ft8_processor	(ft8_Decoder	*theDecoder,
+	                                 int		maxIterations,
+	                                 reporterWriter *theWriter):
 	                                        theCache (30),
 	                                        freeSlots (nrBlocks) {
 	                           
 	this	-> theDecoder		= theDecoder;
-	this	-> maxIterations = maxIterations;
+	this	-> maxIterations	= maxIterations;
+	this	-> theWriter		= theWriter;
 	this	-> blockToRead	= 0;
 	this	-> blockToWrite	= 0;
-
 	running. store (false);
 	connect (this,
 	         SIGNAL (printLine (const QString &)),
 	         theDecoder,
 	         SLOT (printLine (const QString &)));
+	connect (this, SIGNAL (show_pskStatus (bool)),
+	         theDecoder, SLOT (show_pskStatus (bool)));
 	threadHandle    = std::thread (&ft8_processor::run, this);
 }
 
@@ -73,7 +77,6 @@ void	ft8_processor::set_maxIterations	(int n) {
 	maxIterations. store (n);
 }
 
-
 void	insertString (char *target, int pos, const QString &s) {
 	for (int i = 0; s.toLatin1 (). data () [i] != 0; i ++)
 	   target [pos + i] = s. toLatin1 (). data () [i];
@@ -81,6 +84,23 @@ void	insertString (char *target, int pos, const QString &s) {
 
 void	insertNumber (char *target, int pos, int number) {
 QString s = QString::number (number);
+	insertString (target, pos, s);
+}
+
+void	insert_2_Number (char *target, int pos, int number) {
+QString s;
+	if ((number >= 100) || (number < 0)) {
+	   insertString (target, pos, QString::number (number));
+	   return;
+	}
+	if (number >= 10) {
+	   s. push_back ('0' + number / 10);
+	   s. push_back ('0' + number % 10);
+	   insertString (target, pos, s);
+	   return;
+	}
+	s. push_back (' ');
+	s. push_back ('0' + number);
 	insertString (target, pos, s);
 }
 
@@ -96,7 +116,7 @@ int posTable [] = {0, 20, 30, 45, 75};
 	   res [i] = ' ';
 
 	insertString (res, posTable [0], time);
-	insertNumber (res, posTable [1], value > 100 ? 101 : value);
+	insert_2_Number (res, posTable [1], value > 100 ? 101 : value);
 	insertNumber (res, posTable [2], freq);
 	insertString (res, posTable [3], message);
 	res [posTable [4]] = 0;
@@ -107,12 +127,14 @@ void	ft8_processor::run () {
 uint8_t ldpcBits [FT8_LDPC_BITS];
 ldpc ldpcHandler;
 int	errors;
+
+	fprintf (stderr, "The processor gaat draaien\n");
+	usleep (1000000);
 	running. store (true);
         while (running. load()) {
 	   while (!usedSlots. tryAcquire (200)) 
 	      if (!running. load ())
 	         return;
-
 //	   ldpcHandler. bp_decode (theBuffer [blockToRead]. log174,
 //	                           maxIterations. load (),
 //	                           ldpcBits, &errors);
@@ -136,6 +158,7 @@ int	errors;
 	      ldpcBits [i] = 0;
 
 	   if (check_crc_bits (ldpcBits, 96)) {
+//	      fprintf (stderr, "crc OK\n");
 //	crc is correct, unpack  the message
 	      QString res = unpackHandler. unpackMessage (ldpcBits);
 	      if (res != "") {
@@ -143,12 +166,30 @@ int	errors;
 	                   theBuffer [blockToRead]. value,
 	                   theBuffer [blockToRead]. frequency,
 	                   res);
+	         if (theWriter -> reporterReady ()) {
+	            QStringList call = unpackHandler. extractCall (ldpcBits);
+	            if (call. length () > 0) {
+	               QString callIdent	= call. at (0);
+	               QString locator;
+	               if (call. length () == 2)
+	                  locator = call. at (1);
+	               int snr	= theBuffer [blockToRead]. value;
+	               int freq	= theBuffer [blockToRead]. frequency + theDecoder -> tunedFrequency ();
+	               theWriter -> addMessage (callIdent. toStdString (),
+	                                        locator. toStdString (),
+	                                        freq, snr);
+	            }
+	               
+	         }
 	      }
 	   }
 //	prepare for the next round
 	   freeSlots. Release ();
 	   blockToRead = (blockToRead + 1) % (nrBlocks);
-        }
+	}
+}
+
+void	ft8_processor::print_statistics () {
 }
 
 void    ft8_processor::showLine (int line, int val,

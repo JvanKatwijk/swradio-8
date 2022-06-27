@@ -133,9 +133,10 @@ const char *theTable	= nullptr;
 }
 
 	packHandler::packHandler 	():
-	                                 the_hashHandler ("/tmp/xxx") {}
-	packHandler::~packHandler	() {}
+	                                 the_hashHandler ("/tmp/xxx") {
+}
 
+	packHandler::~packHandler	() {}
 
 void	packHandler::pack_bits (const uint8_t *input,
 	                        int nrBits, uint8_t *out){
@@ -157,7 +158,6 @@ int index	= 0;
 QString	packHandler::unpackMessage (const uint8_t* m_in) {
 QString	result;
 
-	
 	uint8_t i3 = getBits (m_in, 74, 3);
 	switch (i3) {
 	   case 0:	// dispatch further
@@ -214,7 +214,7 @@ QString	packHandler::handle_type0 (const uint8_t *m_in, int n3) {
 //	c28 r1 c28 r1 R1 g15:	K1ABC/R PA0JAN/R EN35
 QString	packHandler::handle_type1 (const uint8_t *m_in, uint8_t i3) {
 uint32_t c28a, c28b;
-uint16_t g15;
+int16_t g15;
 uint8_t R1;
 uint8_t r1, r2;
 QString	result = "type 1/2: ";
@@ -257,7 +257,7 @@ QString	result = "type 1/2: ";
 
 	result += c1 + " \t" + c2;
 
-	if (g15 > 0) {
+	if (g15 > 100) {
 	   uint16_t n = g15;
 	   char data [5];
 	   data [4] = '\0';
@@ -488,6 +488,7 @@ int16_t r5	= getBits (m_in, 68,  5);
 	QString s_r5	= QString::number (r5);
 	return "type 0.1: " + res1 + " \t" + res2 + "\t" + s_h10 + "\t" + s_r5;
 }
+
 //	Type 0.3 Field day c28 c28 R1 n4 k3 S7
 //	KA1ABC  W9XYZ 6A EI   
 QString	packHandler::handle_type03 (const uint8_t *m_in) {
@@ -575,5 +576,108 @@ char cq [size + 1];
 	      r = &cq [i];
 	
 	return  "CQ_" + QString (r);
+}
+
+QStringList packHandler::extractCall	(const uint8_t * m_in) {
+QStringList result;
+
+	uint8_t i3 = getBits (m_in, 74, 3);
+	switch (i3) {
+	   case 0:	// dispatch further
+	      return result;
+
+	   case 1:	// c28 r1 c28 r1 R1 g15
+	   case 2:	// c28 p1 c28 p1 R1 g15
+	      return extract_call_type_1 (m_in, i3);
+
+	   case 3:	// t1 c28 c28 R1 r3 s13
+	      return result;
+
+	   case 4:	// h12 c58 h1 r2 c1
+	      return result;
+	
+	   case 5:	// h12 h22 R1 r3 s11 g25
+ 	      return result;
+
+	   default:
+	      return result;	// should not happen
+	}
+
+	return result;	// cannot happen
+}
+//
+//	for now, we assume that interest is in the caller
+QStringList packHandler::extract_call_type_1 (const uint8_t *m_in, int type) {
+uint32_t c28a;
+uint32_t c28b;
+uint8_t	R1;
+uint16_t g15	= 0;
+QString call;
+QString locator;
+QStringList result;
+
+	c28a	= getLBits (m_in,  0, 28);	// callsign
+	c28b	= getLBits (m_in, 29, 28);	// callsign
+	R1	= getBits  (m_in, 58,  1);	// R1
+	g15	= getBits  (m_in, 59, 15); 	// g15, potential grid
+
+//	Check for special tokens DE, QRZ, CQ, CQ_nnn, CQ_xxxx
+	if (c28a == 2) {		// It is a cq
+	   if (R1 > 0)
+	      return result;
+	   for (int i = 0; i < gehad. size (); i ++)
+	      if (gehad. at (i) == c28b)
+	         return result;
+	   call = getCallsign (c28b);
+	   gehad. push_back (c28b);
+	   result << call;
+	   if (g15 > 0) {
+	      uint16_t n = g15;
+	      char data [5];
+	      data [4] = '\0';
+	      data [3] = '0' + (n % 10);
+	      n /= 10;
+	      data [2] = '0' + (n % 10);
+	      n /= 10;
+	      data [1] = 'A' + (n % 18);
+	      n /= 18;
+	      data [0] = 'A' + (n % 18);
+	      locator	= QString (data);
+	      if ((data [0] == 'A') || (data [0] == 'R'))
+	         return result;
+	      result << locator;
+	      return result;
+	   }
+	}
+	else
+	if (c28a > HASH_END) { 	// normal call
+	   if (R1 > 0)
+	      return result;
+	   for (int i = 0; i < gehad. size (); i ++)
+	      if (gehad. at (i) == c28a)
+	         return result;
+	   call = getCallsign (c28a);
+	   gehad. push_back (c28a);
+	   result << call;
+	   if (g15 > 0) {
+	      uint16_t n = g15;
+	      char data [5];
+	      data [4] = '\0';
+	      data [3] = '0' + (n % 10);
+	      n /= 10;
+	      data [2] = '0' + (n % 10);
+	      n /= 10;
+	      data [1] = 'A' + (n % 18);
+	      n /= 18;
+	      data [0] = 'A' + (n % 18);
+	      if ((data [0] == 'A') || (data [0] == 'R'))
+	         return result;
+	      locator	= QString (data);
+	      result << locator;
+	      return result;
+	   }
+	}
+	return result;
+	
 }
 
