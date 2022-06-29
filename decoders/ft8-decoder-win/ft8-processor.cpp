@@ -1,4 +1,3 @@
-#
 /*
  *    Copyright (C) 2022
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -26,11 +25,12 @@
 #include	"ldpc.h"
 #include	"pack-handler.h"
 #include	"ft8-processor.h"
-#include	"psk-writer.h"
+#include	"PSKReporter.h"
 #include	<time.h>
 
 	ft8_processor::ft8_processor	(ft8_Decoder	*theDecoder,
-	                                 int		maxIterations):
+	                                 int		maxIterations,
+	                                 QSettings	*ft8Settings):
 	                                        theCache (30),
 	                                        freeSlots (nrBlocks) {
 	                           
@@ -38,6 +38,23 @@
 	this	-> maxIterations	= maxIterations;
 	this	-> blockToRead	= 0;
 	this	-> blockToWrite	= 0;
+	ft8Settings	-> beginGroup ("ft8Settings");
+	this	-> homeCall	=
+	         ft8Settings -> value ("homeCall", "NL14157"). toString (). toStdString ();
+	this	-> homeGrid	= 
+	         ft8Settings -> value ("homeGrid", "JO22fa"). toString (). toStdString ();
+//	this	-> programName	= "swRadio-9";
+//	this	-> antenna	= 
+//	              settings -> value ("antenna", "home built loop"). toString (). toStdString ();
+	ft8Settings	-> endGroup ();
+
+	if ((homeCall != "") && (homeGrid != ""))
+	   localAdif            = "STATION_CALLSIGN," + homeCall +
+                                  ",my_gridsquare," + homeGrid +
+                                  ",programid,swRadio-9";
+        else
+           localAdif = "";
+
 	running. store (false);
 	connect (this,
 	         SIGNAL (printLine (const QString &)),
@@ -45,10 +62,6 @@
 	         SLOT (printLine (const QString &)));
 	connect (this, SIGNAL (show_pskStatus (bool)),
 	         theDecoder, SLOT (show_pskStatus (bool)));
-	connect (this, SIGNAL (addMessage (const QString &, const QString &,
-	                                   int,  int)),
-	         theDecoder,
-	         SLOT (addMessage (const QString &, const QString &, int, int)));
 	threadHandle    = std::thread (&ft8_processor::run, this);
 }
 
@@ -130,8 +143,9 @@ uint8_t ldpcBits [FT8_LDPC_BITS];
 ldpc ldpcHandler;
 int	errors;
 
-	fprintf (stderr, "The processor gaat draaien\n");
 	usleep (1000000);
+
+	fprintf (stderr, "The processor gaat draaien\n");
 	running. store (true);
         while (running. load()) {
 	   while (!usedSlots. tryAcquire (200)) 
@@ -150,7 +164,6 @@ int	errors;
 //
 	   if (errors != 0) 
 	      continue;
-
 //	the check bits are to be moved from 77 up to 82 up
 //	and 77 .. 82 should be 0
 	   for (int i = 96; i > 82; i --)
@@ -168,22 +181,43 @@ int	errors;
 	                   theBuffer [blockToRead]. value,
 	                   theBuffer [blockToRead]. frequency,
 	                   res);
-	         if (theDecoder -> pskReporterReady ()) {
+	         if (theDecoder -> pskReporterReady () &&
+	                                           (localAdif != "")) {
 	            QStringList call = unpackHandler. extractCall (ldpcBits);
-	            if (call. length () > 0) {
-	               QString callIdent	= call. at (0);
-	               QString locator;
-	               if (call. length () == 2)
-	                  locator = call. at (1);
-	               int snr	= theBuffer [blockToRead]. value;
-	               int freq	= theBuffer [blockToRead]. frequency + theDecoder -> tunedFrequency ();
-	               addMessage (callIdent, locator, freq, snr);
+	            std::string adifString;
+	            int xxx = 0;
+//
+//	if the return > 0 then we create an adif string
+	            if (call.size () > 0) {
+	               adifString = "call," + call.at(0). toStdString () +
+	                  ",mode,FT8,";
+	               if (call. size () == 2)
+	                     adifString += "gridsquare," + call.at (1). toStdString () + ",";
+	               adifString +=  std::string ("freq,") +
+	                           std::to_string(theBuffer[blockToRead].frequency + theDecoder -> getVFO ()) + ",";
+	               adifString +=  "snr," +
+	                         std::to_string(theBuffer[blockToRead].value);
+//
+	               fprintf (stderr, "localadif = %s\n",
+	                                               localAdif. c_str ());
+	               fprintf (stderr, "adif = %s\n", adifString. c_str ());
+	               xxx = ReporterSeenCallsignSTD (
+	                                    adifString. c_str (),
+	                                    localAdif. c_str (),
+                                            REPORTER_SOURCE_AUTOMATIC);
+	               if (xxx != 0) {
+	                  char buffer [512];
+                          int yyy = ReporterGetInformationSTD (buffer, 255);
+                          fprintf (stderr, "reporter after tickle %s\n", buffer);
+	               }
 	            }
 	               
 	         }
 	      }
 	   }
 //	prepare for the next round
+//	   freeSlots. Release ();
+//	   blockToRead = (blockToRead + 1) % (nrBlocks);
 	}
 }
 
@@ -195,7 +229,7 @@ void    ft8_processor::showLine (int line, int val,
 	if (theCache. update (val, freq, res. toStdString ()))
 	   return;
 
-	int currentFreq	= theDecoder -> tunedFrequency ();
+	int currentFreq	= theDecoder -> getVFO ();
 	time_t rawTime;
 	struct tm *timeinfo;
 	char buffer [100];

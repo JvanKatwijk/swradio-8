@@ -25,6 +25,7 @@
 #ifndef	__FT8_PROCESSOR__
 #define	__FT8_PROCESSOR__
 #include	<QObject>
+#include	<QSettings>
 #include	<thread>
 #include	<atomic>
 #include	"semaphore.h"
@@ -32,6 +33,7 @@
 #include	"ft8-constants.h"
 #include	"pack-handler.h"
 #include	"dl-cache.h"
+#include	"PSKReporter.h"
 
 class	ft8_Decoder;
 class	reporterWriter;
@@ -40,14 +42,17 @@ class	reporterWriter;
 class	ft8_processor: public QObject {
 Q_OBJECT
 public:
-		ft8_processor	(ft8_Decoder *, int);
+		ft8_processor	(ft8_Decoder *, int, QSettings *);
 		~ft8_processor	();
 
 	void	PassOn		(int, float, int, float *);
 	void	set_maxIterations	(int);
 
 private:
+	ft8_Decoder	*theDecoder;
+	QSettings	*ft8Settings;
 	packHandler	unpackHandler;
+	reporterWriter	*theWriter;
 	void		run		();
 	bool		check_crc_bits	(uint8_t *message, int nrBits);
 	void		showLine	(int, int, int, const QString &);
@@ -59,12 +64,15 @@ private:
            float log174 [174];
         } theBuffer [nrBlocks];
 
+	std::string	homeCall;
+        std::string	homeGrid;
+        std::string     localAdif;
+
 	Semaphore	freeSlots;
 	Semaphore	usedSlots;
 	
 	std::atomic<bool> running;
 	
-	ft8_Decoder	*theDecoder;
 	std::atomic<int>	maxIterations;
 	int		amount;
 	int		blockToRead;
@@ -76,8 +84,6 @@ private:
 signals:
 	void		printLine	(const QString &);
 	void		show_pskStatus	(bool);
-	void		addMessage	(const QString &, const QString &,
-	                                            int, int);
 };
 #endif
 

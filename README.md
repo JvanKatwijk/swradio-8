@@ -32,6 +32,13 @@ This feature applies to both the display showing the full spectrum as
 the display showing the "decoder" spectrum.
 
 --------------------------------------------------------------------------
+New: ft8 decoder
+--------------------------------------------------------------------------
+
+One of the new elements in the implementation is the addition of a
+decoder for FT8 data. See the section on FT*
+
+--------------------------------------------------------------------------
 Device selection
 --------------------------------------------------------------------------
 
@@ -187,15 +194,27 @@ The decoder has three control elements
 
  * the indicator for the search range, selectable to 5.5 KHz
 
+The current version has as option sending (some parts of) the messages to
+the pskreporter, i.e. using the decoder as "Monitor", the map on pskreporter.info will then show you as "monitor".
+
+The pskreporter (see report.pskreporter.info) obviously wants to know
+who is sending the data, so there is a possibility to fill in your
+callsign (I do not have a callsign, not being a "real" amateur, but I have an official number as "listener", obtained from the VERON, the association of radio amateurs in the Netherlands), the maiddenhead grid indication of your locatio
+(which helps the pskreportet to position your description on the map) and
+the antenna.
+ * Touching the "set identity" button will show a small form
+where these data can be filled in).
+
+ * the psk reporter can be switched on and off, if switched on and
+the software could initialize the connection to the psk reporter site
+the label is colored greem.
+
  * a file button for selecting a file where the received messages are stored.
 
 Note: the decoder is experimental and will definitely not catch all transmitted messages.
 
 ![swradio-8](/swradio-ft8-widget.png?raw=true)
 
-In the current version one can set a **callsign** and a **home grid**,
-if these are set, the decoder will upload details to the PSKReporter,
-so you can see yourself as monitor on the PSKreporter map.
 
 -------------------------------------------------------------------------
 a note on the weatherfax decoder

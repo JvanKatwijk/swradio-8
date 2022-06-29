@@ -35,7 +35,8 @@
 #include	"ft8-constants.h"
 #include	"ldpc.h"
 #include	"ft8-processor.h"
-#include	"psk-writer.h"
+#include	"PSKReporter.h"
+
 typedef struct {
 	int index;
 	float	value;
@@ -50,23 +51,22 @@ public:
 	                         int32_t,
 	                   	 RingBuffer<std::complex<float>> *,
 	                         QSettings	*);
-		~ft8_Decoder	();
+		~ft8_Decoder	(void);
 	void	processBuffer	(std::complex<float> *, int32_t);
 	void    process		(std::complex<float> z);
-	int	tunedFrequency	();
+	int	getVFO		();
 	bool	pskReporterReady ();
 
 private:	
+	bool		pskReady;
 	QFrame		myFrame;
 	ldpc		ldpcHandler;
 	ft8_processor	theProcessor;
-	reporterWriter	*theWriter;
 	QSettings	*ft8Settings;
 	RadioInterface	*mr;
 	int32_t		inputRate;
 	int32_t		outputRate;
 	int32_t		samplesperSymbol;
-	bool		pskReady;
 	std::atomic<FILE*> filePointer;
 	void		peakFinder (float *V, int begin, int end,
                                             std::vector<costasValue> &cache);
@@ -108,15 +108,12 @@ private:
 public slots:
 	void		printLine		(const QString &);
 	void		show_pskStatus		(bool);
-	void		addMessage		(const QString &,
-	                                         const QString &,
-	                                         int, int);
 private slots:
 	void		set_maxIterations	(int);
 	void		set_spectrumWidth	(int);
 	void		handle_filesaveButton	();
 	void		handle_identityButton	();
-	void		handle_pskReporterButton	();
+	void		handle_pskReporterButton ();
 };
 
 #endif

@@ -35,9 +35,10 @@
 	                          int32_t	inRate,
 	                          RingBuffer<std::complex<float>> *buffer,
 	                          QSettings		*settings) :
+	                                   pskReady(false),
 	                                   virtualDecoder (inRate, buffer),
 	                                   myFrame (nullptr),
-	                                   theProcessor (this, 20) {
+	                                   theProcessor (this, 20, settings) {
 	ft8Settings	= settings;
 	this	-> mr	= mr;
 	setupUi (&myFrame);
@@ -70,7 +71,6 @@
 	readIndex	= 0;
 	inPointer	= 0;
 	lineCounter	= 0;
-	theWriter	= nullptr;
 
 	filePointer. store (nullptr);
 	ft8Settings	-> beginGroup ("ft8Settings");
@@ -92,13 +92,15 @@
 	connect (identityButton, SIGNAL (clicked ()),
 	         this, SLOT (handle_identityButton ()));
 	connect (pskReporterButton, SIGNAL (clicked ()),
-	         this, SLOT (handle_pskReporterButton ()));
+                 this, SLOT (handle_pskReporterButton ()));
 
 	show_pskStatus (false);
 	teller		= 0;
 }
 
 	ft8_Decoder::~ft8_Decoder	() {
+	if (pskReady)
+	   ReporterUninitializeSTD ();
 	for (int i = 0; i < nrBUFFERS; i ++)
 	   delete [] theBuffer [i];
 	delete [] window;
@@ -126,18 +128,23 @@ void	ft8_Decoder::process		(std::complex<float> z) {
 	inBuffer [inPointer ++] = z;
 	if (inPointer < toneLength / FRAMES_PER_TONE)
 	   return;
-	inPointer = 0;
-	if (theWriter != nullptr) {
-	   static int counter = 0;
-	   if (++counter >= 100) {
-	      counter = 0;
-	      theWriter -> sendMessages ();
-	   }
-	}
 	int content = (FRAMES_PER_TONE - 1) * toneLength / FRAMES_PER_TONE;
 	int newAmount = toneLength / FRAMES_PER_TONE;
+	inPointer = 0;
+	teller ++;
+//	If the PSKReporter is "on", we send messages (if any) each
+//      60 seconds
+        if (pskReady && (teller > 400)) {
+           teller = 0;
+	   fprintf (stderr, "tickle\n");
+           int yyy = ReporterTickleSTD ();
+           if (yyy < 0) {
+              char buffer [512];
+              int yyy = ReporterGetInformationSTD (buffer, 255);
+	      fprintf (stderr, "reporter after tickle %s\n", buffer);
+           }
+        }
 
-//
 //	shift the inputBuffer to left
 	memmove (inputBuffer, &inputBuffer [newAmount],
 	                   content * sizeof (std::complex<float>));
@@ -384,7 +391,8 @@ float workVector [2 * toneLength];
 
 	for (int index = begin + 5; index < end - 5; index ++) {
 	   if ((1.1 * workVector [index - 5] < workVector [index]) &&
-	       (1.1 * workVector [index + 5] < workVector [index]) ) {
+	       (1.1 * workVector [index + 5] < workVector [index]) )
+	  {
 	      E. index = index;
 	      E. value = theBuffer [readIndex] [index];
 	      cache. push_back (E);
@@ -418,7 +426,7 @@ void	ft8_Decoder::handle_filesaveButton	() {
 	filesaveButton -> setText ("saving");
 }
 
-int	ft8_Decoder::tunedFrequency	() {
+int	ft8_Decoder::getVFO	() {
 	return mr -> tunedFrequency ();
 }
 
@@ -426,38 +434,31 @@ bool	ft8_Decoder::pskReporterReady () {
 	return pskReady;
 }
 
-void	ft8_Decoder::handle_pskReporterButton	() {
-	if (theWriter != nullptr) {
-	   delete theWriter;
-	   pskReady	= false;
-	   theWriter	= nullptr;
-	   show_pskStatus (false);
+void	ft8_Decoder::handle_pskReporterButton () {
+	if (!pskReady) {
+	   int status = ReporterInitializeSTD ("report.pskreporter.info",
+	                                                      "4739");
+	   char Rbuffer [256];
+	   ReporterGetInformationSTD (Rbuffer, 256);
+	   if (status != 0)
+	      fprintf (stderr, "report: %s\n", Rbuffer);
+	   pskReady    = status == 0;
+	   show_pskStatus (status == 0);
 	   return;
 	}
 
-	try {
-	   theWriter	= new reporterWriter (ft8Settings);
-	   pskReady = true;
-	} catch (int e) {
+	if (pskReady) {
+           ReporterUninitializeSTD ();
 	   pskReady	= false;
+	   show_pskStatus (false);
 	}
-	show_pskStatus (pskReady);
 }
 
-void	ft8_Decoder::addMessage	(const QString  &call,
-	                         const QString  &grid,
-	                         int frequency,
-	                         int snr) {
-	if (theWriter != nullptr) 
-	   theWriter ->  addMessage (call. toStdString (),
-	                             grid. toStdString (),
-		                     frequency, snr);
-}
-
-void	ft8_Decoder::handle_identityButton () {
+void    ft8_Decoder::handle_identityButton () {
 identityDialog Identity (ft8Settings);
-	Identity. QDialog::exec ();
+        Identity. QDialog::exec ();
 }
+
 
 void	ft8_Decoder::show_pskStatus	(bool b) {
 	if (b)

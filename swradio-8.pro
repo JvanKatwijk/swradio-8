@@ -169,7 +169,7 @@ CONFIG		+= cw-decoder
 CONFIG		+= amtor-decoder
 CONFIG		+= psk-decoder
 CONFIG		+= rtty-decoder
-CONFIG		+= ft8-decoder
+CONFIG		+= ft8-decoder-win
 CONFIG		+= fax-decoder
 CONFIG		+= drm-decoder-fdk
 #
@@ -353,7 +353,10 @@ ft8-decoder {
         HEADERS         += ./decoders/ft8-decoder/fft/_kiss_fft_guts.h
         SOURCES         += ./decoders/ft8-decoder/fft/kiss_fft.c 
         SOURCES         += ./decoders/ft8-decoder/fft/kiss_fftr.c 
+	HEADERS		+= ./decoders/ft8-decoder/identity-dialog.h
+	SOURCES		+= ./decoders/ft8-decoder/identity-dialog.cpp
 }
+
 ft8-decoder-win {
         DEFINES         += HAVE_FT8_DECODER
 	DEFINES		+= KISSFFT_DATATYPE=double
@@ -380,6 +383,8 @@ ft8-decoder-win {
         HEADERS         += ./decoders/ft8-decoder-win/fft/_kiss_fft_guts.h
         SOURCES         += ./decoders/ft8-decoder-win/fft/kiss_fft.c 
         SOURCES         += ./decoders/ft8-decoder-win/fft/kiss_fftr.c 
+	HEADERS		+= ./decoders/ft8-decoder/identity-dialog.h
+        SOURCES		+= ./decoders/ft8-decoder/identity-dialog.cpp
 	LIBS		+= -lPSKReporter
 }
 
