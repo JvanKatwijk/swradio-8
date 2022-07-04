@@ -123,6 +123,7 @@ const char *theTable	= nullptr;
 	   default:
 	      return '?';
 	}
+
 	if (theTable == nullptr)
 	   return '_';		// cannot happen
 	else
@@ -517,7 +518,6 @@ QString	packHandler::handle_type04 (const uint8_t *m_in) {
 QString	packHandler::handle_type05 (const uint8_t *m_in) {
 uint8_t sym	= getBits (m_in, 0, 3);
 int	index;
-int	teller	= 0;
 QString result;
 
 	result. push_back (table_2 [sym]);
@@ -584,6 +584,7 @@ QStringList result;
 	uint8_t i3 = getBits (m_in, 74, 3);
 	switch (i3) {
 	   case 0:	// dispatch further
+	      return extract_call_type_0 (m_in);
 	      return result;
 
 	   case 1:	// c28 r1 c28 r1 R1 g15
@@ -591,6 +592,7 @@ QStringList result;
 	      return extract_call_type_1 (m_in, i3);
 
 	   case 3:	// t1 c28 c28 R1 r3 s13
+	      return extract_call_type_3 (m_in);
 	      return result;
 
 	   case 4:	// h12 c58 h1 r2 c1
@@ -605,6 +607,55 @@ QStringList result;
 
 	return result;	// cannot happen
 }
+
+bool	test_cq (uint32_t k) {
+	if (k == 2)
+	   return true;
+	if ((k >= CQ_3DIGITS) && (k <= CQ_3DIGITS_E))
+	   return true;
+	if ((k >= CQ_1LETTER) && (k <= CQ_1LETTER_E))
+	   return true;
+	if ((k >= CQ_2LETTER) && (k <= CQ_2LETTER_E))
+	   return true;
+	if ((k >= CQ_3LETTER) && (k <= CQ_3LETTER_E))
+	   return true;
+	if ((k >= CQ_4LETTER) && (k <= CQ_4LETTER_E))
+	   return true;
+	return false;
+}
+
+QStringList packHandler::extract_call_type_0 (const uint8_t *m_in) {
+uint32_t c28a;
+uint32_t c28b;
+QStringList result;
+QString call;
+
+	uint8_t i3 = getBits (m_in, 74, 3);
+	if ((i3 == 0) ||(i3 == 6))
+	   return result;
+	c28a    = getLBits (m_in,  0, 28);      // callsign
+        c28b    = getLBits (m_in, 29, 28);      // callsign
+	if (c28a > HASH_END) { 	// normal call
+	   for (int i = 0; i < gehad. size (); i ++)
+	      if (gehad. at (i) == c28a)
+	         return result;
+	   call = getCallsign (c28a);
+	   gehad. push_back (c28a);
+	   result << call;
+	   return result;
+	}
+	if ((c28a < CQ_4LETTER_E) && (test_cq (c28a))) {
+	   for (int i = 0; i < gehad. size (); i ++)
+	      if (gehad. at (i) == c28b)
+	         return result;
+	   call = getCallsign (c28b);
+	   gehad. push_back (c28b);
+	   result << call;
+	   return result;
+	}
+	return result;
+}
+	
 //
 //	for now, we assume that interest is in the caller
 QStringList packHandler::extract_call_type_1 (const uint8_t *m_in, int type) {
@@ -622,7 +673,7 @@ QStringList result;
 	g15	= getBits  (m_in, 59, 15); 	// g15, potential grid
 
 //	Check for special tokens DE, QRZ, CQ, CQ_nnn, CQ_xxxx
-	if (c28a == 2) {		// It is a cq
+	if ((c28a < HASH_END) && (test_cq (c28a))) {
 	   if (R1 > 0)
 	      return result;
 	   for (int i = 0; i < gehad. size (); i ++)
@@ -681,3 +732,30 @@ QStringList result;
 	
 }
 
+//	type 3 format:  t1 c28 c28 R1 r3 s13
+QStringList packHandler::extract_call_type_3 (const uint8_t *m_in) {
+uint8_t t1	= getBits (m_in, 0, 1);
+uint32_t c28a	= getLBits (m_in,  1,  28);      // callsign
+uint32_t c28b	= getLBits (m_in,  30, 28);      // callsign
+QStringList	result;
+QString	call;
+//	Check for special tokens DE, QRZ, CQ, CQ_nnn, CQ_xxxx
+	if (c28a < CQ_4LETTER_E) {		// It is a cq
+	   for (int i = 0; i < gehad. size (); i ++)
+	      if (gehad. at (i) == c28b)
+	         return result;
+	   call = getCallsign (c28b);
+	   gehad. push_back (c28b);
+	   result << call;
+	   return result;
+	}
+	if (c28a > HASH_END) {		// seems a regular call
+	   for (int i = 0; i < gehad. size (); i ++)
+	      if (gehad. at (i) == c28a)
+	         return result;
+	   call = getCallsign (c28a);
+	   result << call;
+	   return result;
+	}
+	return result;
+}

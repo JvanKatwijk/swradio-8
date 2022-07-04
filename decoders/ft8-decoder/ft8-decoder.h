@@ -29,6 +29,7 @@
 #include	<QStringList>
 #include        <QStandardItemModel>
 #include	<atomic>
+#include	<mutex>
 #include 	"virtual-decoder.h"
 #include	"ui_ft8-decoder.h"
 #include	"kiss_fft.h"
@@ -67,6 +68,7 @@ private:
 	int32_t		outputRate;
 	int32_t		samplesperSymbol;
 	bool		pskReady;
+	std::mutex	locker;
 	std::atomic<FILE*> filePointer;
 	void		peakFinder (float *V, int begin, int end,
                                             std::vector<costasValue> &cache);
@@ -117,6 +119,9 @@ private slots:
 	void		handle_filesaveButton	();
 	void		handle_identityButton	();
 	void		handle_pskReporterButton	();
+	void		handle_presetFrequencies	(const QString &);
+signals:
+	void		setFrequency		(quint64);
 };
 
 #endif

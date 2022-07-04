@@ -93,7 +93,10 @@
 	         this, SLOT (handle_identityButton ()));
 	connect (pskReporterButton, SIGNAL (clicked ()),
 	         this, SLOT (handle_pskReporterButton ()));
-
+	connect (presetFrequencies, SIGNAL (activated (const QString &)),
+	         this, SLOT (handle_presetFrequencies (const QString &)));
+	connect (this, SIGNAL (setFrequency (quint64)),
+	         mr, SLOT (setFrequency (quint64)));
 	show_pskStatus (false);
 	teller		= 0;
 }
@@ -126,21 +129,23 @@ void	ft8_Decoder::process		(std::complex<float> z) {
 	inBuffer [inPointer ++] = z;
 	if (inPointer < toneLength / FRAMES_PER_TONE)
 	   return;
+
+	teller += inPointer;
 	inPointer = 0;
-	if (theWriter != nullptr) {
-	   static int counter = 0;
-	   if (++counter >= 100) {
-	      counter = 0;
-	      theWriter -> sendMessages ();
-	   }
+
+	locker. lock ();
+	if ((theWriter != nullptr) && (teller > inputRate * 30)) {
+	   teller = 0;
+	   theWriter -> sendMessages ();
 	}
+	locker. unlock ();
 	int content = (FRAMES_PER_TONE - 1) * toneLength / FRAMES_PER_TONE;
 	int newAmount = toneLength / FRAMES_PER_TONE;
 
 //
 //	shift the inputBuffer to left
 	memmove (inputBuffer, &inputBuffer [newAmount],
-	                   content * sizeof (std::complex<float>));
+	                      content * sizeof (std::complex<float>));
 //
 //	copy the data that is read, into the buffer
 	memcpy (&inputBuffer [content], inBuffer, 
@@ -427,10 +432,12 @@ bool	ft8_Decoder::pskReporterReady () {
 }
 
 void	ft8_Decoder::handle_pskReporterButton	() {
+	locker. lock ();
 	if (theWriter != nullptr) {
 	   delete theWriter;
 	   pskReady	= false;
 	   theWriter	= nullptr;
+	   locker. unlock ();
 	   show_pskStatus (false);
 	   return;
 	}
@@ -441,6 +448,7 @@ void	ft8_Decoder::handle_pskReporterButton	() {
 	} catch (int e) {
 	   pskReady	= false;
 	}
+	locker. unlock ();
 	show_pskStatus (pskReady);
 }
 
@@ -448,10 +456,12 @@ void	ft8_Decoder::addMessage	(const QString  &call,
 	                         const QString  &grid,
 	                         int frequency,
 	                         int snr) {
+	locker. lock ();
 	if (theWriter != nullptr) 
 	   theWriter ->  addMessage (call. toStdString (),
 	                             grid. toStdString (),
 		                     frequency, snr);
+	locker. unlock ();
 }
 
 void	ft8_Decoder::handle_identityButton () {
@@ -467,5 +477,10 @@ void	ft8_Decoder::show_pskStatus	(bool b) {
 }
 
 void	ft8_Decoder::print_statistics () {
+}
+
+void	ft8_Decoder::handle_presetFrequencies (const QString &freq) {
+int selectedFrequency = freq. toInt ();
+	setFrequency (selectedFrequency * 1000);
 }
 

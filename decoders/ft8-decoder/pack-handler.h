@@ -62,7 +62,10 @@ private:
 	void	pack_bits	(const uint8_t bit_array [],
 	                         int num_bits, uint8_t packed []);
 	QString	getCallsign	(const uint32_t n28);
+	QStringList extract_call_type_0 (const uint8_t *m_in);
 	QStringList extract_call_type_1 (const uint8_t *m_in, int type);
+	QStringList extract_call_type_3 (const uint8_t *m_in);
+
 
 	std::vector<uint32_t>	gehad;
 signals:

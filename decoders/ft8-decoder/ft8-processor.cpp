@@ -179,7 +179,6 @@ int	errors;
 	               int freq	= theBuffer [blockToRead]. frequency + theDecoder -> tunedFrequency ();
 	               addMessage (callIdent, locator, freq, snr);
 	            }
-	               
 	         }
 	      }
 	   }

@@ -6,6 +6,7 @@ QT	+= widgets xml
 CONFIG	+= console
 #CONFIG	-= console
 TARGET	= swradio-9
+QMAKE_CXXFLAGS  += -std=c++14
 QMAKE_CFLAGS	+= -O3 -ffast-math 
 QMAKE_CXXFLAGS	+= -O3 -ffast-math 
 #QMAKE_CXXFLAGS += -fsanitize=address -g
@@ -169,7 +170,8 @@ CONFIG		+= cw-decoder
 CONFIG		+= amtor-decoder
 CONFIG		+= psk-decoder
 CONFIG		+= rtty-decoder
-CONFIG		+= ft8-decoder-win
+CONFIG		+= ft8-decoder
+#CONFIG		+= ft8-decoder-win
 CONFIG		+= fax-decoder
 CONFIG		+= drm-decoder-fdk
 #

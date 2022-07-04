@@ -77,10 +77,17 @@ struct hostent *host;
 	                           homeCall. c_str (),
 	                           homeGrid. c_str (),
 	                           antenna. c_str ());
-#ifndef	__MINGW32__
-	if ((sock = socket (AF_INET, SOCK_DGRAM, 0)) < 0) {
+#ifdef	__MINGW32__
+WSADATA wsaData;
+
+	int res = WSAStartup (MAKEWORD (2, 2), &wsaData);
+	if (res != NO_ERROR) {
+	   fprintf (stderr, "WSAstartup failed\n");
+	   throw (21);
+	}
+	if ((sock = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
 #else
-	if ((sock = socket (PF_INET, SOCK_DGRAM, 0)) < 0) {
+	if ((sock = socket (AF_INET, SOCK_DGRAM, 0)) < 0) {
 #endif
 	   fprintf (stderr, "Cannot open socket %d.\n", errno);
 	   throw (22);

@@ -122,13 +122,12 @@ private slots:
 	                                      RingBuffer<std::complex<float>> *);
         void            adjustFrequency_hz	(int);
         void            adjustFrequency_khz	(int);
-        void            handle_myLine		(void);
+        void            handle_myLine		();
         void            set_hfscopeLevel	(int);
         void            set_lfscopeLevel	(int);
 	virtualDecoder	*selectDecoder		(const QString &);
-	void		setFrequency		(quint64);
         void            setStreamOutSelector	(int idx);
-        void            handle_freqButton       (void);
+        void            handle_freqButton	();
         void            wheelEvent              (QWheelEvent *);
 	void		set_mouseIncrement	(int);
 	void		setBand			(const QString &);
@@ -146,6 +145,7 @@ public slots:
 	void		sampleHandler		(int amount);
         void            processAudio		(int, int);
 	void		setDetectorMarker	(int);
+	void		setFrequency		(quint64);
 
 #ifdef	HAVE_EXTIO
 //      and for the extio handling

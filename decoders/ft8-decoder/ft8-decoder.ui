@@ -87,6 +87,135 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QComboBox" name="presetFrequencies">
+       <item>
+        <property name="text">
+         <string>1840</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>3753</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>5357</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>7056</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>7071</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>7074</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>10130</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>10132</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>10136</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>14074</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>14090</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>18100</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>18104</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>21704</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>21091</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>24915</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>28074</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>50310</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>50313</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>50323</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>50328</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>70100</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>144174</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>222065</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>432065</string>
+        </property>
+       </item>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
