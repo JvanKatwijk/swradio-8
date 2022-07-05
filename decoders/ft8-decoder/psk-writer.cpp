@@ -169,8 +169,7 @@ int	reporterWriter::sendMessages	() {
 	data_offset	+= copy_int2 (&buffer [data_offset], 0x9993);
 	int sizeOffset	= data_offset;
 	data_offset	+= 2;	// to be filled in later
-	for (int i = 0; i < messageStack. size (); i ++) {
-	   int localBase = data_offset;
+	for (uint16_t i = 0; i < messageStack. size (); i ++) {
 	   pskMessage m = messageStack. at (i);
 	   data_offset += copy_char (&buffer [data_offset], m. call. c_str ());
 	   data_offset += copy_int4 (&buffer [data_offset], m. freq);
@@ -197,7 +196,8 @@ int	reporterWriter::sendMessages	() {
 
 	int bytesSent = sendto (sock, (const char *)buffer, data_offset, 0,
 	                        (struct sockaddr *)&addr, sizeof(addr));
-
+	if (bytesSent != data_offset)
+	   fprintf (stderr, "write problem\n");
 	locker. lock ();
 	messageStack. resize (0);
 	locker. unlock ();

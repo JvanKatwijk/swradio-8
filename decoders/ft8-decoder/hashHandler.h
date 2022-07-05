@@ -27,10 +27,10 @@
 #include	<QString>
 #include	<vector>
 
-typedef struct hashElement {
+typedef struct {
 	uint32_t key;
 	QString value;
-};
+} hashElement;
 
 class hashHandler {
 public:

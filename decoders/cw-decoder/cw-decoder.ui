@@ -252,6 +252,19 @@
      <number>25</number>
     </property>
    </widget>
+   <widget class="QPushButton" name="autoTuneButton">
+    <property name="geometry">
+     <rect>
+      <x>92</x>
+      <y>150</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>tune</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <customwidgets>

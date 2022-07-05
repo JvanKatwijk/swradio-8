@@ -209,6 +209,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/ft8-decoder/ft8-processor.h
 	   ./decoders/ft8-decoder/pack-handler.h
 	   ./decoders/ft8-decoder/dl-cache.h
+	   ./decoders/ft8-decoder/identity-dialog.h
+	   ./decoders/ft8-decoder/psk-writer.h
 	   ./decoders/ft8-decoder/ldpc.h
 	   ./decoders/ft8-decoder/hashHandler.h
 	   ./decoders/ft8-decoder/fft/kiss_fft.h
@@ -320,6 +322,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/ft8-decoder/ft8-decoder.cpp
            ./decoders/ft8-decoder/ft8-processor.cpp
            ./decoders/ft8-decoder/pack-handler.cpp
+	   ./decoders/ft8-decoder/identity-dialog.cpp
+	   ./decoders/ft8-decoder/psk-writer.cpp
 	   ./decoders/ft8-decoder/ldpc.cpp
            ./decoders/ft8-decoder/hashHandler.cpp
            ./decoders/ft8-decoder/fft/kiss_fft.c
@@ -408,6 +412,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./decoders/psk-decoder/psk-decoder.h 
 	   ./decoders/ft8-decoder/ft8-decoder.h 
 	   ./decoders/ft8-decoder/ft8-processor.h 
+	   ./decoders/ft8-decoder/pack-handler.h
 	   ./decoders/rtty-decoder/rtty-decoder.h 
 	   ./decoders/fax-decoder/fax-decoder.h 
 	   ./decoders/fax-decoder/fax-demodulator.h 

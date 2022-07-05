@@ -429,8 +429,8 @@ drm-decoder-fdk {
 	DEFINES		+= HAVE_DRM_DECODER
 	DEFINES		+= ESTIMATOR_1
 	DEFINES		+=  __WITH_FDK_AAC__
-#	LIBS		+= -lfdk-aac
-	LIBS		+= -lfdk-aac-2
+	LIBS		+= -lfdk-aac
+#	LIBS		+= -lfdk-aac-2
 	INCLUDEPATH	+= ./fdk-aac
 	DEPENDPATH	+= ./decoders/drm-decoder/ \
 	                   ./decoders/drm-decoder/ \

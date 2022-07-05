@@ -24,6 +24,7 @@
 #include	<QFrame>
 #include	<QSettings>
 #include	"cw-decoder.h"
+#include	"radio.h"
 #include	"utilities.h"
 #include	"slidingfft.h"
 
@@ -45,7 +46,8 @@
 
 extern const char *const codetable [];
 
-	cwDecoder::cwDecoder (int32_t		inRate,
+	cwDecoder::cwDecoder (RadioInterface *mr,
+	                      int32_t		inRate,
 	                      RingBuffer<std::complex<float>> *buffer,
 	                      QSettings *s) :
 	                           virtualDecoder (inRate, buffer),
@@ -76,11 +78,14 @@ extern const char *const codetable [];
 	connect (cwViewer, SIGNAL (clickedwithLeft (int)),
 	         this, SLOT (handleClick (int)));
         cwSettings     -> beginGroup ("cwDecoder");
-	cw_searchRange	= cwSettings	-> value ("cw_searchRange", 800). toInt ();
+	cw_searchRange	= cwSettings	-> value ("cw_searchRange", 600). toInt ();
 	cwSettings	-> endGroup ();
 	cw_rangeSetter	-> setValue (cw_searchRange); 
 	connect (cw_rangeSetter, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_searchRange (int)));
+	autoTune	= false;
+	connect (autoTuneButton, SIGNAL (clicked ()),
+	         this, SLOT (set_autoTuneButton ()));
 }
 
 	cwDecoder::~cwDecoder		(void) {
@@ -109,7 +114,7 @@ void	cwDecoder::setup_cwDecoder (int32_t rate) {
 /*
  *	the filter will be set later on
  */
-	cw_BandPassFilter	= NULL;
+	cw_BandPassFilter	= nullptr;
 	cwCurrent		= 0;
 	agc_peak		= 0;
 	noiseLevel		= 0;
@@ -128,8 +133,8 @@ void	cwDecoder::setup_cwDecoder (int32_t rate) {
 	         this, SLOT (cw_setWordsperMinute (int)));
 	connect (FilterDegree, SIGNAL (valueChanged (int)),
 	         this, SLOT (cw_setFilterDegree (int)));
-	connect (Tracker, SIGNAL (clicked (void)),
-	         this, SLOT (cw_setTracking (void)));
+	connect (Tracker, SIGNAL (clicked ()),
+	         this, SLOT (cw_setTracking ()));
 	
 	CWrange			= cwDefaultSpeed / 2;
 	cwSpeed			= cwDefaultSpeed;
@@ -169,13 +174,20 @@ void	cwDecoder::cw_setWordsperMinute (int n) {
 	speedAdjust ();
 }
 
-void	cwDecoder::cw_setTracking (void) {
+void	cwDecoder::cw_setTracking () {
 	cwTracking = !cwTracking;
 	if (cwTracking)
 	   Tracker -> setText (QString ("Tracking off"));
 	else
 	   Tracker -> setText (QString ("Tracking on"));
 	speedAdjust ();
+}
+void	cwDecoder::set_autoTuneButton () {
+	autoTune = !autoTune;
+	if (autoTune)
+	   autoTuneButton -> setText (QString ("autoTune"));
+	else
+	   autoTuneButton -> setText (QString ("tune"));
 }
 
 void	cwDecoder::cw_setSquelchValue (int s) {
@@ -274,35 +286,30 @@ static int offs	= 0;
 	s	= cw_BandPassFilter	-> Pass (s);
 	value	=  abs (s);
 	newFFT	-> do_FFT (s, outV);
+	if (value > agc_peak)
+	   agc_peak = decayingAverage (agc_peak, value, 50.0);
+	else
+	   agc_peak = decayingAverage (agc_peak, value, 500.0);
+
 //
 //	if the value is (most likely) a '1', then we use it
 //	to compute the frequency offset
-	if (value > agc_peak) {
+	if (autoTune && (value > agc_peak))  {
 	   std::complex<float> ff [screenwidth];
-	   std::complex<float> tempV [screenwidth];
 	   afcFFT	-> do_FFT (s, ff);
 //
 static int ddd = 0;
 static int oldOffset	= 0;
 	   ddd ++;
-	   if ((ddd > workingRate / 4) && (offs != -100)) {
-//	      fprintf (stderr, "offset %d (%d)\n", offs, 4 * offs);
-	      cw_IF += offs / 2;
-	      ddd = 0;
-	   }
-
-	   int offf = offset (tempV);
-	   if ((offf != -100) && (offf != 0)) {
-	      offs += offf;
-	      ddd ++;
-	   }
-	
-	   if (ddd > workingRate / 4) {
-	      offs /= ddd;
-	      oldOffset = 0.5 * oldOffset + 0.5 * offs;
-	      cw_IF += oldOffset / 2;
+	   if (ddd > workingRate / 2) {
+	      int offf = offset (ff);
+	      if ((offf != -100) && (offf != 0)) {
+	         oldOffset = 0.5 * oldOffset + 0.5 * offf;
+	         fprintf (stderr, "offset = %d\n", -oldOffset / 2);
+	         adjustFrequency (-oldOffset / 2);
+	         oldOffset /= 2;
+	      }
 	      ddd	= 0;
-	      offs	= 0;
 	      afcFFT -> reset ();
 	   }
 	}
@@ -317,11 +324,6 @@ static int oldOffset	= 0;
 	   fillP     = 0;
 	   newFFT -> reset ();
 	}
-
-	if (value > agc_peak)
-	   agc_peak = decayingAverage (agc_peak, value, 50.0);
-	else
-	   agc_peak = decayingAverage (agc_peak, value, 500.0);
 
 	currentTime += USECS_PER_SEC / workingRate;
 	switch (cwState) {
@@ -625,25 +627,27 @@ float avg	= 0;
 float sum	= 0;
 float	supermax	= 0;
 int	superIndex	= 0;
-	for (int i = 0; i < screenwidth; i ++)
-	   avg += abs (v [i]);
-	avg /= screenwidth;
 	int	index	= screenwidth / 2 - cw_searchRange / 2;
+	for (int i = index; i < index + cw_searchRange; i ++)
+	   avg += abs (v [i % screenwidth]);
+	avg /= cw_searchRange;
+
 	for (int i = 0; i < MAX_SIZE; i ++)
 	   sum +=  abs (v [index + i]);
-
 	supermax	= sum;
-	for (int i = MAX_SIZE; i < cw_searchRange; i ++) {
+	for (int i = MAX_SIZE; i < cw_searchRange - MAX_SIZE; i ++) {
 	   sum -=  abs (v [(index + i - MAX_SIZE) % screenwidth]);
 	   sum +=  abs (v [(index + i) % screenwidth]);
 	   if (sum > supermax) {
-	      superIndex = (index + i - MAX_SIZE / 2) % screenwidth;
+	      superIndex = (index + i - screenwidth / 2 + screenwidth) % screenwidth;
 	      supermax = sum;
 	   }
 	}
-
-	if (supermax / MAX_SIZE > 3 * avg)
-	   return superIndex - screenwidth / 2;
+	if (supermax / MAX_SIZE > 3 * avg) {
+	   fprintf (stderr, "supermax %f, avg %f, superIndex %d\n",
+	                            supermax, avg, superIndex);
+	   return superIndex;
+	}
 	else
 	   return -100;
 }

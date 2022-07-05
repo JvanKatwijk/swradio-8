@@ -127,7 +127,7 @@ const char *theTable	= nullptr;
 	if (theTable == nullptr)
 	   return '_';		// cannot happen
 	else
-	if ((0 <= c) && (c <= strlen (theTable)))
+	if ((0 <= c) && (c <=  (int)strlen (theTable)))
 	   return theTable [c];
 	else
 	   return '_';		// should not happen
@@ -369,6 +369,7 @@ uint8_t  r3	= getBits (m_in, 59,  3);	// report 2 ..  9, 53 .. 59
 uint16_t s13	= getBits (m_in, 62, 13);	// serial number
 QString result = "type 3: ";
 
+	(void)t1; (void)R1;
 //	Unpack both callsigns
 	QString c1 = getCallsign (c28a);
 	if (c1 == "")
@@ -636,7 +637,7 @@ QString call;
 	c28a    = getLBits (m_in,  0, 28);      // callsign
         c28b    = getLBits (m_in, 29, 28);      // callsign
 	if (c28a > HASH_END) { 	// normal call
-	   for (int i = 0; i < gehad. size (); i ++)
+	   for (int i = 0; i <  (int)gehad. size (); i ++)
 	      if (gehad. at (i) == c28a)
 	         return result;
 	   call = getCallsign (c28a);
@@ -645,7 +646,7 @@ QString call;
 	   return result;
 	}
 	if ((c28a < CQ_4LETTER_E) && (test_cq (c28a))) {
-	   for (int i = 0; i < gehad. size (); i ++)
+	   for (int i = 0; i < (int)gehad. size (); i ++)
 	      if (gehad. at (i) == c28b)
 	         return result;
 	   call = getCallsign (c28b);
@@ -676,7 +677,7 @@ QStringList result;
 	if ((c28a < HASH_END) && (test_cq (c28a))) {
 	   if (R1 > 0)
 	      return result;
-	   for (int i = 0; i < gehad. size (); i ++)
+	   for (int i = 0; i < (int)gehad. size (); i ++)
 	      if (gehad. at (i) == c28b)
 	         return result;
 	   call = getCallsign (c28b);
@@ -704,7 +705,7 @@ QStringList result;
 	if (c28a > HASH_END) { 	// normal call
 	   if (R1 > 0)
 	      return result;
-	   for (int i = 0; i < gehad. size (); i ++)
+	   for (int i = 0; i < (int) gehad. size (); i ++)
 	      if (gehad. at (i) == c28a)
 	         return result;
 	   call = getCallsign (c28a);
@@ -739,9 +740,11 @@ uint32_t c28a	= getLBits (m_in,  1,  28);      // callsign
 uint32_t c28b	= getLBits (m_in,  30, 28);      // callsign
 QStringList	result;
 QString	call;
+
+	(void)t1;
 //	Check for special tokens DE, QRZ, CQ, CQ_nnn, CQ_xxxx
 	if (c28a < CQ_4LETTER_E) {		// It is a cq
-	   for (int i = 0; i < gehad. size (); i ++)
+	   for (int i = 0; i < (int)gehad. size (); i ++)
 	      if (gehad. at (i) == c28b)
 	         return result;
 	   call = getCallsign (c28b);
@@ -750,7 +753,7 @@ QString	call;
 	   return result;
 	}
 	if (c28a > HASH_END) {		// seems a regular call
-	   for (int i = 0; i < gehad. size (); i ++)
+	   for (int i = 0; i < (int) gehad. size (); i ++)
 	      if (gehad. at (i) == c28a)
 	         return result;
 	   call = getCallsign (c28a);

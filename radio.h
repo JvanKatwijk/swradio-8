@@ -120,7 +120,6 @@ private:
 private slots:
         deviceHandler	*setDevice		(
 	                                      RingBuffer<std::complex<float>> *);
-        void            adjustFrequency_hz	(int);
         void            adjustFrequency_khz	(int);
         void            handle_myLine		();
         void            set_hfscopeLevel	(int);
@@ -146,6 +145,7 @@ public slots:
         void            processAudio		(int, int);
 	void		setDetectorMarker	(int);
 	void		setFrequency		(quint64);
+        void            adjustFrequency_hz	(int);
 
 #ifdef	HAVE_EXTIO
 //      and for the extio handling

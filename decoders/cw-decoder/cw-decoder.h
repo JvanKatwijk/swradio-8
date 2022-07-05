@@ -40,6 +40,7 @@ class	average;
 class	QFrame;
 class	QSettings;
 class	slidingFFT;
+class	RadioInterface;
 
 #define	CWError		1000
 #define	CWNewLetter	1001
@@ -55,7 +56,8 @@ class	slidingFFT;
 class cwDecoder: public virtualDecoder, public Ui_cwDecoder {
 Q_OBJECT
 public:
-		cwDecoder	(int32_t,
+		cwDecoder	(RadioInterface *,
+	                         int32_t,
 	                         RingBuffer<DSPCOMPLEX> *,
 	                         QSettings *);
 		~cwDecoder	(void);
@@ -63,12 +65,13 @@ public:
 	void	process		(std::complex<float>);
 private slots:
 	void		cw_setWordsperMinute	(int);
-	void		cw_setTracking		(void);
+	void		cw_setTracking		();
 	void		cw_setFilterDegree	(int);
 	void		cw_setSquelchValue	(int);
 	void		cw_adjustFrequency	(int);
 	void		handleClick             (int);
 	void		set_searchRange		(int);
+	void		set_autoTuneButton	();
 
 private:
 	QSettings	*cwSettings;
@@ -89,6 +92,7 @@ private:
 	downConverter	inputConverter;
 	shifter		localShifter;
 	bandpassFIR	*cw_BandPassFilter;
+	bool		autoTune;
 	void		processSample		(std::complex<float>);
 	void		setup_cwDecoder		(int32_t);
 	void		cw_clrText		(void);
@@ -149,6 +153,7 @@ private:
 	bool		cwTracking;
 
 signals:
+	void		adjustFrequency	(int);
 };
 #endif
 

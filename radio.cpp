@@ -491,8 +491,9 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 #endif
 #ifdef	HAVE_CW_DECODER
 	if (s == "cw decoder") {
-	   theDecoder	= new cwDecoder (decoderRate,
-	                                  audioData, settings);
+	   theDecoder	= new cwDecoder (this,
+	                                 decoderRate,
+	                                 audioData, settings);
 	   connect (theDecoder, SIGNAL (adjustFrequency (int)),
 	            this, SLOT (adjustFrequency_hz (int)));
 	}
