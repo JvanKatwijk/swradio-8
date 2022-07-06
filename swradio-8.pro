@@ -126,6 +126,7 @@ CONFIG		+= sdrplay-v3
 CONFIG		+= sdrplay
 CONFIG		+= hackrf
 CONFIG		+= rtlsdr
+CONFIG		+= rtl_tcp
 #CONFIG		+= pmsdr
 #CONFIG		+= cardReader
 CONFIG		+= am-decoder
@@ -161,6 +162,7 @@ CONFIG		+= sdrplay
 CONFIG		+= sdrplay-v3
 CONFIG		+= hackrf
 CONFIG		+= rtlsdr
+CONFIG		+= rtl_tcp
 #CONFIG		+= pmsdr
 #CONFIG		+= extio
 #CONFIG		+= cardreader
@@ -234,6 +236,16 @@ rtlsdr	{
 	                   ./devices/rtlsdr-handler/dongleselect.h
         SOURCES         += ./devices/rtlsdr-handler/rtlsdr-handler.cpp \
 	                   ./devices/rtlsdr-handler/dongleselect.cpp
+}
+
+rtl_tcp	{
+	QT		+= network
+	DEFINES		+= HAVE_RTL_TCP
+        FORMS           += ./devices/rtl_tcp/rtl_tcp-widget.ui
+        DEPENDPATH	+= ./devices/rtl_tcp
+        INCLUDEPATH	+= ./devices/rtl_tcp
+        HEADERS         += ./devices/rtl_tcp/rtl_tcp_client.h  
+        SOURCES         += ./devices/rtl_tcp/rtl_tcp_client.cpp
 }
 
 pmsdr	{

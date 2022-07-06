@@ -31,6 +31,7 @@ endif()
 	add_definitions (-DHAVE_SDRPLAY_V3)
 	add_definitions (-DHAVE_HACKRF)
 	add_definitions (-DHAVE_RTLSDR)
+	add_definitions (-DHAVE_RTL_TCP)
 	add_definitions (-DHAVE_RTTY)
 	add_definitions (-DHAVE_AM_DECODER)
 	add_definitions (-DHAVE_SSB_DECODER)
@@ -140,6 +141,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	           devices/sdrplay-handler-v3
 	           devices/hackrf-handler
 	           devices/rtlsdr-handler
+	           devices/rtl_tcp
 	           decoders 
 	           decoders/am-decoder 
 	           decoders/ssb-decoder 
@@ -198,6 +200,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./devices/rtlsdr-handler/rtlsdr-handler.h
 	   ./devices/rtlsdr-handler/dongleselect.h
 	   ./devices/hackrf-handler/hackrf-handler.h
+	   ./devices/rtl_tcp/rtl_tcp_client.h
 	   ./decoders/virtual-decoder.h 
 	   ./decoders/am-decoder/am-decoder.h
 	   ./decoders/ssb-decoder/ssb-decoder.h
@@ -311,6 +314,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./devices/rtlsdr-handler/rtlsdr-handler.cpp
 	   ./devices/rtlsdr-handler/dongleselect.cpp
 	   ./devices/hackrf-handler/hackrf-handler.cpp
+	   ./devices/rtl_tcp/rtl_tcp_client.cpp
 	   ./decoders/virtual-decoder.cpp
 	   ./decoders/am-decoder/am-decoder.cpp 
 	   ./decoders/ssb-decoder/ssb-decoder.cpp 
@@ -404,6 +408,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./devices/rtlsdr-handler/rtlsdr-handler.h
 	   ./devices/rtlsdr-handler/dongleselect.h
 	   ./devices/hackrf-handler/hackrf-handler.h
+	   ./devices/rtl_tcp/rtl_tcp_client.h
            ./decoders/virtual-decoder.h 
 	   ./decoders/am-decoder/am-decoder.h 
 	   ./decoders/ssb-decoder/ssb-decoder.h 
@@ -450,6 +455,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   ./devices/sdrplay-handler-v3/sdrplay-widget-v3.ui
 	   ./devices/rtlsdr-handler/rtlsdr-widget.ui
            ./devices/hackrf-handler/hackrf-widget.ui
+	   ./devices/rtl_tcp/rtl_tcp-widget.ui
 	   ./decoders/am-decoder/am-decoder.ui
 	   ./decoders/ssb-decoder/ssb-decoder.ui
 	   ./decoders/cw-decoder/cw-decoder.ui
@@ -488,6 +494,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	target_link_libraries (${objectName}
                                Qt5::Widgets
 	                       Qt5::Xml
+	                       Qt5::Network
                                ${FFTW3F_LIBRARIES}
                                ${extraLibs}
                                ${CMAKE_DL_LIBS}

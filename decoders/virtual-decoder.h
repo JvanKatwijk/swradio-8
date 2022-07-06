@@ -17,7 +17,7 @@ virtual		~virtualDecoder	(void);
 virtual	void	process		(std::complex<float>);
 protected:
 	int32_t		workingRate;
-	RingBuffer<DSPCOMPLEX> *audioOut;
+	RingBuffer<std::complex<float>> *audioOut;
 signals:
 	void	audioAvailable		(int, int);
 	void	setDetectorMarker	(int);

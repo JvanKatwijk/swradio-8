@@ -55,6 +55,9 @@
 #ifdef	HAVE_SDRPLAY_V3
 #include        "sdrplay-handler-v3.h"
 #endif
+#ifdef	HAVE_RTL_TCP
+#include	"rtl_tcp_client.h"
+#endif
 #ifdef	HAVE_HACKRF
 #include	"hackrf-handler.h"
 #endif
@@ -362,6 +365,7 @@ void	RadioInterface::handle_quitButton	(void) {
 #define	D_WAV_FILE	"wav file"
 #define	D_SDRPLAY	"sdrplay"
 #define	D_SDRPLAY_V3	"sdrplay-v3"
+#define	D_RTL_TCP	"rtl_tcp"
 #define	D_HACKRF	"hackrf"
 #define	D_RTLSDR	"rtlsdr"
 #define	D_PMSDR		"pmsdr"
@@ -386,6 +390,9 @@ const char *deviceTable [] = {
 #endif
 #ifdef	HAVE_RTLSDR
 	D_RTLSDR,
+#endif
+#ifdef	HAVE_RTL_TCP
+	D_RTL_TCP,
 #endif
 #ifdef	HAVE_PMSDR
 	D_PMSDR,
@@ -423,6 +430,14 @@ const char *deviceTable [] = {
 	      if (s == D_SDRPLAY_V3) {
 	         theDevice =  new sdrplayHandler_v3 (this, inputRate,
 	                                       hfBuffer, settings);
+	         return theDevice;
+	      }
+#endif
+#ifdef	HAVE_RTL_TCP
+	      if (s == D_RTL_TCP) {
+	         theDevice =  new rtl_tcp_client (this, KHz (2112),
+	                                          inputRate,
+	                                          hfBuffer, settings);
 	         return theDevice;
 	      }
 #endif
@@ -764,7 +779,7 @@ int	i, j;
               }
               sf_writef_float (dumpfilePointer, dumpBuffer, 512);
            }
-	      
+
 	   for (i = 0; i < 512; i ++) {
 	      float agcGain;
 	      std::complex<float> temp = hfFilter. Pass (buffer [i]);
