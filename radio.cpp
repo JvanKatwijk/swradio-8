@@ -80,6 +80,9 @@
 #ifdef	HAVE_CW_DECODER
 #include	"cw-decoder.h"
 #endif
+#ifdef	HAVE_NEW_CW
+#include	"cw-new.h"
+#endif
 #ifdef	HAVE_AMTOR_DECODER
 #include	"amtor-decoder.h"
 #endif
@@ -100,6 +103,9 @@
 #endif
 #ifdef	HAVE_DRM_DECODER
 #include	"drm-decoder.h"
+#endif
+#ifdef	HAVE_ACARS_DECODER
+#include	"acars-decoder.h"
 #endif
 
 static inline
@@ -167,6 +173,8 @@ QString	FrequencytoString (quint64 freq) {
 #endif
 #ifdef	HAVE_CW_DECODER
 	decoderTable	-> addItem ("cw decoder");
+#elif	HAVE_NEW_CW
+	decoderTable	-> addItem ("cw decoder");
 #endif
 #ifdef	HAVE_AMTOR_DECODER
 	decoderTable	-> addItem ("amtor decoder");
@@ -188,6 +196,9 @@ QString	FrequencytoString (quint64 freq) {
 #endif
 #ifdef	HAVE_DRM_DECODER
 	decoderTable	-> addItem ("drm decoder");
+#endif
+#ifdef	HAVE_ACARS_DECODER
+	decoderTable	-> addItem ("acars decoder");
 #endif
 	displaySize		= 1024;
 	scopeWidth		= inputRate;
@@ -266,6 +277,7 @@ QString	FrequencytoString (quint64 freq) {
 	connect (middleButton, SIGNAL (clicked (void)),
 	         this, SLOT (set_inMiddle (void)));
 
+	bandSelector	-> addItem ("4000");
 	connect (bandSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (setBand (const QString &)));
 
@@ -514,6 +526,16 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	}
 	else
 #endif
+#ifdef	HAVE_NEW_CW
+	if (s == "cw decoder") {
+	   theDecoder	= new cwDecoder (this,
+	                                 decoderRate,
+	                                 audioData, settings);
+	   connect (theDecoder, SIGNAL (adjustFrequency (int)),
+	            this, SLOT (adjustFrequency_hz (int)));
+	}
+	else
+#endif
 #ifdef	HAVE_AMTOR_DECODER
 	if (s == "amtor decoder") {
 	   theDecoder	= new amtorDecoder (decoderRate,
@@ -562,6 +584,12 @@ virtualDecoder	*RadioInterface::selectDecoder (const QString &s) {
 	if (s == "drm decoder") {
 	   theDecoder	= new drmDecoder (this,
 	                                   audioData, settings);
+	}
+	else
+#endif
+#ifdef	HAVE_ACARS_DECODER
+	if (s == "acars decoder") {
+	   theDecoder	= new acarsDecoder (true, this);
 	}
 	else
 #endif
@@ -730,6 +758,11 @@ void	RadioInterface::setBand	(const QString &s) {
 	if (s == "2000") {
 	   theBand. lowF	= -1000;
            theBand. highF	= +1000;
+	}
+	else
+	if (s == "4000") {
+	   theBand. lowF	= -0;
+           theBand. highF	= +3000;
 	}
 	else
 	if (s == "usb") {

@@ -59,13 +59,18 @@
            threadHandle. join ();
         }
 }
-//
+
+static int blocks_in	= 0;
+
 //	entry for processing
 void	ft8_processor::PassOn (int lineno,
 	                       float refVal, int frequency, float *log174) {
+	if (blocks_in >= 4)
+	   return;
         while (!freeSlots. tryAcquire (200)) 
 	   if (!running. load ())
 	      return;
+	blocks_in ++;
 	theBuffer [blockToWrite]. lineno	= lineno;
 	theBuffer [blockToWrite]. value 	= refVal;
 	theBuffer [blockToWrite]. frequency	= frequency;
@@ -146,6 +151,7 @@ int	errors;
 
 //	   Release the buffer now
 	   freeSlots. Release ();
+	   blocks_in --;
            blockToRead = (blockToRead + 1) % (nrBlocks);
 //
 	   if (errors != 0) 

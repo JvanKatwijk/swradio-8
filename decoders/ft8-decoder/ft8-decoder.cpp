@@ -161,13 +161,6 @@ void	ft8_Decoder::process		(std::complex<float> z) {
 
 	kiss_fft (plan, fftVector_in, fftVector_out);
 //
-//	compute avg strength
-	float sum	= 0;
-	for (int i = 0; i < 2 * toneLength; i ++)
-	   sum += abs (fftVector_out [i]);
-	sum /=  (2 * toneLength);
-
-//
 //	copy the spectrum into the buffer, negative frequencies first
 	for (int i = 0; i < toneLength; i ++) {
 	   float x = abs (fftVector_out [i]);
@@ -175,21 +168,29 @@ void	ft8_Decoder::process		(std::complex<float> z) {
 	      fprintf (stderr, "ellende\n");
 	      x = 0;
 	   }
-	   float x_p = 10 * log10 (0.0001 + x);
+	   float x_p =  x;
 
 	   float y = abs (fftVector_out [toneLength + i]);
 	   if ((y < 0) || (y > 10000000)) {
 	      fprintf (stderr, "ellende\n");
 	      y = 0;
 	   }
-	   float x_n = 10 * log10 (0.0001 + y);
+	   float x_n = y;
 
 	   if (x_p < 0) x_p = 0;
 	   if (x_n < 0) x_n = 0;
-	   theBuffer [fillIndex][toneLength + i] = x_p + LOG_BASE;
-	   theBuffer [fillIndex][i] = x_n + LOG_BASE;
+	   theBuffer [fillIndex][toneLength + i] = x_p;
+	   theBuffer [fillIndex][i] = x_n;
 	}
-	theBuffer [fillIndex] [0] = 10 * log10 (0.0001 + sum);
+
+	float avg = 0;
+	for (int i = 0; i < 2 * toneLength; i ++)
+	   avg += theBuffer [fillIndex][i];
+	avg /= (2 * toneLength);
+	for (int i = 0; i < 2 * toneLength; i ++)
+	   theBuffer [fillIndex][i] /= avg;
+	
+	theBuffer [fillIndex] [0] = avg;
 
 	fillIndex = (fillIndex + 1) % nrBUFFERS;
 	lineCounter ++;
@@ -209,24 +210,36 @@ void	ft8_Decoder::process		(std::complex<float> z) {
 //	in the cache
 void	ft8_Decoder::processLine (int lineno) {
 std::vector<costasValue> cache;
+int	lowBin	= - spectrumWidth. load () / 2 / BINWIDTH + toneLength;
+int	highBin	=   spectrumWidth. load () / 2 / BINWIDTH + toneLength;
 
-	int	lowBin	= - spectrumWidth. load () / 2 / BINWIDTH + toneLength;
-	int	highBin	=   spectrumWidth. load () / 2 / BINWIDTH + toneLength;
-	float xxx [2 * toneLength];
-	for (int bin = lowBin + 10; bin < highBin- 10; bin ++) {
+float xxx [2 * toneLength];
+
+	for (int bin = lowBin; bin < highBin; bin ++) {
 	   float tmp = testCostas (lineno, bin);
 	   xxx [bin] = tmp;
 	}
 
 	peakFinder (xxx, lowBin, highBin, cache);
 
+	if (cache. size () == 0)
+	   return;
+
+//	float	max	= 0;
+//	int	maxIndex	= 0;
+//	for (int i = 0; i < cache. size (); i ++) {
+//	   if (cache. at (i). relative > max) {
+//	      max = cache. at (i). relative;
+//	      maxIndex = i;
+//	   }
+//	}
+//	costasValue it = cache. at (maxIndex);
+	costasValue it = cache. at (0);
+
 	float log174 [FT8_LDPC_BITS];
-	for (auto it: cache) {
-//	   int errors	= 0;
-	   it. value = decodeTones (lineno, it. index, log174);
-	   theProcessor . PassOn (lineCounter, it.value,
+	it. value = decodeTones (lineno, it. index, log174);
+	theProcessor . PassOn (lineCounter, it.value,
 	                 (int)(it. index - toneLength) * BINWIDTH, log174);
-	}
 }
 
 //      with an FFT of 3840 over een band of 12 K, the binwidth = 3.125,
@@ -236,13 +249,36 @@ int costasPattern [] = {3, 1, 4, 0, 6, 5, 2};
 
 static
 float	getScore	(float *p8, int bin, int tone) {
-	int index = bin + 2 * costasPattern [tone];
-	float res =  8 * (p8 [index] + p8 [index + 1]);
+int index = bin + 2 * costasPattern [tone];
+float res =  8 * (p8 [index] + p8 [index + 1]);
+
 	for (int i = -3; i < +3; i ++)
-	   res -= p8 [index + 2 * i] + p8 [index + 2 * i];;
+	   res -= p8 [index + 2 * i] + p8 [index + 2 * i];
 	return res < 0 ? 0 : res;
 }
 
+//float	ft8_Decoder::testCostas (int row, int bin) {
+//float	score	= 0;
+//
+//	for (int tone = 0; tone < 7; tone ++) {
+//	   float subScore;
+//	   float *buf =  
+//	        theBuffer [(row  +  FRAMES_PER_TONE * tone) % nrBUFFERS];
+//	   subScore = buf [bin + 2 * costasPattern [tone]] +
+//	                          buf [bin + 1 + 2 * costasPattern [tone]];
+//	   buf		=
+//	        theBuffer [(row + FRAMES_PER_TONE * (36 + tone)) % nrBUFFERS];
+//	   subScore *= buf [bin + 2 * costasPattern [tone]] +
+//	                         buf [bin + 1 + 2 * costasPattern [tone]];
+//	   buf		=
+//	        theBuffer [(row + FRAMES_PER_TONE * (72 + tone)) % nrBUFFERS];
+//	   subScore *= buf [bin + 2 * costasPattern [tone]] +
+//	                         buf [bin + 1 + 2 * costasPattern [tone]];
+//	   score += subScore;
+//	}
+//	return score / 7;
+//}
+	
 float	ft8_Decoder::testCostas (int row, int bin) {
 float	*p8;
 float	score = 0;
@@ -279,7 +315,7 @@ float	strength = 0;
 	   int theRow = (row + FRAMES_PER_TONE * i) % nrBUFFERS;
 	   float f =  decodeTone (theRow, bin, &log174 [filler]);
 //	   strength += f - 10 * log10 (8192);
-	   strength += f -  theBuffer [theRow][0];
+	   strength += f -  10 * log (theBuffer [theRow][0]);
 	   filler += 3;
 	}
 	normalize_logl (log174);
@@ -301,11 +337,11 @@ const uint8_t FT8_Gray_map [8] = {0, 1, 3, 2, 5, 6, 4, 7};
 float	ft8_Decoder::decodeTone (int row, int bin, float *logl) {
 float s1 [8];
 float s2 [8];
-float strength	= 0;
+float strength	= -100;
 
 	for (int i = 0; i < 8; i ++) {
-	   float a1 =        theBuffer [row][bin + 2 * i];
-	   float a2 =        theBuffer [row][bin + 2 * i + 1];
+	   float a1 = 10 * log (theBuffer [row][bin + 2 * i] + 0.0001);
+	   float a2 = 10 * log (theBuffer [row][bin + 2 * i + 1] + 0.0001);
 	   if ((a1 + a2) / 2 > strength)
 	      strength = (a1 + a2) / 2;
 	   s1 [i] =  (a1 + a2) / 2;
@@ -321,6 +357,7 @@ float strength	= 0;
 	logl [2] = max4 (s2 [1], s2 [3], s2 [5], s2 [7]) -
 	                        max4 (s2 [0], s2 [2], s2 [4], s2 [6]);
 
+	return strength;
 	return strength - LOG_BASE;
 }
 
@@ -339,7 +376,7 @@ float sum2 = 0;
 
 //	Normalize log174 distribution and scale it with
 //	experimentally found coefficient
-	float norm_factor = sqrtf (48.0f / variance);
+	float norm_factor = sqrtf (72.0f / variance);
 //	float norm_factor = sqrtf(24.0f / variance);
 	for (int i = 0; i < FT8_LDPC_BITS; ++i) {
 	   log174 [i] *= norm_factor;
@@ -374,31 +411,58 @@ void	ft8_Decoder::printLine (const QString &s) {
 	showText (theResults);
 }
 
+#define	KK	3
 static inline
 float	sum (float *V, int index) {
-	return V [index - 1] +  V [index] +  V [index + 1];
+float result = 0;
+//	for (int i = 0; i < 2 * KK; i ++)
+//	   result  += V [index - KK + i];
+//	return result / KK;
+	return V [index];
 }
 
 void	ft8_Decoder::peakFinder (float *V, int begin, int end,
 	                                    std::vector<costasValue> &cache) {
 costasValue	E;
 float workVector [2 * toneLength];
+float	avg	= 0;
+float	max	= 0;
+bool	flag	= false;
 
-	for (int i = begin; i < end; i ++)
-	   workVector [i] = sum (V, i);
+	for (int index = begin; index < end; index ++)
+	   avg += V [index];
+	avg /= (end - begin + 1);
+
+	E. value = 0;
+	E. relative	= 0;
 
 	for (int index = begin + 5; index < end - 5; index ++) {
-	   if ((1.1 * workVector [index - 5] < workVector [index]) &&
-	       (1.1 * workVector [index + 5] < workVector [index]) ) {
-	      E. index = index;
-	      E. value = theBuffer [readIndex] [index];
-	      cache. push_back (E);
-	      E. index = index + 1;
-	      E. value = theBuffer [readIndex] [index + 1];
-	      cache. push_back (E);
-	      index += 10;
+	   if (V [index] < 1.10 * avg)	// 
+	      continue;
+
+	   if (!(1.05 * V [index - 5] < V [index]) &&
+	        (1.05 * V [index + 5] < V [index]))
+	      continue;
+
+	   float max = 0;
+	   int maxIndex = 0;
+	   for (int i = -KK; i < KK; i ++) {
+	      if (V [index + i] > max) {
+	         max = V [index + i];
+	         maxIndex = index + i;
+	      }
 	   }
+
+	   if (V [maxIndex] / V [maxIndex + 5] > E. relative) {
+	      E. index = maxIndex;
+	      E. value = theBuffer [readIndex][maxIndex];
+	      E. relative = V [maxIndex] / V [maxIndex + 5];
+	      flag = true;
+	   }
+	   index += 5;
 	}
+	if (flag)
+	   cache. push_back (E);
 }
 
 void	ft8_Decoder::handle_filesaveButton	() {
@@ -406,6 +470,7 @@ void	ft8_Decoder::handle_filesaveButton	() {
 	   fclose (filePointer);
 	   filesaveButton -> setText ("save file");
 	   filePointer. store (nullptr);
+	   return;
 	}
 
 	QString saveName = 

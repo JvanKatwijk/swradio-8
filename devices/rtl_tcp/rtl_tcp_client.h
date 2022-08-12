@@ -64,9 +64,10 @@ private slots:
 	void		setConnection	();
 	void		wantConnect	();
 	void		setDisconnect	();
+	void		handle_rateSelector	(const QString &);
 private:
-	decimatingFIR	downFilter;
 	QFrame		myFrame;
+	decimatingFIR	*downFilter;
 	int32_t		inputRate;
 	int32_t		outputRate;
 	void		sendVFO		(int32_t);

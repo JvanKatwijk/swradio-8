@@ -36,6 +36,7 @@
 #include	<qwt_plot_grid.h>
 #include	<qwt_color_map.h>
 #include	<qwt_plot_picker.h>
+#include	<QPen>
 #include	<QBrush>
 #include	<QTimer>
 #include	<stdint.h>

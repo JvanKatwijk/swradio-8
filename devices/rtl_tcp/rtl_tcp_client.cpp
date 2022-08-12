@@ -40,10 +40,6 @@
 	                                 RingBuffer<std::complex<float>> *r,
 	                                 QSettings *s):
 	                                    deviceHandler (mr),
-	                                    downFilter (inputRate / outputRate * 5 + 1,
-	                                                outputRate / 2,
-	                                                inputRate,
-	                                                inputRate / outputRate),
 	                                    myFrame (nullptr){
 	this	-> inputRate	= inputRate;
 	this	-> outputRate	= outputRate;
@@ -66,6 +62,7 @@
 	tcp_ppm		-> setValue (thePpm);
 	vfoFrequency	= DEFAULT_FREQUENCY;
 	_I_Buffer	= r;
+	downFilter	= nullptr;
 	connected	= false;
 	hostLineEdit 	= new QLineEdit (nullptr);
 	dumping		= false;
@@ -79,11 +76,15 @@
 	         this, SLOT (set_fCorrection (int)));
 	connect (khzOffset, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_Offset (int)));
+	connect (rateSelector, SIGNAL (activated (const QString &)),
+	         this, SLOT (handle_rateSelector (const QString &)));
 	theState	-> setText ("waiting to start");
 }
 
 	rtl_tcp_client::~rtl_tcp_client() {
 	remoteSettings ->  beginGroup ("rtl_tcp_client");
+	if (downFilter != nullptr)
+	   delete downFilter;
 	if (connected) {		// close previous connection
 	   stopReader();
 	   remoteSettings -> setValue ("remote-server",
@@ -96,12 +97,28 @@
 	toServer. close();
 	delete	hostLineEdit;
 }
-//
+
+void	rtl_tcp_client::handle_rateSelector	(const QString &s) {
+	inputRate	= s. toInt () * 1000;
+	if (downFilter != nullptr)
+	   delete downFilter;
+	downFilter	= new decimatingFIR (inputRate / outputRate * 5 + 1,
+	                                     outputRate / 2,
+	                                     inputRate,
+	                                     inputRate / outputRate);
+}
+
 void	rtl_tcp_client::wantConnect () {
 QString ipAddress;
 int16_t	i;
 QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
 
+	if (downFilter == nullptr)
+	   downFilter	= new decimatingFIR (inputRate / outputRate * 5 + 1,
+	                                     outputRate / 2,
+	                                     inputRate,
+	                                     inputRate / outputRate),
+	rateSelector -> hide ();
 	if (connected)
 	   return;
 	// use the first non-localhost IPv4 address
@@ -225,7 +242,7 @@ int cnt	= 0;
 	      std::complex<float> temp = std::complex<float> (
 	                                    mapTable [buffer [2 * i]],
 	                                    mapTable [buffer [2 * i + 1]]);
-	      if (downFilter. Pass (temp, &localBuffer [cnt]))
+	      if (downFilter -> Pass (temp, &localBuffer [cnt]))
 	         cnt ++;
 	   }
 	   _I_Buffer -> putDataIntoBuffer (localBuffer, cnt);

@@ -137,8 +137,8 @@ private slots:
 	void		set_AGCMode             (const QString &);
 	void		switch_hfViewMode	(int);
 	void		switch_lfViewMode	(int);
-	void		updateTime		(void);
-	void		set_dumpButton		(void);
+	void		updateTime		();
+	void		set_dumpButton		();
 	void		closeEvent		(QCloseEvent *event);
 public slots:
 	void		sampleHandler		(int amount);

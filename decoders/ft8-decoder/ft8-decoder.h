@@ -38,8 +38,9 @@
 #include	"ft8-processor.h"
 #include	"psk-writer.h"
 typedef struct {
-	int index;
+	int	index;
 	float	value;
+	float 	relative;
 } costasValue;
 
 class	RadioInterface;

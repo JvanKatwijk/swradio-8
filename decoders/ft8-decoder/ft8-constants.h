@@ -24,7 +24,7 @@
 #define	__FT8_CONSTANTS__
 
 #define nrTONES 79
-#define FRAMES_PER_TONE 5
+#define FRAMES_PER_TONE 2
 #define nrBUFFERS       (3 * nrTONES * FRAMES_PER_TONE)
 #define BINWIDTH (12000.0 / 3840)
 

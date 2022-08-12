@@ -109,6 +109,44 @@ SOURCES += ./main.cpp \
            ./devices/filereader/filehulp.cpp \
            ./decoders/virtual-decoder.cpp 
 
+mac {
+exists ("./.git") {
+   GITHASHSTRING = $$system(git rev-parse --short HEAD)
+   !isEmpty(GITHASHSTRING) {
+       message("Current git hash = $$GITHASHSTRING")
+       DEFINES += GITHASH=\\\"$$GITHASHSTRING\\\"
+   }
+}
+isEmpty(GITHASHSTRING) {
+    DEFINES += GITHASH=\\\"------\\\"
+}
+
+#define		__MAC__
+DESTDIR		= ./linux-bin
+CONFIG		+= sdrplay-v3
+CONFIG		+= sdrplay
+CONFIG		+= hackrf
+CONFIG		+= rtlsdr
+CONFIG		+= rtl_tcp
+#CONFIG		+= pmsdr
+#CONFIG		+= cardReader
+CONFIG		+= am-decoder
+CONFIG		+= ssb-decoder
+CONFIG		+= cw-decoder
+CONFIG		+= amtor-decoder
+CONFIG		+= psk-decoder
+CONFIG		+= ft8-decoder
+CONFIG		+= rtty-decoder
+CONFIG		+= fax-decoder
+CONFIG		+= drm-decoder-fdk
+CONFIG		+= acars-decoder
+#CONFIG		+= test-decoder
+INCLUDEPATH     	+= /usr/local/include /usr/local/lib/qwt.framework/Headers
+QMAKE_LFLAGS	+= -F/usr/local/opt/qwt-qt5/lib -L/usr/local/lib
+#LIBS			+= -lqwt -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
+LIBS			+= -framework qwt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
+}
+
 unix {
 exists ("./.git") {
    GITHASHSTRING = $$system(git rev-parse --short HEAD)
@@ -132,12 +170,14 @@ CONFIG		+= rtl_tcp
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
+#CONFIG		+= new-cw
 CONFIG		+= amtor-decoder
 CONFIG		+= psk-decoder
 CONFIG		+= ft8-decoder
 CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
 CONFIG		+= drm-decoder-fdk
+CONFIG		+= acars-decoder
 #CONFIG		+= test-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
@@ -293,6 +333,22 @@ test-decoder {
         SOURCES         += ./decoders/test-decoder/test-decoder.cpp
 }
 
+acars-decoder {
+        DEFINES         += HAVE_ACARS_DECODER
+        INCLUDEPATH     += ./decoders/acars-decoder
+        DEPENDPATH      += ./decoders/acars-decoder
+#	FORMS           += ./decoders/test-decoder/test-decoder.ui
+	HEADERS         += ./decoders/acars-decoder/acars-constants.h
+	HEADERS         += ./decoders/acars-decoder/syndrom.h
+	HEADERS         += ./decoders/acars-decoder/acars-decoder.h
+	HEADERS         += ./decoders/acars-decoder/printer.h
+	HEADERS         += ./decoders/acars-decoder/cJSON.h
+        SOURCES         += ./decoders/acars-decoder/acars-decoder.cpp
+        SOURCES         += ./decoders/acars-decoder/printer.cpp
+        SOURCES         += ./decoders/acars-decoder/label.c
+        SOURCES         += ./decoders/acars-decoder/cJSON.c
+}
+
 am-decoder {
         DEFINES         += HAVE_AM_DECODER
         INCLUDEPATH     += ./decoders/am-decoder
@@ -318,6 +374,15 @@ cw-decoder {
         FORMS           += ./decoders/cw-decoder/cw-decoder.ui
         HEADERS         += ./decoders/cw-decoder/cw-decoder.h
         SOURCES         += ./decoders/cw-decoder/cw-decoder.cpp
+}
+
+new-cw {
+        DEFINES         += HAVE_NEW_CW
+        INCLUDEPATH     += ./decoders/cw-new
+        DEPENDPATH      += ./decoders/cw-new
+        FORMS           += ./decoders/cw-new/cw-new.ui
+        HEADERS         += ./decoders/cw-new/cw-new.h
+        SOURCES         += ./decoders/cw-new/cw-new.cpp
 }
 
 amtor-decoder {

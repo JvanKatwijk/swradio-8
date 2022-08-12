@@ -55,7 +55,6 @@
 	dll_driver::~dll_driver (void) {
 }
 
-
 static 
 float convTable [256];
 
@@ -137,10 +136,12 @@ QString	temp;
 	statusLabel	-> setText ("setting up");
 #ifdef	__MINGW32__
 	Handle		= LoadLibrary ((wchar_t *)L"rtlsdr.dll");
+#elif	__MAC__
+	Handle		= dlopen ("librtlsdr.dylib", RTLD_NOW);
 #else
 	Handle		= dlopen ("librtlsdr.so", RTLD_NOW);
 #endif
-	if (Handle == NULL) {
+	if (Handle == nullptr) {
 	   fprintf (stderr, "Failed to open rtlsdr.dll\n");
 	   statusLabel	-> setText ("no rtlsdr lib");
 	   delete myFrame;
@@ -311,6 +312,10 @@ void	rtlsdrHandler::setVFOFrequency	(quint64 f) {
 	   return;
 
 	vfoFrequency	= f;
+	if (f <= 2880000)
+	   rtlsdr_set_direct_sampling (device, 0);
+	else
+	   rtlsdr_set_direct_sampling (device, 0);
 	(void)rtlsdr_set_center_freq (device, f);
 }
 

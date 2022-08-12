@@ -594,7 +594,6 @@ QStringList result;
 
 	   case 3:	// t1 c28 c28 R1 r3 s13
 	      return extract_call_type_3 (m_in);
-	      return result;
 
 	   case 4:	// h12 c58 h1 r2 c1
 	      return result;
@@ -636,12 +635,12 @@ QString call;
 	   return result;
 	c28a    = getLBits (m_in,  0, 28);      // callsign
         c28b    = getLBits (m_in, 29, 28);      // callsign
-	if (c28a > HASH_END) { 	// normal call
+	if (c28b > HASH_END) { 	// normal call
 	   for (int i = 0; i <  (int)gehad. size (); i ++)
-	      if (gehad. at (i) == c28a)
+	      if (gehad. at (i) == c28b)
 	         return result;
-	   call = getCallsign (c28a);
-	   gehad. push_back (c28a);
+	   call = getCallsign (c28b);
+	   gehad. push_back (c28b);
 	   result << call;
 	   return result;
 	}
@@ -674,42 +673,40 @@ QStringList result;
 	g15	= getBits  (m_in, 59, 15); 	// g15, potential grid
 
 //	Check for special tokens DE, QRZ, CQ, CQ_nnn, CQ_xxxx
-	if ((c28a < HASH_END) && (test_cq (c28a))) {
-	   if (R1 > 0)
-	      return result;
-	   for (int i = 0; i < (int)gehad. size (); i ++)
+//	if ((c28a < HASH_END) && (test_cq (c28a))) {
+//	   if (R1 > 0)
+//	      return result;
+//	   for (int i = 0; i < (int)gehad. size (); i ++)
+//	      if (gehad. at (i) == c28b)
+//	         return result;
+//	   call = getCallsign (c28b);
+//	   gehad. push_back (c28b);
+//	   result << call;
+//	   if (g15 > 0) {
+//	      uint16_t n = g15;
+//	      char data [5];
+//	      data [4] = '\0';
+//	      data [3] = '0' + (n % 10);
+//	      n /= 10;
+//	      data [2] = '0' + (n % 10);
+//	      n /= 10;
+//	      data [1] = 'A' + (n % 18);
+//	      n /= 18;
+//	      data [0] = 'A' + (n % 18);
+//	      locator	= QString (data);
+//	      if ((data [0] == 'A') || (data [0] == 'R'))
+//	         return result;
+//	      result << locator;
+//	      return result;
+//	   }
+//	}
+//	else
+	if (c28b > HASH_END) { 	// normal call
+	   for (int i = 0; i < (int) gehad. size (); i ++)
 	      if (gehad. at (i) == c28b)
 	         return result;
 	   call = getCallsign (c28b);
 	   gehad. push_back (c28b);
-	   result << call;
-	   if (g15 > 0) {
-	      uint16_t n = g15;
-	      char data [5];
-	      data [4] = '\0';
-	      data [3] = '0' + (n % 10);
-	      n /= 10;
-	      data [2] = '0' + (n % 10);
-	      n /= 10;
-	      data [1] = 'A' + (n % 18);
-	      n /= 18;
-	      data [0] = 'A' + (n % 18);
-	      locator	= QString (data);
-	      if ((data [0] == 'A') || (data [0] == 'R'))
-	         return result;
-	      result << locator;
-	      return result;
-	   }
-	}
-	else
-	if (c28a > HASH_END) { 	// normal call
-	   if (R1 > 0)
-	      return result;
-	   for (int i = 0; i < (int) gehad. size (); i ++)
-	      if (gehad. at (i) == c28a)
-	         return result;
-	   call = getCallsign (c28a);
-	   gehad. push_back (c28a);
 	   result << call;
 	   if (g15 > 0) {
 	      uint16_t n = g15;
@@ -743,20 +740,21 @@ QString	call;
 
 	(void)t1;
 //	Check for special tokens DE, QRZ, CQ, CQ_nnn, CQ_xxxx
-	if (c28a < CQ_4LETTER_E) {		// It is a cq
-	   for (int i = 0; i < (int)gehad. size (); i ++)
+//	if (c28a < CQ_4LETTER_E) {		// It is a cq
+//	   for (int i = 0; i < (int)gehad. size (); i ++)
+//	      if (gehad. at (i) == c28b)
+//	         return result;
+//	   call = getCallsign (c28b);
+//	   gehad. push_back (c28b);
+//	   result << call;
+//	   return result;
+//	}
+	if (c28b > HASH_END) {		// seems a regular call
+	   for (int i = 0; i < (int) gehad. size (); i ++)
 	      if (gehad. at (i) == c28b)
 	         return result;
-	   call = getCallsign (c28b);
 	   gehad. push_back (c28b);
-	   result << call;
-	   return result;
-	}
-	if (c28a > HASH_END) {		// seems a regular call
-	   for (int i = 0; i < (int) gehad. size (); i ++)
-	      if (gehad. at (i) == c28a)
-	         return result;
-	   call = getCallsign (c28a);
+	   call = getCallsign (c28b);
 	   result << call;
 	   return result;
 	}
