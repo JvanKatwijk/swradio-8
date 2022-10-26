@@ -3,7 +3,7 @@
 ######################################################################
 TEMPLATE = app
 QT	+= widgets xml
-CONFIG	+= console
+CONFIG	+= console qwt qwt-qt5
 #CONFIG	-= console
 TARGET	= swradio-9
 QMAKE_CXXFLAGS  += -std=c++14
@@ -181,8 +181,7 @@ CONFIG		+= acars-decoder
 #CONFIG		+= test-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
-INCLUDEPATH	+= /usr/include/qt5/qwt
-LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
+LIBS		+= -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
 }
 
 win32 {

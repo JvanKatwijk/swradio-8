@@ -41,6 +41,7 @@
 #include	<qwt_plot_zoomer.h>
 #include	<qwt_plot_panner.h>
 #include	<qwt_plot_layout.h>
+#include	<qpen.h>
 
 class EQDisplay {
 public:
