@@ -52,7 +52,6 @@
 
 void	acarsDecoder::process	(std::complex<float> Sample) {
 int	i;
-
 float in;
 double s;
 std::complex<float> v;
@@ -68,11 +67,7 @@ int j, o;
 
 //	mixer 
 	inbuffer [idx] = Sample * std::complex<float> (cos (MskPhi),
-	                                              -sin (MskPhi));
-//	in =  abs (Sample);
-//	inbuffer [idx] =  std::complex<float> (
-//	                                 in * cos (MskPhi),
-//	                                 in * -sin (MskPhi));
+	                                               -sin (MskPhi));
 	idx = (idx + 1) % FLEN;
 
 //	bit clock 
@@ -87,9 +82,9 @@ int j, o;
 	   v = std::complex<float> (0, 0);
 	   for (j = 0; j < FLEN; j++, o++) {
 	      v += std::complex<float> (
-	      matchedFilter_h [o] * real (inbuffer [j]),
-	      matchedFilter_h [o] * imag (inbuffer [j]));
-	   }
+	                    matchedFilter_h [o] * real (inbuffer [j]),
+	                    matchedFilter_h [o] * imag (inbuffer [j]));
+	                   }
 
 //	normalize 
 	   lvl = abs (v);

@@ -73,13 +73,6 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QCheckBox" name="biasT_selector">
-       <property name="text">
-        <string>biasT</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QSpinBox" name="ppmControl">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -353,6 +346,16 @@
        <item>
         <property name="text">
          <string>Antenna A</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Antenna B</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Antenna C</string>
         </property>
        </item>
       </widget>

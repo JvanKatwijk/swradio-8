@@ -24,8 +24,6 @@
 #ifndef __SDRPLAY_HANDLER_V3__
 #define	__SDRPLAY_HANDLER_V3__
 
-#include	"device-handler.h"
-#include	"fir-filters.h"
 #include	<QObject>
 #include	<QFrame>
 #include	<QSettings>
@@ -35,10 +33,11 @@
 #include	<queue>
 #include	"radio-constants.h"
 #include	"ringbuffer.h"
+#include	"fir-filters.h"
+#include	"device-handler.h"
 #include	"ui_sdrplay-widget-v3.h"
 #include	<sdrplay_api.h>
 
-class	Rsp_device;
 class	generalCommand;
 
 #ifdef __MINGW32__
@@ -74,10 +73,12 @@ public:
         int32_t         outputRate;
         void            report_dataAvailable    (void);
         decimatingFIR   *filter;
+        int32_t         localShift;
+        int32_t         oscillatorPhase;
+        std::complex<float> *oscillatorTable;
         int             denominator;
 	int		theGain;
 	std::atomic<int>status;
-	sdrplay_api_CallbackFnsT        cbFns;
 private:
 	QFrame				myFrame;
 public:
@@ -98,8 +99,10 @@ public:
         sdrplay_api_Update_t            sdrplay_api_Update;
 private:
 	sdrplay_api_DeviceT             *chosenDevice;
+	sdrplay_api_DeviceParamsT       *deviceParams;
+	sdrplay_api_CallbackFnsT        cbFns;
+	sdrplay_api_RxChannelParamsT    *chParams;
 
-	Rsp_device		*theRsp;
         std::atomic<bool>       threadRuns;
 	void			run			();
 	bool			messageHandler		(generalCommand *);
@@ -109,15 +112,15 @@ private:
 	int32_t			vfoFrequency;
 	int16_t			hwVersion;
 	QSettings		*sdrplaySettings;
-	int			GRdBValue;
 	bool			agcMode;
 	int16_t			nrBits;
+	int			lna_upperBound;
 	float			apiVersion;
 	QString			serial;
+	bool			has_antennaSelect;
 	QString			deviceModel;
 	int			lnaState;
 	int			ppmValue;
-	bool			biasT;
 	HINSTANCE		Handle;
 	std::queue<generalCommand *>	server_queue;
 	QSemaphore		serverjobs;
@@ -130,21 +133,21 @@ private slots:
 	void			set_lnagainReduction	(int);
 	void			set_agcControl		(int);
 	void			set_ppmControl		(int);
-	void			set_selectAntenna	(const QString &);
+	void			set_antennaSelect	(const QString &);
 	void			set_amPortSelect	(const QString &);
-	void			set_biasT		(int);
 public slots:
 	void			set_lnabounds		(int, int);
-	void			set_nrBits		(int);
 	void			set_deviceName		(const QString &);
 	void			set_serial		(const QString &);
 	void			set_apiVersion		(float);
-	void			set_antennaSelect	(int);
+	void			set_antennaSelect	(bool);
 	void			show_tunerSelector	(bool);
-	void			show_lnaGain		(int);
 signals:
+	void			set_lnabounds_signal	(int, int);
+	void			set_deviceName_signal	(const QString &);
 	void			set_serial_signal	(const QString &);
 	void			set_apiVersion_signal	(float);
+	void			set_antennaSelect_signal	(bool);
 };
 #endif
 

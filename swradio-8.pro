@@ -254,8 +254,18 @@ sdrplay-v3 {
         INCLUDEPATH     += ./devices/sdrplay-handler-v3
         INCLUDEPATH     += ./devices/sdrplay-handler-v3/include-v3
         HEADERS         += ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h \
-                           ./devices/sdrplay-handler-v3/sdrplay-commands.h
-        SOURCES         += ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp 
+                           ./devices/sdrplay-handler-v3/sdrplay-commands.h \
+	                   ./devices/sdrplay-handler-v3/Rsp-device.h \
+	                   ./devices/sdrplay-handler-v3/Rsp1A-handler.h \
+	                   ./devices/sdrplay-handler-v3/RspII-handler.h \
+	                   ./devices/sdrplay-handler-v3/RspDuo-handler.h \
+	                   ./devices/sdrplay-handler-v3/RspDx-handler.h
+        SOURCES         += ./devices/sdrplay-handler-v3/Rsp-device.cpp \
+	                   ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp \
+	                   ./devices/sdrplay-handler-v3/Rsp1A-handler.cpp \
+	                   ./devices/sdrplay-handler-v3/RspII-handler.cpp \
+	                   ./devices/sdrplay-handler-v3/RspDuo-handler.cpp \
+	                   ./devices/sdrplay-handler-v3/RspDx-handler.cpp 
 }
 
 hackrf	{

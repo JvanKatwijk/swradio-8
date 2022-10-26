@@ -27,17 +27,17 @@
 //	the calling and the callee thread
 #ifndef	__SDRPLAY_COMMANDS__
 #define	__SDRPLAY_COMMANDS__
-
 #define RESTART_REQUEST         0100
 #define STOP_REQUEST            0101
 #define SETFREQUENCY_REQUEST	0102
-#define AGC_REQUEST             0103
-#define GRDB_REQUEST            0104
-#define PPM_REQUEST             0105
-#define LNA_REQUEST             0106
-#define ANTENNASELECT_REQUEST   0107
-#define	AMPORT_REQUEST		0110
-#define	BIAST_REQUEST		0111
+#define	GETFREQUENCY_REQUEST	0103
+#define AGC_REQUEST             0104
+#define GRDB_REQUEST            0105
+#define PPM_REQUEST             0106
+#define LNA_REQUEST             0107
+#define ANTENNASELECT_REQUEST   0110
+#define GAINVALUE_REQUEST	0111
+#define	AMPORT_REQUEST		0112
 
 #include	<QSemaphore>
 
@@ -55,11 +55,11 @@ public:
 
 class	restartRequest: public generalCommand {
 public:
-	int	freq;
+	int	frequency;
 	bool	result;
 	restartRequest (int newFrequency):
 	   generalCommand (RESTART_REQUEST) {
-	   this	-> freq = newFrequency;
+	   this	-> frequency = newFrequency;
 	}
 
 	~restartRequest	() {}
@@ -83,6 +83,16 @@ public:
 	}
 
 	~set_frequencyRequest	() {}
+};
+
+class get_frequencyRequest: public generalCommand {
+public:
+	int frequency;
+	get_frequencyRequest () :
+	   generalCommand (GETFREQUENCY_REQUEST) {
+	}
+
+	~get_frequencyRequest	() {}
 };
 
 class agcRequest: public generalCommand {
@@ -127,6 +137,15 @@ public:
 	~lnaRequest	() {}
 };
 
+class	gainvalueRequest: public generalCommand {
+public: 
+        int	gainValue;
+        gainvalueRequest ():
+                    generalCommand (GAINVALUE_REQUEST) {
+        }
+        ~gainvalueRequest     () {}
+};
+
 class	antennaRequest: public generalCommand {
 public:
 	int	antenna;
@@ -147,14 +166,5 @@ public:
 	~amPortRequest	() {}
 };
 
-class	biasTRequest: public generalCommand {
-public:
-	bool checked;
-	biasTRequest (bool checked): 
-	           generalCommand (BIAST_REQUEST) {
-	   this -> checked = checked;
-	}
-	~biasTRequest () {}
-};
 #endif
 

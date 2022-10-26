@@ -276,7 +276,7 @@ float res =  8 * (p8 [index] + p8 [index + 1]);
 //	                         buf [bin + 1 + 2 * costasPattern [tone]];
 //	   score += subScore;
 //	}
-//	return score / 7;
+//	return score;
 //}
 	
 float	ft8_Decoder::testCostas (int row, int bin) {
@@ -298,7 +298,7 @@ float	score = 0;
 	   score += getScore (p8, bin, tone);
 	}
 
-	return score / 21;
+	return score;
 }
 //
 //	we compute the "strength" of the tone bins as relation beetween

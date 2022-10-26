@@ -1,6 +1,14 @@
 # swradio-9 [![Build Status](https://travis-ci.org/JvanKatwijk/swradio-9.svg?branch=master)](https://travis-ci.org/JvanKatwijk/swradio-8)
 
-------------------------------------------------------------------
+--------------------------------------------------------------------
+Improved support for SDRplay RSP's
+---------------------------------------------------------------------
+
+Support for the SDRplay RSP's is rewritten (and improved). For the DX version,
+antennas A, B and C can be selected now.
+
+
+-----------------------------------------------------------------
 Introduction (Revised version 9)
 ------------------------------------------------------------------
 
