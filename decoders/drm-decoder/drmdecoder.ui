@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>581</width>
-    <height>380</height>
+    <width>567</width>
+    <height>401</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -232,51 +232,92 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QLabel" name="spectrumIndicator">
-       <property name="frameShape">
-        <enum>QFrame::Box</enum>
-       </property>
-       <property name="text">
-        <string/>
+      <widget class="QSpinBox" name="strengthSelector">
+       <property name="maximum">
+        <number>5</number>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="modeIndicator">
-       <property name="frameShape">
-        <enum>QFrame::Box</enum>
+      <widget class="QSpinBox" name="f_cutSelector">
+       <property name="minimum">
+        <number>10</number>
        </property>
-       <property name="text">
-        <string/>
+       <property name="maximum">
+        <number>200</number>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="datacoding">
-       <property name="frameShape">
-        <enum>QFrame::Box</enum>
+       <property name="singleStep">
+        <number>5</number>
        </property>
-       <property name="text">
-        <string/>
+       <property name="value">
+        <number>20</number>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="audioModelabel">
-       <property name="frameShape">
-        <enum>QFrame::Box</enum>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QLabel" name="spectrumIndicator">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="modeIndicator">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="datacoding">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="audioModelabel">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QComboBox" name="modeSelector">
+       <item>
+        <property name="text">
+         <string>Pilots</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>channel</string>
+        </property>
+       </item>
+      </widget>
+     </item>
      <item>
       <widget class="QLCDNumber" name="fac_mer">
        <property name="toolTip">
@@ -348,7 +389,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
      <item>
       <widget class="QwtPlot" name="equalizerDisplay">
        <property name="maximumSize">
@@ -373,7 +414,7 @@
       <widget class="QwtPlot" name="iqPlotter">
        <property name="maximumSize">
         <size>
-         <width>16777215</width>
+         <width>221</width>
          <height>141</height>
         </size>
        </property>

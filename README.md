@@ -5,7 +5,8 @@ Improved support for SDRplay RSP's
 ---------------------------------------------------------------------
 
 Support for the SDRplay RSP's is rewritten (and improved). For the DX version,
-antennas A, B and C can be selected now.
+antennas A, B and C can be selected now, and its antenna setting is
+kept between invocations.
 
 
 -----------------------------------------------------------------
@@ -19,9 +20,6 @@ The software supports hackrf devices, rtlsdr devices
 (For the rtlsdr based devices, use was made of a special version of the
 library, the one by Oliver Jowett. Sources are included in the source tree of
 this program.)
-It can be configured to use the "classic" PMSDR device, the precompiled
-versions for Linux (i.e. an AppImage) and Windows (i.e. an installer)
-are configured for the other ones.
 
 ![swradio-8](/swradio-overview.png?raw=true)
 
@@ -83,7 +81,7 @@ With the second combobox above the main spectrum a choice can be made
 among a list of bandwidths symmetrical around 0 (200, 500, 1000, 1500, 2000,
 am (9 KHz) and wide (full 12 KHz), as well as selectors for usb (upper band) and lsb (lower band), each of 2500 Hz).
 
-It is assumed that - if needed - the decoder implmementation will do further
+It is assumed that - if needed - the decoder implementation will do further
 filtering an decimation (as an example, the CW and PSK decoders use 2000 Hz
 as "operating" samplerate).
 
@@ -146,6 +144,10 @@ As known, (B)PSK is encoded using phase jumps of 180 degrees, while
 reasonable idea of the stability of the phase jumps, and therefore
 of the success in decoding.
 
+(Note that while when I wrote the decoder, about 10 years ago, the band was 
+full with psk signals, now one hardly sees one. That is why the decoder
+picture is taken from some file input.
+
 -------------------------------------------------------------------------
 A note on the amtor (navtex) decoder
 -------------------------------------------------------------------------
@@ -164,7 +166,7 @@ A note on the RTTY decoder
 
 While the use of RTTY on amateur bands seems to decrease, it is an interesting
 mode. I used to listen around 14080 KHz, but do not see much activity on
-RTTY there.
+RTTY there anymore.
 
 Of course there are lots of parameters.
 Amateurs use RTTY with a shift of 170 Hz and a baudrate of 45. Sometimes
@@ -175,9 +177,12 @@ To aid is tuning - a 170 Hz signal remains small - there are some indicators
 on the left side of the widget
 
  * the frequency offset, as measured between the mark and the space;
- * the guessed baudrate
+ * the estimated baudrate
 
 ![swradio-8](/swradio-rtty-widget.png?raw=true)
+
+As with psk, while a decade ago the 14080 KHz was full (overloaded) with rtty
+signals, one now only ocxasionally sees such signals.
 
 -------------------------------------------------------------------------
 A note on the ft8 decoder
@@ -194,7 +199,7 @@ derived from his work.
 Anyway, FT8 is a small signal, using tones with a predefined length
 and a well defined distance between successive ones. The signal width
 is 7 times 6.25 Hz, i.e. about 45 Hz, and messages have a defined
-length of 79 tones, with 6 tones per second.
+length of 79 tones, with 6 tones per second (i.e. app 12.5 seconds).
 
 The decoder has three control elements
 
@@ -205,7 +210,7 @@ The decoder has three control elements
 The current version has as option sending (some parts of) the messages to
 the pskreporter, i.e. using the decoder as "Monitor", the map on pskreporter.info will then show you as "monitor".
 
-The pskreporter (see report.pskreporter.info) obviously wants to know
+The **pskreporter** (see report.pskreporter.info) obviously wants to know
 who is sending the data, so there is a possibility to fill in your
 callsign (I do not have a callsign, not being a "real" amateur, but I have an official number as "listener", obtained from the VERON, the association of radio amateurs in the Netherlands), the maiddenhead grid indication of your locatio
 (which helps the pskreportet to position your description on the map) and
@@ -223,17 +228,15 @@ Note: the decoder is experimental and will definitely not catch all transmitted 
 
 ![swradio-8](/swradio-ft8-widget.png?raw=true)
 
-
 -------------------------------------------------------------------------
 a note on the weatherfax decoder
 -------------------------------------------------------------------------
 
 Even in this time of internet and satelites, weatherfaxes still can be 
 received on a variety of frequencies. In my region, I can receive
-faxes on 3588, 4610, 7880 and 8020 KHz.
+faxes on 3588, 4610, 7880 and 8040 KHz.
 
 ![swradio-8](/swradio-wfax-widget.png?raw=true)
-
 
 Receiving a fax takes quite some time, and tuning into the frequency will
 show a running transmission. To " pop-in", the decoder has a "cheat"
@@ -246,18 +249,39 @@ a note on the DRM decoder
 -------------------------------------------------------------------------
 
 DRM, Digital Radio Mondiale, is digital radio over shortwave. 
-There are not many drm transmissions these days, but it is interesting
-to compare drm with DAB. The latter of course on much higher frequencies
-with a much higher bandwidth.
+There are not many DRM transmissions these days, but it is interesting
+to compare DRM with DAB. The latter of course on much higher frequencies
+with a much higher bandwidth (and with much higher payload).
 
-![swradio-8](/swradio-drm-widget.png?raw=true)
+The DRM signal is transmitted - an OFDM signal - with app 300 carriers,
+close to each other (carrier distance is app 45 Hz).
+Decoding is coherent, so the signal as transmitted has to be restored.
+To aid in "undoing" the channel effects, a number of carriers, pilots,
+are transmitted, carriers with predefined amplitude and phase.
+
+![swradio-8](/swradio-drm-widget-1.png?raw=true)
 
 The decoder widget gives quite some information. The "scopes" show the
-correction to be applied to the signal (blue line is the phase, red line
-the amplitude), as well as the constellation.
+correction to be applied to the signal.
+In the current version one may choose between looking at the
+correction factors to be applied to the "pilot carriers",
+or looking at the channel impulse.
 
-Note that, other than in previous versions, the drm decoder now 
-uses the fdk-aac library. Therefore, the decoder is able to handle both AAC and xHE-AAC encoded services.
+The picture above shows the **correction** to be applied to the pilot carriers
+(from which the correction to the other carriers is computed). The yellow
+lines tell about the amplitude, the white lines about the phase correction.
+(Correction is here: divide the measured signal on the pily carrier by
+the correction fctor). Such correction is needed, since decoding is coherent.
+
+![swradio-8](/swradio-drm-widget-2.png?raw=true)
+
+The second picture shows the **channel impulse**, i.e.
+the **filtering** as applied on the signal in the transport from
+transmitter to receiver.
+Again, the yellow line tells the amplitude value of the filter component,
+while the white line does so for the phase.
+
+In general, DRM is retty difficult to decode, due to channel conditions.
 
 --------------------------------------------------------------------------
 Using the swradio
@@ -271,7 +295,7 @@ A selected frequency can be stored by pressing the save frequency button.
 If touched, one is asked to specify a name to be used to label that frequency.
 The pair (name, frequency) then is added to the list.
 
-Selecting such a "preferred program" is just by clicking the mouse on 
+Selecting such a **preferred program** is just by clicking the mouse on 
 the programname or the associated field with the frequency.
 
 Buttons and slider are equipped with a *tooltip*, touching the button or
@@ -303,12 +327,6 @@ For Linux an "appImage" can be found in the releases section.
 It is of course possible to create your own executable, the ".pro" file
 for use with qmake and the CMakeList.txt file for use with cmake
 can be used to generate a makefile.
-
--------------------------------------------------------------------------
-Using a pmSDR device and a soundcard
--------------------------------------------------------------------------
-
-The software can be configured to use the PMSDR.
 
 -------------------------------------------------------------------------
 --------------------------------------------------------------------------

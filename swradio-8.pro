@@ -60,6 +60,7 @@ HEADERS += ./radio-constants.h \
            ./filters/fir-filters.h \
            ./filters/iir-filters.h \
 	   ./filters/decimating_filter.h \
+	   ./filters/hilbertfilter.h \
 	   ./scopes-qwt6/virtual-scope.h \
 	   ./scopes-qwt6/spectrogramdata.h \
 	   ./scopes-qwt6/waterfall-scope.h \
@@ -96,6 +97,7 @@ SOURCES += ./main.cpp \
            ./filters/fir-filters.cpp \
            ./filters/iir-filters.cpp \
 	   ./filters/decimating_filter.cpp \
+	   ./filters/hilbertfilter.cpp \
 	   ./scopes-qwt6/virtual-scope.cpp \
 	   ./scopes-qwt6/waterfall-scope.cpp \
 	   ./scopes-qwt6/spectrum-scope.cpp \
@@ -140,11 +142,11 @@ CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
 CONFIG		+= drm-decoder-fdk
 CONFIG		+= acars-decoder
-#CONFIG		+= test-decoder
-INCLUDEPATH     	+= /usr/local/include /usr/local/lib/qwt.framework/Headers
+CONFIG		+= test-decoder
+INCLUDEPATH    	+= /usr/local/include /usr/local/lib/qwt.framework/Headers
 QMAKE_LFLAGS	+= -F/usr/local/opt/qwt-qt5/lib -L/usr/local/lib
-#LIBS			+= -lqwt -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
-LIBS			+= -framework qwt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
+#LIBS		+= -lqwt -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
+LIBS		+= -framework qwt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
 }
 
 unix {
@@ -170,7 +172,6 @@ CONFIG		+= rtl_tcp
 CONFIG		+= am-decoder
 CONFIG		+= ssb-decoder
 CONFIG		+= cw-decoder
-#CONFIG		+= new-cw
 CONFIG		+= amtor-decoder
 CONFIG		+= psk-decoder
 CONFIG		+= ft8-decoder
@@ -178,7 +179,7 @@ CONFIG		+= rtty-decoder
 CONFIG		+= fax-decoder
 CONFIG		+= drm-decoder-fdk
 CONFIG		+= acars-decoder
-#CONFIG		+= test-decoder
+CONFIG		+= test-decoder
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
 LIBS		+= -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
@@ -518,6 +519,7 @@ drm-decoder-fdk {
 	LIBS		+= -lfdk-aac
 #	LIBS		+= -lfdk-aac-2
 	INCLUDEPATH	+= ./fdk-aac
+	INCLUDEPATH	+= /usr/include/eigen3
 	DEPENDPATH	+= ./decoders/drm-decoder/ \
 	                   ./decoders/drm-decoder/ \
                            ./decoders/drm-decoder/fac \
@@ -569,8 +571,8 @@ drm-decoder-fdk {
 	                   ./decoders/drm-decoder/ofdm/word-collector.h \
 	                   ./decoders/drm-decoder/equalizer/equalizer-1.h \
 	                   ./decoders/drm-decoder/equalizer/equalizer-base.h \
-#	                   ./decoders/drm-decoder/equalizer/estimator-2.h \
 	                   ./decoders/drm-decoder/equalizer/estimator-1.h \
+	                   ./decoders/drm-decoder/equalizer/estimator-eigen-2.h \
 	                   ./decoders/drm-decoder/equalizer/matrix2.h \
 	                   ./decoders/drm-decoder/equalizer/referenceframe.h \
 	                   ./decoders/drm-decoder/parameters/msc-config.h \
@@ -618,8 +620,8 @@ drm-decoder-fdk {
 	   	           ./decoders/drm-decoder/ofdm/word-collector.cpp \
 	   	           ./decoders/drm-decoder/equalizer/equalizer-1.cpp \
 	   	           ./decoders/drm-decoder/equalizer/equalizer-base.cpp \
-#	                   ./decoders/drm-decoder/equalizer/estimator-2.cpp \
 	   	           ./decoders/drm-decoder/equalizer/estimator-1.cpp \
+	   	           ./decoders/drm-decoder/equalizer/estimator-eigen-2.cpp \
 	                   ./decoders/drm-decoder/equalizer/matrix2.cpp \
 	   	           ./decoders/drm-decoder/equalizer/referenceframe.cpp \
 	   	           ./decoders/drm-decoder/parameters/msc-config.cpp \

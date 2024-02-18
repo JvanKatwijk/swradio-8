@@ -2,7 +2,7 @@
 /*
  *    Copyright (C) 2017
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the swradio
  *    swradio is free software; you can redistribute it and/or modify
@@ -27,37 +27,33 @@
 	testDecoder::testDecoder (int32_t	inRate,
 	                          RingBuffer<DSPCOMPLEX> *buffer,
 	                          QSettings		*settings) :
-	                           virtualDecoder (inRate, buffer) {
+	                           virtualDecoder (inRate, buffer),
+	                           baseFilter (55, 4500, inRate),
+	                           s2Filter	(8192),
+	                           s3Filter	(8192),
+	                           usbFilter	(8192, 511),
+	                           lsbFilter	(8192, 511) {
+
 	myFrame			= new QFrame;
 	setupUi (myFrame);
 	myFrame	-> show ();
 	this	-> inputRate	= inRate;
-	this	-> outputRate	= 600;
-	this	-> samplesperSymbol	= 60;
-
-	x_axis			= new double [samplesperSymbol];
-	for (int i = 0; i < samplesperSymbol; i ++)
-	   x_axis [i] = (i * 0.73 - samplesperSymbol / 2 * 0.73);
-	y_values		= new double [samplesperSymbol];
-	theFilter		= new decimatingFIR (55, 100, inputRate, inputRate / 750);
+	this	-> outputRate	= 12000;
+	this	-> audioBuffer	= buffer;
+	for (int i = 0; i < 512; i ++)
+	   x_axis [i] = i;
 	the_fft			= new common_fft (1024);
 	fftBuffer		= the_fft	-> getVector ();
-	theCache		= new Cache (samplesperSymbol,
-	                                     4 * 162);
-	Viewer			= new waterfallScope (testSpectrum,
-	                                              samplesperSymbol, 30);
+	Viewer			= new spectrumScope (testSpectrum, 512);
 	counter			= 30;
-	cacheLineP		= 0;
-	fillP			= 0;
-	cacheSize		= 4 * 162;
-
 	connect (Viewer, SIGNAL (clickedwithLeft (int)),
 	         this, SLOT (handleClick (int)));
+	usbFilter. setBand (40, 4000, inRate);
+	lsbFilter. setBand (-4000, -40, inRate);
 }
 
 	testDecoder::~testDecoder (void) {
 	delete	myFrame;
-	delete	theFilter;
 }
 
 void	testDecoder::processBuffer	(std::complex<float> *buffer,
@@ -68,68 +64,36 @@ int	i;
 	   process (buffer [i]);
 }
 //
-//	The tone distance is 1.4648 Hz, the tone duration is
-//	1/1.4648 = 0.68 seconds.
-//	we want to be able to separate half tones, i.e. two bins
-//	per tone. This means a bin-width of 0.732 Hz.
-//	If we take an FFT of 1024 bins, that means a samplerate
-//	of 750. In order to get 4 lines for each tone instance, we
-//	need 750 * 0.68 * 0.25 samples to create an FFT, i.e. 127/128
-//	samples.
 //	
 void    testDecoder::process      (std::complex<float> z) {
-int i, j;
-std::complex<float> res;
-std::complex<float> v [1024];
-static	bool switcher	= false;
+static int counter = 0;
+static std::complex<float> old_usb	= std::complex<float> (0, 0);
+static std::complex<float> old_lsb	= std::complex<float> (0, 0);
 
-	if (theFilter -> Pass (z, &res)) {
-	   fftBuffer [fillP++] = cmul (res, 2);
-	   if (fillP <  (switcher ? 128 : 127)) 
-	      return;
+	z	= baseFilter. Pass (z);
+	z	= std::complex<float> (real (z) / abs (z),
+	                               imag (z) / abs (z));
+	std::complex<float> usbBand	= usbFilter. Pass (z);
+	std::complex<float> lsbBand	= lsbFilter. Pass (z);
+	std::complex<float> USB = s2Filter. Pass (real (usbBand) - imag (usbBand));
+	std::complex<float> LSB = s3Filter. Pass (real (lsbBand) + imag (lsbBand));
 
-	   switcher = !switcher;
-	   for (i = fillP; i < 1024; i ++)
-	      fftBuffer [i] = std::complex<float> (0, 0);
-	   the_fft -> do_FFT ();
+	float plusSignal	= arg (USB);
+	float minusSignal	= arg (LSB);
+//	float plusSignal	= arg (USB * conj (old_usb));
+	old_usb			= USB;
+	old_lsb			= LSB;
 
-	   for (i = 0; i < 1024 / 2; i ++) {
-	      v [i] = fftBuffer [1024 / 2 + i];
-	      v [1024 / 2 + i] = fftBuffer [i];
-	   }
-
-	   for (i = 0; i < samplesperSymbol; i ++)
-	      (theCache -> cacheLine (cacheLineP)) [i] =
-	                      v [1024 / 2 - samplesperSymbol / 2 + i];
-	   for (i = 0; i < samplesperSymbol; i ++)
-	      y_values [i] = abs (theCache -> cacheElement (cacheLineP, i));
-
-	   Viewer -> display (x_axis, y_values,
-	                      amplitudeSlider -> value (),
-	                      0, 0);
-	   cacheLineP ++;
-
-	   if (cacheLineP % 20 == 0) {
-	      int maxLine = -1;
-	      float maxLineSum = 0;
-	      for (i = 10; i < samplesperSymbol - 10; i ++) {
-	         float sum = 0;
-	         for (j = 0; j < 50; j ++)
-	            for (int k = 0; k < 8; k ++)
-	               sum += abs (theCache -> cacheElement (j, i + k));
-	         if (sum > maxLineSum) {
-	            maxLineSum = sum;
-	            maxLine    = i;
-	         }
-	      }
-	      fprintf (stderr, "maxLine = %d\n", maxLine);
-	   }
-	
-	   if (cacheLineP >= cacheSize) 
-	      cacheLineP = 0;
-	   fillP = 0;
-	   
-	}
+	std::complex<float> combined =
+	                      std::complex<float> (minusSignal, minusSignal);
+	audioBuffer -> putDataIntoBuffer (&combined, 1);
+	counter ++;
+        if (counter > inputRate / 10) {
+           setDetectorMarker (0);
+           counter      = 0;
+           emit audioAvailable (audioOut -> GetRingBufferReadAvailable () / 10,
+                                                        inputRate);
+        }
 }
 
 void    testDecoder::handleClick (int a) {

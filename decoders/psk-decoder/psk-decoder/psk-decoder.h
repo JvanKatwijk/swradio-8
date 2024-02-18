@@ -2,7 +2,7 @@
 /*
  *    Copyright (C) 2010, 2011, 2012, 2013
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of swradio
  *
@@ -61,6 +61,7 @@ private slots:
 	void		psk_setMode		(const QString &);
 	void		psk_setFilterDegree	(int);
 	void		handleClick		(int);
+	void		set_searchRange		(int);
 	
 private:
 	enum PskMode {
@@ -137,6 +138,8 @@ private:
 	std::vector<float>	theTable;
 	std::vector<complex<float> >	inTable;
 	int16_t		tablePointer;
+
+	int		searchRange;
 //
 //	former signals are now handled locally
 	QString		pskText;

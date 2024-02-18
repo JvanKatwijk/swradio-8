@@ -30,7 +30,7 @@
 #include	<deque>
 #include	<vector>
 #include	<complex>
-#ifndef	__MINGW#@__
+#ifndef	__MINGW32__
 #include	<fdk-aac/aacdecoder_lib.h>   
 #endif
 
@@ -273,6 +273,8 @@ static
 bool		convOK = false;
 int16_t	cnt;
 int32_t	rate;
+float ff = 0;
+
 	decodeFrame (f. data (),
 	             f. size (),
 //	             f. size () - 2,
@@ -333,8 +335,9 @@ void	xheaacProcessor::writeOut (int16_t *buffer, int16_t cnt,
 	                                         buffer [2 * i + 1] / 8192.0);
 	   int amount;
 	   bool b = theConverter -> convert (tmp, local, &amount);
-	   if (b)
+	   if (b) {
 	      toOutput (local, amount);
+	   }
 	}
 }
 

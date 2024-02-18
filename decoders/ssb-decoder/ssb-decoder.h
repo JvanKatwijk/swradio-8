@@ -2,12 +2,9 @@
 /*
  *    Copyright (C) 2017
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
  *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -24,8 +21,8 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef	__SSB_DECODER__
-#define	__SSB_DECODER__
+#ifndef	__SSB_DECODER_H
+#define	__SSB_DECODER_H
 #include	<QFrame>
 #include 	"virtual-decoder.h"
 #include	"ui_ssb-decoder.h"
@@ -52,7 +49,6 @@ private:
 	adaptiveFilter	*adaptive;
 	bool		adaptiveFiltering;
 	int		counter;
-	HilbertFilter	SSB_Filter;
 	uint8_t		mode;
 private slots:
 	void		set_adaptiveFilter	(void);

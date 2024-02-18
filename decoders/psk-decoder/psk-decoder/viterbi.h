@@ -52,7 +52,8 @@
 #include	<limits.h>
 #include	<stdint.h>
 
-#define PATHMEM 64
+#define PATHMEM 8
+//#define PATHMEM 64
 
 class viterbi {
 public:

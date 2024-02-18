@@ -46,6 +46,7 @@
 #define	SDRPLAY_RSP2_	2
 #define	SDRPLAY_RSPduo_	3
 #define	SDRPLAY_RSPdx_	4
+#define	SDRPLAY_RSP1B_	6
 
 	sdrplayHandler_v3::sdrplayHandler_v3  (RadioInterface *mr,
 	                                       int32_t	outputRate,
@@ -68,7 +69,7 @@
 //	See if there are settings from previous incarnations
 //	and config stuff
 
-	sdrplaySettings		-> beginGroup ("sdrplaySettings");
+	sdrplaySettings		-> beginGroup ("sdrplaySettings_v3");
 	GRdBSelector 		-> setValue (
 	            sdrplaySettings -> value ("sdrplay-ifgrdb", 20). toInt());
 	GRdBValue		= GRdBSelector -> value ();
@@ -102,8 +103,6 @@
 	         this, SLOT (set_agcControl (int)));
 	connect (ppmControl, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_ppmControl (int)));
-	connect (antennaSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (set_selectAntenna (const QString &)));
 	connect (amPortSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (set_amPortSelect (const QString &)));
 	connect (biasT_selector, SIGNAL (stateChanged (int)),
@@ -265,9 +264,11 @@ ppmRequest r (ppm);
 }
 
 void	sdrplayHandler_v3::set_selectAntenna	(const QString &s) {
-antennaRequest r (s == "Antenna A" ? 'A' :
-	               s == "Antenna B" ? 'B' : 'C');
-	messageHandler (&r);
+messageHandler (new antennaRequest (s == "Antenna A" ? 'A' :
+                                            s == "Antenna B" ? 'B' : 'C'));
+	sdrplaySettings -> beginGroup ("sdrplaySettings_v3");
+	sdrplaySettings -> setValue ("Antenna", s);
+	sdrplaySettings -> endGroup ();
 }
 
 void	sdrplayHandler_v3::set_amPortSelect	(const QString &s) {
@@ -283,19 +284,28 @@ void    sdrplayHandler_v3::report_dataAvailable (void) {
 ////////////////////////////////////////////////////////////////////////
 //	showing data
 ////////////////////////////////////////////////////////////////////////
-void	sdrplayHandler_v3::set_antennaSelect (int n) {
-	if (n > 0) {
+int	sdrplayHandler_v3::set_antennaSelect (int sdrDevice) {
+	if ((sdrDevice == SDRPLAY_RSPdx_) || (sdrDevice == SDRPLAY_RSPduo_)) {
+	   antennaSelector      -> addItem ("Antenna B");
+	   antennaSelector      -> addItem ("Antenna C");
+           antennaSelector	-> show ();
+        }
+	else
+	if (sdrDevice == SDRPLAY_RSP2_) {
 	   antennaSelector	-> addItem ("Antenna B");
-	   if (n > 1)  {	// It is a "DX"
-	      antennaSelector	-> addItem ("Antenna C");
-	      amPortSelector	-> show ();
-	   }
-	   antennaSelector		-> show	();
+	   antennaSelector	-> show ();
 	}
-	else {
-	   antennaSelector		-> hide	();
-	   amPortSelector		-> hide	();
-	}
+
+	sdrplaySettings -> beginGroup ("sdrplaySettings_v3");
+	QString setting	=
+	      sdrplaySettings	-> value ("Antenna", "Antenna A"). toString ();
+	sdrplaySettings	-> endGroup ();
+	int k	= antennaSelector -> findText (setting);
+	if (k >= 0) 
+	   antennaSelector -> setCurrentIndex (k);
+	connect (antennaSelector, SIGNAL (activated (const QString &)),
+	         this, SLOT (set_selectAntenna (const QString &)));
+	return k == 2 ? 'C' : k == 1 ? 'B' : 'A';
 }
 
 void	sdrplayHandler_v3::show_tunerSelector	(bool b) {
@@ -498,8 +508,11 @@ uint32_t                ndev;
 	serial		= devs [0]. SerNo;
 	hwVersion	= devs [0]. hwVer;
 	try {
+	   int antennaValue;
 	   switch (hwVersion) {
 	      case SDRPLAY_RSPdx_ :
+	         antennaValue = set_antennaSelect (SDRPLAY_RSPdx_);
+	         nrBits	= 14;
 	         theRsp	= new RspDx_handler (this,
 	                                     chosenDevice,
 	                                     inputRate,
@@ -507,10 +520,13 @@ uint32_t                ndev;
 	                                     agcMode,
 	                                     lnaState,
 	                                     GRdBValue,
+	                                     antennaValue,
 	                                     biasT);
 	         break;
 
 	      case SDRPLAY_RSP1A_ :
+	      case SDRPLAY_RSP1B_ :
+	         nrBits	= 14;
 	         theRsp	= new Rsp1A_handler (this,
 	                                     chosenDevice,
 	                                     inputRate,
@@ -522,6 +538,8 @@ uint32_t                ndev;
 	         break;
 
 	      case SDRPLAY_RSP2_ :
+	         nrBits	= 14;
+	         antennaValue = set_antennaSelect (SDRPLAY_RSP2_);
 	         theRsp	= new RspII_handler (this,
 	                                     chosenDevice,
 	                                     inputRate,
@@ -529,10 +547,13 @@ uint32_t                ndev;
 	                                     agcMode,
 	                                     lnaState,
 	                                     GRdBValue,
+                                             antennaValue,
 	                                     biasT);
 	         break;
 
 	      case SDRPLAY_RSPduo_ :
+	         nrBits	= 14;
+	         antennaValue = set_antennaSelect (SDRPLAY_RSPdx_);
 	         theRsp	= new RspDuo_handler (this,
 	                                     chosenDevice,
 	                                     inputRate,
@@ -540,6 +561,7 @@ uint32_t                ndev;
 	                                     agcMode,
 	                                     lnaState,
 	                                     GRdBValue,
+	                                     antennaValue,
 	                                     biasT);
 	         break;
 

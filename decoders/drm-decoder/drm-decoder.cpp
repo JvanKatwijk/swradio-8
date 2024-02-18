@@ -51,10 +51,12 @@
 	                                                       &iqBuffer),
 	                                theState (1, 3) {
 	this	-> theRadio	= theRadio;
+	drmSettings		= s;
 	setupUi (&myFrame);
 	my_eqDisplay            = new EQDisplay (equalizerDisplay);
 	my_iqDisplay            = new IQDisplay (iqPlotter, 512);
 
+	scopeMode		= SHOW_PILOTS;
 	myFrame. show ();
 	running. store (false);
 
@@ -62,6 +64,17 @@
 	nSymbols		= 25;
 	modeInf. Mode		= 2;
 	modeInf. Spectrum	= 3;
+	int st			= s   -> value ("strength", 0). toInt ();
+        strengthSelector        -> setValue (st);
+        st			= s    -> value ("f_cut_k", 20). toInt ();
+        f_cutSelector           -> setValue (st);
+
+        connect (strengthSelector, SIGNAL (valueChanged (int)),
+                 this, SLOT (handle_strengthSelector (int)));
+        connect (f_cutSelector, SIGNAL (valueChanged (int)),
+                 this, SLOT (handle_f_cutSelector (int)));
+	connect (modeSelector, SIGNAL (activated (const QString &)),
+                 this, SLOT (handle_modeSelector (const QString &)));
 
 	connect (this, SIGNAL (setTimeSync (bool)),
                  this, SLOT (executeTimeSync (bool)));
@@ -157,8 +170,11 @@ float     sampleclockOffset       = 0;
 	      equalizer_1 my_Equalizer (this,
 	                                modeInf.Mode,
 	                                modeInf.Spectrum,
-	                                1,
+	                                strengthSelector -> value (),
+	                                f_cutSelector -> value (),
 	                                &eqBuffer);
+	
+	         my_Equalizer. set_scopeMode (scopeMode);
 	      std::vector<std::complex<float>> displayVector;
 	      displayVector. resize (Kmax (modeInf. Mode, modeInf. Spectrum) -
 	                             Kmin (modeInf. Mode, modeInf. Spectrum) + 1);
@@ -217,6 +233,7 @@ float     sampleclockOffset       = 0;
 	      symbol_no    = 0;
 	      frameReady   = false;
 	      while (running. load () && !frameReady) {
+	         my_Equalizer. set_scopeMode (scopeMode);
 		  my_wordCollector.getWord (inbank.element(lc),
 				   modeInf.freqOffset_integer,
 				  lc == 0,        // no-op
@@ -268,6 +285,7 @@ float     sampleclockOffset       = 0;
 		  
 		
 	      while (true) {
+	         my_Equalizer. set_scopeMode (scopeMode);
 //	when we are here, we can start thinking about  SDC's and superframes
 //	The first frame of a superframe has an SDC part
 	         if (isFirstFrame (&theState)) {
@@ -637,8 +655,11 @@ void	drmDecoder::audioAvailable	() {
 void    drmDecoder::show_eqsymbol       (int amount) {
 std::complex<float> line [amount];
 
-        eqBuffer. getDataFromBuffer (line, amount);
-        my_eqDisplay    -> show (line, amount);
+	eqBuffer. getDataFromBuffer (line, amount);
+        if (scopeMode == SHOW_PILOTS)
+           my_eqDisplay    -> show_pilots (line, amount);
+        else
+           my_eqDisplay    -> show_channel (line, amount);
 }
 
 void    drmDecoder::showIQ  (int amount) {
@@ -659,6 +680,19 @@ int     scopeWidth      = scopeSlider -> value();
 	avg     /= t;
 	my_iqDisplay -> DisplayIQ (Values, scopeWidth / avg);
 }
+
+void    drmDecoder::handle_strengthSelector (int s) {
+        drmSettings     -> setValue ("strength", s);
+}
+
+void    drmDecoder::handle_f_cutSelector (int n) {
+        drmSettings     -> setValue ("f_cut_k", n);
+}
+
+void    drmDecoder::handle_modeSelector (const QString &m) {
+        scopeMode = m == "Pilots" ? SHOW_PILOTS : SHOW_CHANNEL;
+}
+
 
 void	drmDecoder::select_channel_1	() {
 	theState. activate_channel_1 ();

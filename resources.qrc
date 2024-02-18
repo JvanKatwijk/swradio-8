@@ -2,5 +2,8 @@
     <qresource prefix="/">
         <file>AUTHORS</file>
         <file>COPYING</file>
+	<file>res/swradio.ico</file>
+	<file>res/Adaptic.qss</file>
+        <file>res/Combinear.qss</file>
     </qresource>
 </RCC>

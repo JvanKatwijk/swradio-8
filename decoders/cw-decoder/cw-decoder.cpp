@@ -333,11 +333,11 @@ static int oldOffset	= 0;
 /*
  *	we seem to start a new tone
  */
+	         cwPreviousState	= cwState;
 	         cwState		= MODE_IN_TONE;
 	         currentTime		= 0;
 	         cwCurrent		= 0;
 	         cwStartTimestamp	= currentTime;
-	         cwPreviousState	= cwState;
 	      }
 	      else 
 	         noiseLevel		= decayingAverage (noiseLevel,

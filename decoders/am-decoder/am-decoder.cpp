@@ -41,8 +41,8 @@
 	adaptiveFiltersize	= 15;		/* the default	*/
 	adaptive		= new adaptiveFilter (15, 0.2);
 	adaptiveFiltering 	= false;
-	connect (adaptiveFilterButton, SIGNAL (clicked (void)),
-	         this, SLOT (set_adaptiveFilter (void)));
+	connect (adaptiveFilterButton, SIGNAL (clicked ()),
+	         this, SLOT (set_adaptiveFilter ()));
 	connect (adaptiveFilterSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_adaptiveFiltersize (int)));
 	connect (lowpassFilterslider, SIGNAL (valueChanged (int)),
@@ -53,13 +53,13 @@
 	
 }
 
-	amDecoder::~amDecoder (void) {
+	amDecoder::~amDecoder () {
 	delete	adaptive;
 	delete	lowpassFilter;
 	delete	myFrame;
 }
 
-void	amDecoder::set_adaptiveFilter (void) {
+void	amDecoder::set_adaptiveFilter () {
 	adaptiveFiltering	= !adaptiveFiltering;
 	if (adaptiveFiltering) {
 	   adaptiveFilterButton -> setText ("on");

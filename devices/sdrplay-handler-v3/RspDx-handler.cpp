@@ -9,6 +9,7 @@
 	                              bool	agcMode,
 	                              int	lnaState,
 	                              int 	GRdB,
+	                              int	antennaValue,
 	                              bool	biasT) :
 	                              Rsp_device (parent,
 	                                          chosenDevice, 
@@ -19,17 +20,17 @@
 	                                         GRdB,
 	                                         biasT) {
 
+	set_antenna (antennaValue);
 	this	-> deviceModel		= "RSP-Dx";
 	this	-> nrBits		= 14;
 	this	-> antennaSelect	= true;
 	this	-> lna_upperBound	= lnaStates (freq);
 	set_lnabounds_signal	(0, lna_upperBound);
 	set_deviceName_signal	(deviceModel);
-	set_antennaSelect_signal (2);
-	set_nrBits_signal	(nrBits);
 	show_lnaGain		(get_lnaGain (lnaState, freq));
 	if (biasT)
 	   set_biasT (true);
+	set_lna (this -> lnaState);
 }
 
 	RspDx_handler::~RspDx_handler	() {}

@@ -27,10 +27,11 @@
 #include 	"virtual-decoder.h"
 #include	"ui_test-decoder.h"
 #include	"fir-filters.h"
+#include	"fft-filters.h"
 #include	"fft.h"
-#include	"waterfall-scope.h"
+#include	"spectrum-scope.h"
+#include	"hilbertfilter.h"
 
-class	Cache;
 class	QSettings;
 
 class testDecoder: public virtualDecoder, public Ui_test_decoder {
@@ -43,23 +44,23 @@ public:
 	void	processBuffer	(std::complex<float> *, int32_t);
 	void    process		(std::complex<float> z);
 
-
 private:
+	LowPassFIR 	baseFilter;
+	fftFilter	usbFilter;
+	fftFilter	lsbFilter;
+	hilbertFilter	s2Filter;
+	hilbertFilter	s3Filter;
 	int		fillP;
 	QFrame		*myFrame;
-	decimatingFIR	*theFilter;
 	int32_t		inputRate;
 	int32_t		outputRate;
-	int32_t		samplesperSymbol;
-	int32_t		counter;
 	common_fft	*the_fft;
 	std::complex<float> *fftBuffer;
-	Cache		*theCache;
-	int		cacheLineP;
-	int		cacheSize;
-	waterfallScope	*Viewer;
-	double		*x_axis;
-	double		*y_values;
+	spectrumScope	*Viewer;
+	int		counter;
+	double		x_axis [512];
+	double		y_values [512];;
+	RingBuffer<std::complex<float>> *audioBuffer;
 private	slots:
 	void		handleClick	(int);
 };

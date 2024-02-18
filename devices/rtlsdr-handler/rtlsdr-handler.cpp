@@ -127,11 +127,10 @@ QString	temp;
 	while (inputRate < Khz (1000))
 	   inputRate += outputRate;
 	libraryLoaded	= false;
-	workerHandle	= NULL;
-	d_filter	= NULL;
-	workerHandle	= NULL;
+	workerHandle	= nullptr;
+	d_filter	= nullptr;
+	workerHandle	= nullptr;
 	open		= false;
-	gains		= NULL;
 
 	statusLabel	-> setText ("setting up");
 #ifdef	__MINGW32__
@@ -202,18 +201,19 @@ QString	temp;
 	}
 
 	gainsCount = rtlsdr_get_tuner_gains (device, NULL);
-	gains	= new int [gainsCount];
-	fprintf (stderr, "Supported gain values (%d): ", gainsCount);
-	gainsCount = rtlsdr_get_tuner_gains (device, gains);
-	for (i = gainsCount; i > 0; i--) {
-	   fprintf (stderr, "%.1f ", gains [i - 1] / 10.0);
-	   combo_gain -> addItem (QString::number (gains [i - 1]));
+	{
+	   int gains [gainsCount];
+	   fprintf (stderr, "Supported gain values (%d): ", gainsCount);
+	   gainsCount = rtlsdr_get_tuner_gains (device, gains);
+	   for (i = gainsCount; i > 0; i--) {
+	      fprintf (stderr, "%.1f ", gains [i - 1] / 10.0);
+	      combo_gain -> addItem (QString::number (gains [i - 1]));
+	   }
+	   fprintf (stderr, "\n");
+	   temp =
+	        rtlsdrSettings -> value ("externalGain",
+	                                  gains [2]). toString ();
 	}
-
-	fprintf (stderr, "\n");
-
-	temp =
-	        rtlsdrSettings -> value ("externalGain", "10"). toString ();
 	k       = combo_gain -> findText (temp);
 	if (k != -1) {
 	   combo_gain   -> setCurrentIndex (k);
@@ -263,8 +263,6 @@ err:
 	open		= false;
 	if (d_filter != NULL)
 	   delete d_filter;
-	if (gains != NULL)
-	   delete [] gains;
 	delete	myFrame;
 	throw (22);
 }
@@ -291,7 +289,6 @@ err:
 	   dlclose (Handle);
 #endif
 	delete d_filter;
-	delete[] gains;
 	delete	myFrame;
 }
 

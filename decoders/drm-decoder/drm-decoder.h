@@ -1,5 +1,6 @@
 #pragma once
 
+#include	<QSettings>
 #include	<QObject>
 #include	<QFrame>
 #include	<thread>
@@ -45,6 +46,7 @@ public:
 
 private:
 	QFrame			myFrame;
+	QSettings		*drmSettings;
 	std::thread		* m_worker;
 	RingBuffer<std::complex<float>>	inputBuffer;
 	RingBuffer<std::complex<float>> iqBuffer;
@@ -82,6 +84,7 @@ private:
         int             Raw_Rate;
 //
 //
+	int		scopeMode;
         int16_t         nSymbols;
         int32_t         sampleRate;
         int8_t          windowDepth;
@@ -106,6 +109,10 @@ private:
 private slots:
 	void		select_channel_1	();
 	void		select_channel_2	();
+	void            handle_strengthSelector (int);
+        void            handle_f_cutSelector    (int);
+        void            handle_modeSelector     (const QString &);
+
 public slots:
 	void            set_faadSyncLabel	(bool);
 	void		set_messageLabel	(const QString &);

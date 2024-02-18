@@ -604,7 +604,6 @@ faxParams	*myfaxParameters	= getFaxParams (s);
 	currentSampleIndex	= 0;
 	faxState		= APTSTART;
 	delete theImage;
-	delete theImage;
 	theImage             = new faxImage  (numberofColumns, lastRow);
 	rawData. resize (1024 * 1024);
 	theImage     -> clear        ();

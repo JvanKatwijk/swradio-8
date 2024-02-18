@@ -2,12 +2,9 @@
 /*
  *    Copyright (C) 2010, 2011, 2012
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
  *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -98,14 +95,14 @@ public:
                                          RingBuffer<DSPCOMPLEX> *r,
                                          QSettings      *s);
 
-		~rtlsdrHandler		(void);
-	int32_t	getRate			(void);
+		~rtlsdrHandler		();
+	int32_t	getRate			();
 	void	setVFOFrequency		(quint64);
-	quint64	getVFOFrequency		(void);
+	quint64	getVFOFrequency		();
 	bool	legalFrequency		(int32_t);
-	bool	restartReader		(void);
-	void	stopReader		(void);
-	int16_t	bitDepth		(void);
+	bool	restartReader		();
+	void	stopReader		();
+	int16_t	bitDepth		();
 //
 //	I_Buffer needs to be visible for use within the callback
 	RingBuffer<std::complex<float>>	*_I_Buffer;
@@ -132,11 +129,10 @@ private:
 	int32_t		vfoFrequency;
 	bool		open;
 	int16_t		gainsCount;
-	int		*gains;
 	int		theGain;
 //
 //	here we need to load functions from the dll
-	bool		load_rtlFunctions	(void);
+	bool		load_rtlFunctions	();
 	pfnrtlsdr_open	rtlsdr_open;
 	pfnrtlsdr_close	rtlsdr_close;
 	pfnrtlsdr_get_usb_strings rtlsdr_get_usb_strings;

@@ -30,8 +30,7 @@
 	ssbDecoder::ssbDecoder (int32_t		inRate,
 	                        RingBuffer<DSPCOMPLEX> *buffer,
 	                        QSettings		*settings):
-	                           virtualDecoder (inRate, buffer),
-	                                SSB_Filter (31, 0.25, inRate) {
+	                           virtualDecoder (inRate, buffer) {
 	this	-> inRate	= inRate;
 	(void)settings;
 	myFrame			= new QFrame;
@@ -90,7 +89,7 @@ int32_t	i;
 }
 
 void	ssbDecoder::process (std::complex<float> z) {
-	std::complex<float> temp = SSB_Filter. Pass (z);
+	std::complex<float> temp	= z;
 	if (mode == USB_MODE)
 	   temp = std::complex<float> (real (temp) - imag (temp),
 	                               real (temp) - imag (temp));
