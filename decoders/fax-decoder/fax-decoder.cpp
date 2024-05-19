@@ -356,8 +356,10 @@ static	int cnt	= 0;
 	                                       checkBuffer [i];
 	               checkP -= samplesperLine / 10;
 	            }
-	            else 
+	            else {
+	               checkP -= samplesperLine / 4;
 	               stoppers = 0;
+	            }
 
 	            if (stoppers >= 4)
 	              faxState = FAX_DONE;

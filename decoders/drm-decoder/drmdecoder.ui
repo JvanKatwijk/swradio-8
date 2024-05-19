@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>567</width>
+    <width>715</width>
     <height>401</height>
    </rect>
   </property>
@@ -313,7 +313,12 @@
        </item>
        <item>
         <property name="text">
-         <string>channel</string>
+         <string>Channel</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Errors</string>
         </property>
        </item>
       </widget>

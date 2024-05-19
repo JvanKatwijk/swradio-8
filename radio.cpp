@@ -2,7 +2,7 @@
 /*
  *    Copyright (C)  2018 .. 2022
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of swradio
  *
@@ -278,6 +278,7 @@ QString	FrequencytoString (quint64 freq) {
 	         this, SLOT (set_inMiddle (void)));
 
 	bandSelector	-> addItem ("4000");
+	bandSelector	-> addItem ("fax");
 	connect (bandSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (setBand (const QString &)));
 
@@ -763,6 +764,11 @@ void	RadioInterface::setBand	(const QString &s) {
 	if (s == "4000") {
 	   theBand. lowF	= -0;
            theBand. highF	= +3000;
+	}
+	else
+	if (s == "fax") {
+	   theBand. lowF	= -1500;
+	   theBand. highF	= + 1500;
 	}
 	else
 	if (s == "usb") {

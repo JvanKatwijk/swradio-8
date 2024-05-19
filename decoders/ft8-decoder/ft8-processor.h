@@ -46,12 +46,14 @@ public:
 	void	PassOn		(int, float, int, float *);
 	void	set_maxIterations	(int);
 
+	void		set_cqSelector		(bool);
 private:
 	packHandler	unpackHandler;
 	void		run		();
 	bool		check_crc_bits	(uint8_t *message, int nrBits);
 	void		showLine	(int, int, int, const QString &);
 	dlCache		theCache;
+	std::atomic<bool>	cqSelector;
 	struct {
            int lineno;
 	   int value;

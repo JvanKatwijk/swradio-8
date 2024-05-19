@@ -40,13 +40,13 @@ public:
 		packHandler	();
 		~packHandler	();
 
-	QString unpackMessage	(const uint8_t* m_in);
+	QString		unpackMessage	(const uint8_t* m_in, bool &);
 	QStringList	extractCall	(const uint8_t* m_in);
 private:
 	hashHandler		the_hashHandler;
 	bool			pskReporterReady;
 	QString	handle_type0	(const uint8_t *m_in, int n3);
-	QString	handle_type1	(const uint8_t *m_in, uint8_t i3);
+	QString	handle_type1	(const uint8_t *m_in, uint8_t i3, bool &);
 	QString	handle_type3	(const uint8_t *m_in);
 	QString	handle_type4	(const uint8_t* m_in);
 	QString	handle_type5	(const uint8_t* m_in);

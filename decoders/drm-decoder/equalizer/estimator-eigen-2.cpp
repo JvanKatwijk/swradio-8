@@ -60,7 +60,7 @@ int16_t	pilotIndex, tap;
 	fftSize			= Tu_of (Mode);
 	numberofCarriers	= K_max - K_min + 1;
 	numberofPilots		= getnrPilots (refSymbol);
-	numberofTaps		= 2 * Tg_of (Mode) - 1;
+	numberofTaps		= Tg_of (Mode);
 //	numberofTaps		= numberofPilots;
 	F_p			= MatrixXd (numberofPilots, numberofTaps);
 	S_p			= MatrixXd (numberofPilots,

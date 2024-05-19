@@ -38,6 +38,7 @@
 	this	-> maxIterations	= maxIterations;
 	this	-> blockToRead	= 0;
 	this	-> blockToWrite	= 0;
+	cqSelector. store (false);
 	running. store (false);
 	connect (this,
 	         SIGNAL (printLine (const QString &)),
@@ -168,12 +169,14 @@ int	errors;
 	   if (check_crc_bits (ldpcBits, 96)) {
 //	      fprintf (stderr, "crc OK\n");
 //	crc is correct, unpack  the message
-	      QString res = unpackHandler. unpackMessage (ldpcBits);
+	      bool is_CQ	= false;
+	      QString res = unpackHandler. unpackMessage (ldpcBits, is_CQ);
 	      if (res != "") {
-	         showLine (theBuffer [blockToRead]. lineno,
-	                   theBuffer [blockToRead]. value,
-	                   theBuffer [blockToRead]. frequency,
-	                   res);
+	         if ((cqSelector. load () && is_CQ) || !cqSelector. load ()) 
+	            showLine (theBuffer [blockToRead]. lineno,
+	                      theBuffer [blockToRead]. value,
+	                      theBuffer [blockToRead]. frequency,
+	                      res);
 	         if (theDecoder -> pskReporterReady ()) {
 	            QStringList call = unpackHandler. extractCall (ldpcBits);
 	            if (call. length () > 0) {
@@ -240,5 +243,9 @@ int16_t	Sum	= 0;
 	for (int i = 0; i < 14; i ++)
 	   Sum += b [i];
 	return Sum == 0;
+}
+
+void	ft8_processor::set_cqSelector	(bool b) {
+	cqSelector. store (b);
 }
 

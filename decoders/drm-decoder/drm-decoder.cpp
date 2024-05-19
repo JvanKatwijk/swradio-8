@@ -659,7 +659,10 @@ std::complex<float> line [amount];
         if (scopeMode == SHOW_PILOTS)
            my_eqDisplay    -> show_pilots (line, amount);
         else
+	if (scopeMode == SHOW_CHANNEL)
            my_eqDisplay    -> show_channel (line, amount);
+	else
+	   my_eqDisplay	 -> show_pilots (line, amount);
 }
 
 void    drmDecoder::showIQ  (int amount) {
@@ -690,7 +693,8 @@ void    drmDecoder::handle_f_cutSelector (int n) {
 }
 
 void    drmDecoder::handle_modeSelector (const QString &m) {
-        scopeMode = m == "Pilots" ? SHOW_PILOTS : SHOW_CHANNEL;
+        scopeMode = m == "Pilots" ?  SHOW_PILOTS :
+	                  m == "Channel" ? SHOW_CHANNEL : SHOW_ERROR;
 }
 
 

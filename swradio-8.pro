@@ -7,11 +7,11 @@ CONFIG	+= console qwt qwt-qt5
 #CONFIG	-= console
 TARGET	= swradio-9
 QMAKE_CXXFLAGS  += -std=c++14
-QMAKE_CFLAGS	+= -O3 -ffast-math 
-QMAKE_CXXFLAGS	+= -O3 -ffast-math 
-#QMAKE_CXXFLAGS += -fsanitize=address -g
-#QMAKE_CFLAGS   += -fsanitize=address -g
-#QMAKE_LFLAGS   += -fsanitize=address -g
+#QMAKE_CFLAGS	+= -O3 -ffast-math 
+#QMAKE_CXXFLAGS	+= -O3 -ffast-math 
+QMAKE_CXXFLAGS += -fsanitize=address -g
+QMAKE_CFLAGS   += -fsanitize=address -g
+QMAKE_LFLAGS   += -fsanitize=address -g
 
 RC_ICONS        =  swradio.ico
 RESOURCES       += resources.qrc
@@ -224,14 +224,17 @@ INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
 INCLUDEPATH += /usr/local/include
 INCLUDEPATH += C:\msys32\mingw32\include\qwt
 LIBS    += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
+LIBS    += /usr/i686-w64-mingw32/sys-root/mingw/bin/libsndfile-1.dll 
+LIBS    += /usr/i686-w64-mingw32/sys-root/mingw/bin/libsamplerate-0.dll
+LIBS    += /usr/i686-w64-mingw32/sys-root/mingw/bin/libfdk-aac-2.dll
 LIBS    += -lfftw3f
 LIBS    += -lws2_32
 LIBS    += -lportaudio
 LIBS    += -lqwt-qt5
 #LIBS    += -lqwt
 LIBS    += -lusb-1.0
-LIBS    += -lsndfile
-LIBS    += -lsamplerate
+#LIBS    += -lsndfile
+#LIBS    += -lsamplerate
 LIBS    += -lole32
 LIBS    += -lwinmm
 }
@@ -256,12 +259,14 @@ sdrplay-v3 {
         HEADERS         += ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h \
                            ./devices/sdrplay-handler-v3/sdrplay-commands.h \
 	                   ./devices/sdrplay-handler-v3/Rsp-device.h \
+	                   ./devices/sdrplay-handler-v3/RspI-handler.h \
 	                   ./devices/sdrplay-handler-v3/Rsp1A-handler.h \
 	                   ./devices/sdrplay-handler-v3/RspII-handler.h \
 	                   ./devices/sdrplay-handler-v3/RspDuo-handler.h \
 	                   ./devices/sdrplay-handler-v3/RspDx-handler.h
         SOURCES         += ./devices/sdrplay-handler-v3/Rsp-device.cpp \
 	                   ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp \
+	                   ./devices/sdrplay-handler-v3/RspI-handler.cpp \
 	                   ./devices/sdrplay-handler-v3/Rsp1A-handler.cpp \
 	                   ./devices/sdrplay-handler-v3/RspII-handler.cpp \
 	                   ./devices/sdrplay-handler-v3/RspDuo-handler.cpp \
@@ -518,6 +523,7 @@ drm-decoder-fdk {
 	DEFINES		+=  __WITH_FDK_AAC__
 	LIBS		+= -lfdk-aac
 #	LIBS		+= -lfdk-aac-2
+	PKGCONFIG	+= fdk-aac
 	INCLUDEPATH	+= ./fdk-aac
 	INCLUDEPATH	+= /usr/include/eigen3
 	DEPENDPATH	+= ./decoders/drm-decoder/ \

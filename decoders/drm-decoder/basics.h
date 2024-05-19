@@ -23,8 +23,8 @@
 #
 //
 //	just some very general stuff
-#ifndef	__DRM_BASICS__
-#define	__DRM_BASICS__
+#ifndef	__BASICS__
+#define	__BASICS__
 #include	<stdint.h>
 #include	<complex>
 #define  _USE_MATH_DEFINES
@@ -184,5 +184,6 @@ DRM_FLOAT	sinc		(DRM_FLOAT);
 
 #define		SHOW_CHANNEL	0100
 #define		SHOW_PILOTS	0200
-#endif
+#define		SHOW_ERROR	0400
 
+#endif

@@ -156,7 +156,7 @@ int index	= 0;
 	}
 }
 
-QString	packHandler::unpackMessage (const uint8_t* m_in) {
+QString	packHandler::unpackMessage (const uint8_t* m_in, bool &is_CQ) {
 QString	result;
 
 	uint8_t i3 = getBits (m_in, 74, 3);
@@ -165,8 +165,12 @@ QString	result;
 	      return handle_type0 (m_in, getBits (m_in, 71, 3));
 
 	   case 1:	// c28 r1 c28 r1 R1 g15
+	      result = handle_type1 (m_in, i3, is_CQ);
+	      return result;
+
 	   case 2:	// c28 p1 c28 p1 R1 g15
-	      return handle_type1 (m_in, i3);
+	      result = handle_type1 (m_in, i3, is_CQ);
+	      return result;
 
 	   case 3:	// t1 c28 c28 R1 r3 s13
 	      return handle_type3 (m_in);
@@ -213,13 +217,14 @@ QString	packHandler::handle_type0 (const uint8_t *m_in, int n3) {
 //	handle type 1, i.e. "standard" messages
 //	handles bot type1 and type2 messages
 //	c28 r1 c28 r1 R1 g15:	K1ABC/R PA0JAN/R EN35
-QString	packHandler::handle_type1 (const uint8_t *m_in, uint8_t i3) {
+QString	packHandler::handle_type1 (const uint8_t *m_in,
+	                           uint8_t i3, bool &is_CQ) {
 uint32_t c28a, c28b;
 int16_t g15;
 uint8_t R1;
 uint8_t r1, r2;
 QString	result = "type 1/2: ";
-
+	is_CQ	= false;
 	c28a	= getLBits (m_in,  0, 28);	// callsign
 	r1	= getBits  (m_in, 28,  1);	// /R or /P
 	c28b	= getLBits (m_in, 29, 28);	// callsign
@@ -231,6 +236,8 @@ QString	result = "type 1/2: ";
 	QString c1 = getCallsign (c28a);
 	if (c1 == "") 
 	   return "";
+	if (c1. startsWith ("CQ"))
+	   is_CQ = true;
 //	Check if we should append /R or /P suffix
 	if (r1) {
 	   if (i3 == 1) {

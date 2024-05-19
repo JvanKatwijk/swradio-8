@@ -121,6 +121,7 @@ private slots:
 	void		handle_identityButton	();
 	void		handle_pskReporterButton	();
 	void		handle_presetFrequencies	(const QString &);
+	void		handle_cq_selector	(const QString &);
 signals:
 	void		setFrequency		(quint64);
 };

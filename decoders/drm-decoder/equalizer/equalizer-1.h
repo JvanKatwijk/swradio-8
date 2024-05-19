@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef	__EQUALIZER_1__
-#define	__EQUALIZER_1__
+#pragma once
 
 #include	<QObject>
 #include	"basics.h"
@@ -66,7 +65,7 @@ private:
 	int16_t		buildTrainers	(int16_t);
 	int16_t		rndcnt;
 	estimator_2	*estimator_channel;
-	estimator_1	**estimators;
+	estimator_2	**estimators;
 	int16_t		windowsinFrame;
 	int16_t		periodforPilots;
 	int16_t		periodforSymbols;
@@ -89,6 +88,4 @@ private:
 signals:
 	void		show_eqsymbol	(int);
 };
-
-#endif
 

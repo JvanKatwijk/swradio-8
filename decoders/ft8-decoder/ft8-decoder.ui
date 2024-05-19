@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>445</width>
-    <height>305</height>
+    <width>476</width>
+    <height>391</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -64,6 +64,20 @@
        <property name="text">
         <string>set identity</string>
        </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cq_selector">
+       <item>
+        <property name="text">
+         <string>All items</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>cq only</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item>

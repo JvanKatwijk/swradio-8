@@ -97,6 +97,8 @@
 	         this, SLOT (handle_presetFrequencies (const QString &)));
 	connect (this, SIGNAL (setFrequency (quint64)),
 	         mr, SLOT (setFrequency (quint64)));
+	connect (cq_selector, SIGNAL (activated (const QString &)),
+	         this, SLOT (handle_cq_selector (const QString &)));
 	show_pskStatus (false);
 	teller		= 0;
 }
@@ -165,14 +167,14 @@ void	ft8_Decoder::process		(std::complex<float> z) {
 	for (int i = 0; i < toneLength; i ++) {
 	   float x = abs (fftVector_out [i]);
 	   if ((x < 0) || (x > 10000000)) {
-	      fprintf (stderr, "ellende\n");
+//	      fprintf (stderr, "ellende\n");
 	      x = 0;
 	   }
 	   float x_p =  x;
 
 	   float y = abs (fftVector_out [toneLength + i]);
 	   if ((y < 0) || (y > 10000000)) {
-	      fprintf (stderr, "ellende\n");
+//	      fprintf (stderr, "ellende\n");
 	      y = 0;
 	   }
 	   float x_n = y;
@@ -547,5 +549,9 @@ void	ft8_Decoder::print_statistics () {
 void	ft8_Decoder::handle_presetFrequencies (const QString &freq) {
 int selectedFrequency = freq. toInt ();
 	setFrequency (selectedFrequency * 1000);
+}
+
+void	ft8_Decoder::handle_cq_selector	(const QString &s) {
+	theProcessor. set_cqSelector (s == "cq only");
 }
 
