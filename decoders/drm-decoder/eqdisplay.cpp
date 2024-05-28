@@ -64,20 +64,19 @@ double phaseData [amount];
 
 void	EQDisplay::show_channel	(std::complex<float> *v, int amount) {
 double	max	= 0;
-int	i;
 double X_axis	[amount];
 double plotData [amount];
 double phaseData [amount];
 
-	for (i = 0; i < amount; i ++) {
+	for (int i = 0; i < amount; i ++) {
 	   X_axis	[i] = i;
 	   plotData	[i] = abs (v [i]);
 	   if (plotData [i] > max)
 	      max = plotData [i];
 	}
-	for (i = 0; i < amount; i ++)
-	   plotData [i] = plotData [i] / max * 10;
-	for (i = 0; i < amount; i ++) 
+	for (int i = 0; i < amount; i ++)
+	   plotData [i] = plotData [i] / max * 3;
+	for (int i = 0; i < amount; i ++) 
 	   phaseData [i] = arg (v [i]) + 5;
 
 	plotgrid	-> setAxisScale (QwtPlot::xBottom,

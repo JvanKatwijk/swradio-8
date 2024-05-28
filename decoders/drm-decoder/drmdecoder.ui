@@ -367,6 +367,13 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
+      <widget class="QPushButton" name="resetButton">
+       <property name="text">
+        <string>reset</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLabel" name="selectedService">
        <property name="font">
         <font>

@@ -65,7 +65,7 @@ private:
 	int16_t		buildTrainers	(int16_t);
 	int16_t		rndcnt;
 	estimator_2	*estimator_channel;
-	estimator_2	**estimators;
+	estimator_1	**estimators;
 	int16_t		windowsinFrame;
 	int16_t		periodforPilots;
 	int16_t		periodforSymbols;

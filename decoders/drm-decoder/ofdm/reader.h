@@ -26,7 +26,7 @@
 
 #include	"ringbuffer.h"
 #include	"basics.h"
-
+#include	<atomic>
 class	drmDecoder;
 //
 //	For now we have a simple abstraction layer over a ringbuffer
@@ -47,10 +47,11 @@ public:
 	uint32_t	currentIndex;
 	bool		stopSignal;
 	uint32_t	firstFreeCell;
+	void		signal		();
 private:
 	drmDecoder	*m_form;
 	uint32_t	Contents	();
-	
+	std::atomic<bool> theSignal;
 	RingBuffer<std::complex<float>> * ringBuffer;
 };
 

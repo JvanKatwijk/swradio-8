@@ -112,6 +112,7 @@ private slots:
 	void            handle_strengthSelector (int);
         void            handle_f_cutSelector    (int);
         void            handle_modeSelector     (const QString &);
+	void		handle_reset		();
 
 public slots:
 	void            set_faadSyncLabel	(bool);

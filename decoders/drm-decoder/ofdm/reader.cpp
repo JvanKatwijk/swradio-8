@@ -43,9 +43,10 @@
 	currentIndex		= 0;
 	firstFreeCell		= 0;
 	stopSignal		= false;
+	theSignal. store (false);
 }
 
-	Reader::~Reader (void) {
+	Reader::~Reader () {
 	delete []	data;
 }
 
@@ -73,6 +74,11 @@ void	Reader::waitfor (int32_t amount) {
 uint32_t	tobeRead;
 int32_t		contents	= Contents ();
 
+	if (theSignal. load ()) {
+	   fprintf (stderr, "I am going to reset\n");
+	   theSignal. store (false);
+	   throw (101);
+	}
 	if (contents >= amount)
 	   return;
 	tobeRead	= amount - contents;
@@ -102,5 +108,9 @@ void	Reader::shiftBuffer (int32_t n) {
 	   waitfor (n + 20);
 	   currentIndex = (currentIndex + n) & this -> bufMask;
 	}
+}
+
+void	Reader::signal () {
+	theSignal. store (true);
 }
 

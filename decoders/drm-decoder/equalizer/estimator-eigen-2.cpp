@@ -29,6 +29,8 @@
 #include	"matrix2.h"
 #include	"basics.h"
 #include	<Eigen/QR>
+
+#include	"fft-complex.h"
 static	inline
 int16_t	Minimum (int16_t a, int16_t b) {
 	return a < b ? a : b;
@@ -61,7 +63,7 @@ int16_t	pilotIndex, tap;
 	numberofCarriers	= K_max - K_min + 1;
 	numberofPilots		= getnrPilots (refSymbol);
 	numberofTaps		= Tg_of (Mode);
-//	numberofTaps		= numberofPilots;
+//	numberofTaps		= numberofPilots + 10;
 	F_p			= MatrixXd (numberofPilots, numberofTaps);
 	S_p			= MatrixXd (numberofPilots,
 	                                          numberofPilots);
@@ -107,6 +109,29 @@ int16_t	pilotIndex, tap;
 	delete[]	pilotTable;
 }
 
+//	Stel dat je de kanaaltaps in the tijdsdomein in een
+//	kolomvector h steekt (L x 1).
+//	Dan is het kanaal in het frequentiedomein f = F * h
+//	waarbij F de eerste kolommen bevat van een N x N DFT matrix,
+//	dus F is een N x L matrix (N is het aantal carriers).
+//
+//	Als je de N x 1 vector s in het frequentiedomein doorstuurt,
+//	dan krijg je aan de ontvanger in het frequentiedomein
+//	(na toevoegen en verwijderen van een CP die langer
+//	is dan het kanaal):
+//	x = diag(s) * f = diag(s) * F * h
+//	Of als we enkel naar de pilot carriers kijken hebben we
+//	x_p = diag(s_p) * F_p * h = A_p * h    (1)
+//	waarbij diag(y) een diagonaalmatrix is met y op de diagonaal,
+//	s_p en F_p opgebouwd zijn uit de rijen van s en F
+//	overeenkomstig de pilot posities en A_p = diag(s_p) * F_p.
+//	Dus (1) is dan simpelweg een stelsel van vergelijkingen
+//	dat we moeten oplossen. Met Gaussiaanse ruis is de ML oplossing
+//	h_est = pinv(A_p) * x_p
+//	waarbij pinv de pseudo-inverse is. Zo krijg je een
+//	kanaalschatting in het tijdsdomein.
+//	Het kanaal in het frequentiedomein is dan
+//	f_est = F * h_est
 //
 void	estimator_2::estimate (std::complex<float> *testRow,
 	                            std::complex<float> *resultRow,
@@ -130,9 +155,10 @@ Vector  X_p  (numberofPilots);
 	for (int index = 0; index < numberofPilots; index ++)
 	   resultRow [indexFor (pilotTable [index])] = H_fd [index];
 
-	channel. resize (numberofPilots);
-	for (int index = 0; index < numberofPilots; index ++)
+	channel. resize (numberofTaps);
+	for (int index = 0; index < numberofTaps; index ++)  {
 	   channel. at (index) = h_td [index];
+	}
 }
 
 float	estimator_2::testQuality	(ourSignal *v) {

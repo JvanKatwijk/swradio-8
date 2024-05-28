@@ -91,6 +91,8 @@
         connect (channel_2, SIGNAL (clicked ()),
                  this, SLOT (select_channel_2 ()));
 
+	connect (resetButton, SIGNAL (clicked ()),
+	         this, SLOT (handle_reset ()));
 	m_worker	=
 	       new std::thread (&drmDecoder::WorkerFunction, this);
 }
@@ -350,8 +352,8 @@ float     sampleclockOffset       = 0;
 	         }
 	      }	// end of main loop
 	   } catch (int e) {
-	   if (!running. load ())
-	      return;
+	      if (!running. load ())
+	         return;
 	   }
 	}
 }
@@ -704,5 +706,10 @@ void	drmDecoder::select_channel_1	() {
 
 void	drmDecoder::select_channel_2	() {
 	theState. activate_channel_2 ();
+}
+
+void	drmDecoder::handle_reset	() {
+	fprintf (stderr, "Going to signal\n");
+	my_Reader.signal ();
 }
 

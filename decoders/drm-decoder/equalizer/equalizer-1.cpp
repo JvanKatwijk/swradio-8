@@ -255,9 +255,9 @@ int16_t		symbols_per_window_list_5 []	= {15, 15, 15, 6};
 //	The W_symbol_blk filters are ready now
 //
 //	and finally, the estimators
-	estimators	= new estimator_2 *[symbolsinFrame];
+	estimators	= new estimator_1 *[symbolsinFrame];
 	for (i = 0; i < symbolsinFrame; i ++)
-	   estimators [i] = new estimator_2 (refFrame, Mode, Spectrum, i);
+	   estimators [i] = new estimator_1 (refFrame, Mode, Spectrum, i);
 	estimator_channel = new estimator_2 (refFrame, Mode, Spectrum, 1);
 }
 
@@ -399,10 +399,10 @@ int16_t	i;
 //	*delta_freq_offset	= (arg (offs1) + arg (offs7) / periodforSymbols) / 2;
 
 	std::vector<std::complex<float>> VV;
-	if ((newSymbol == 1) && (scopeMode == SHOW_CHANNEL)) {
-	   estimator_channel  -> estimate (testFrame [1],
-	                                   pilotEstimates [1]. data (), VV);
-	   std::complex<float> xx [K_max - K_min + 1];
+	if ((newSymbol == 2) && (scopeMode == SHOW_CHANNEL)) {
+	   estimator_channel  -> estimate (testFrame [2],
+	                                   pilotEstimates [2]. data (), VV);
+	   std::complex<float> xx [VV. size ()];
 	   for (int index = 0; index < VV. size (); index ++) {
 	      xx [index] = VV [index];
 	   }
@@ -411,7 +411,8 @@ int16_t	i;
 	}
 	estimators [newSymbol] ->
 	              estimate (testFrame [newSymbol],
-	                        pilotEstimates [newSymbol]. data (), VV);
+//	                        pilotEstimates [newSymbol]. data (), VV);
+	                        pilotEstimates [newSymbol]. data ());
 	
 
 //	For equalizing symbol X, we need the pilotvalues
@@ -429,8 +430,9 @@ int16_t	i;
 	   int teller = 0;
 	   for (int carrier = K_min; carrier < K_max; carrier ++) {
 	      if (isPilotCell (Mode, 1, carrier)) {
-	         xx [carrier - K_min] =  getPilotValue (Mode, Spectrum, 1, carrier) -
-	                                 outFrame -> element (1) [indexFor (carrier)]. signalValue;
+	         xx [carrier - K_min] =
+                    outFrame -> element (1) [indexFor (carrier)]. signalValue -
+	                  getPilotValue (Mode, Spectrum, 1, carrier);
 	         teller ++;
 	      }
 	      else
