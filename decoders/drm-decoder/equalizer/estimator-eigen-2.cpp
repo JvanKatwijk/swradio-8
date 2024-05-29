@@ -15,7 +15,7 @@
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- *
+ 
  *    You should have received a copy of the GNU General Public License
  *    along with drm receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -37,8 +37,8 @@ int16_t	Minimum (int16_t a, int16_t b) {
 }
 
 static inline
-complex<float> createExp (float s) {
-	return complex<float> (cos (s), - sin (s));
+complex<float> createExp (float s, int power) {
+	return complex<float> (cos (s * power), - sin (s * power));
 }
 
 //	The basic idea is to create an estimator with an instance
@@ -63,7 +63,6 @@ int16_t	pilotIndex, tap;
 	numberofCarriers	= K_max - K_min + 1;
 	numberofPilots		= getnrPilots (refSymbol);
 	numberofTaps		= Tg_of (Mode);
-//	numberofTaps		= numberofPilots + 10;
 	F_p			= MatrixXd (numberofPilots, numberofTaps);
 	S_p			= MatrixXd (numberofPilots,
 	                                          numberofPilots);
@@ -86,14 +85,14 @@ int16_t	pilotIndex, tap;
 	   }
 //
 //	F_p is initialized with the precomputed values and is
-//	matrix filled with the (pilot, tap) combinations, where for the
+//	the FFT matrix filled with the (pilot, tap) combinations, where for the
 //	pilots, their carrier values (relative to 0) are relevant
 	for (pilotIndex = 0; pilotIndex < numberofPilots; pilotIndex ++) 
-	   for (tap = 0; tap < numberofTaps; tap ++) 
-	      F_p (pilotIndex, tap) = 
-	              cdiv (createExp (2 * M_PI *
-	                          (fftSize / 2 + pilotTable [pilotIndex]) *
-	                            tap / fftSize), sqrt (fftSize));
+	   for (tap = 0; tap < numberofTaps; tap ++) { 
+	      float Omega = 2 * M_PI * (fftSize / 2 + pilotTable [pilotIndex]); 
+	      F_p (pilotIndex, tap) =
+	           createExp (Omega / fftSize, tap)/ (float)(sqrt (fftSize));
+	   }
 
 //
 //	Note that A_p is not a square matrix, the number of taps
@@ -123,6 +122,8 @@ int16_t	pilotIndex, tap;
 //	Of als we enkel naar de pilot carriers kijken hebben we
 //	x_p = diag(s_p) * F_p * h = A_p * h    (1)
 //	waarbij diag(y) een diagonaalmatrix is met y op de diagonaal,
+//	en x_p de geobserveerde waarden aan de "receiver" kant is
+//
 //	s_p en F_p opgebouwd zijn uit de rijen van s en F
 //	overeenkomstig de pilot posities en A_p = diag(s_p) * F_p.
 //	Dus (1) is dan simpelweg een stelsel van vergelijkingen
@@ -140,10 +141,10 @@ Vector	h_td (numberofTaps);
 Vector  H_fd (numberofPilots);
 Vector  X_p  (numberofPilots);
 //	X_p are the observed values, and we have to "solve"
+//	the solution for the channel taps in the time domain is h_td
 //	X_p     = A_P * h_td
 //	h_td    = A_p_inv *  X_p;
 //	H_fd    = F_p * h_td;
-
 
 	for (int index = 0; index < numberofPilots; index ++) 
 	   X_p (index) = testRow [indexFor (pilotTable [index])];

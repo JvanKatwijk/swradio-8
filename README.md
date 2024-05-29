@@ -267,21 +267,41 @@ In the current version one may choose between looking at the
 correction factors to be applied to the "pilot carriers",
 or looking at the channel impulse.
 
-The picture above shows the **correction** to be applied to the pilot carriers
-(from which the correction to the other carriers is computed). The yellow
-lines tell about the amplitude, the white lines about the phase correction.
-(Correction is here: divide the measured signal on the pily carrier by
-the correction fctor). Such correction is needed, since decoding is coherent.
+The picture shows  the reception of Radio Romenia, which gives
+where I live a pretty strong signal.
+On the left, the decoder. It shows that the measured frequency offset
+is 1.166 Hz, pretty small. The 0 relates to the number of carriers
+that is offset, here apparently 0, the 1.166 relates to the offset
+between carrier frequencies (which should always be less than app 20 Hz.)
 
-![swradio-8](/swradio-drm-widget-2.png?raw=true)
+The decoder shows 4 green indicators, telling that all kinds synchronization
+succeeded and the audio could be decodeed. 
+The black "scope" on the bottom right shows the measured constellation
+of the decoded signal, here QAM 16. The 16 dots are clearly visible.
 
-The second picture shows the **channel impulse**, i.e.
-the **filtering** as applied on the signal in the transport from
-transmitter to receiver.
-Again, the yellow line tells the amplitude value of the filter component,
-while the white line does so for the phase.
+New is the scope on the bottom left, it shows the measured errors in 
+both the amplitude and phases on the pilots AFTER equalization took place.
 
-In general, DRM is retty difficult to decode, due to channel conditions.
+The combo box labeled "Errors" provides 3 options for displaying
+some data of the equalized signal.
+
+![swradio-8](/drm-decoder-1.png?raw=true)
+
+The second picture shows the state of the reception a few minutes later,
+the frequency offset is now 0.766 Hz, and the scope now shows the
+required correction on the pilots before the equalization.
+
+With the two spinboxes (with displayed values of 3 resp. 75) can be
+used to experiment a little with some equalization parameters.
+The left one (range 0 .. 4) is used to set the number of "symbols"
+the actual pilot values are used to compute the equalization values
+of the symbol that is being processed.
+
+The right one (range 10 .. 200) sets another parameter whose
+value is believed to influence the quality of the equalization
+in different fading conditions.
+
+In general, DRM is pretty difficult to decode, due to channel conditions.
 
 --------------------------------------------------------------------------
 Using the swradio
