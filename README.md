@@ -259,7 +259,7 @@ Decoding is coherent, so the signal as transmitted has to be restored.
 To aid in "undoing" the channel effects, a number of carriers, pilots,
 are transmitted, carriers with predefined amplitude and phase.
 
-![swradio-8](/swradio-drm-widget-1.png?raw=true)
+![swradio-8](/drm-decoder-1.png?raw=true)
 
 The decoder widget gives quite some information. The "scopes" show the
 correction to be applied to the signal.
@@ -285,7 +285,7 @@ both the amplitude and phases on the pilots AFTER equalization took place.
 The combo box labeled "Errors" provides 3 options for displaying
 some data of the equalized signal.
 
-![swradio-8](/drm-decoder-1.png?raw=true)
+![swradio-8](/drm-decoder-2.png?raw=true)
 
 The second picture shows the state of the reception a few minutes later,
 the frequency offset is now 0.766 Hz, and the scope now shows the
