@@ -520,6 +520,9 @@ int16_t	symbol, carrier;
 int16_t	   K_min		= Kmin (m -> Mode, m -> Spectrum);
 int16_t	   K_max		= Kmax (m -> Mode, m -> Spectrum);
 
+	if (theState. numofStreams <= 0) 
+	   return;
+
 	if (isFirstFrame (&theState))
 	   my_backendController. newFrame (&theState);
 

@@ -142,14 +142,12 @@ int	failure		= 0;
 	(void)startHigh; (void)startLow;
 	(void)bitReservoirLevel;
 	(void)numChannels;
-	if (!theCRC. doCRC (v, 16)) {
+	if (!theCRC. doCRC (v, 16) || (frameBorderCount == 0)) {
 //	   fprintf (stderr, "oei\n");
 	   faadSuccess (false);
 	   return;
 	}
 
-	if (frameBorderCount < 0)
-	   return;
 	if (textFlag != 0) {
 	   my_messageProcessor.
 	                   processMessage (v, (startLow + lengthLow - 4) * 8);
@@ -184,6 +182,7 @@ int	failure		= 0;
 	   }
 //
 //	we do not look at the usac crc
+
 	uint32_t directoryOffset = length - 2 * frameBorderCount - 2;
 	if (borders [frameBorderCount - 1] >= directoryOffset) {
 	   faadSuccess (false);

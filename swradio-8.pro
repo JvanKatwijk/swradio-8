@@ -7,11 +7,11 @@ CONFIG	+= console qwt qwt-qt5
 #CONFIG	-= console
 TARGET	= swradio-9
 QMAKE_CXXFLAGS  += -std=c++14
-QMAKE_CFLAGS	+= -O3 -ffast-math 
-QMAKE_CXXFLAGS	+= -O3 -ffast-math 
-#QMAKE_CXXFLAGS += -fsanitize=address -g
-#QMAKE_CFLAGS   += -fsanitize=address -g
-#QMAKE_LFLAGS   += -fsanitize=address -g
+#QMAKE_CFLAGS	+= -O3 -ffast-math 
+#QMAKE_CXXFLAGS	+= -O3 -ffast-math 
+QMAKE_CXXFLAGS += -fsanitize=address -g
+QMAKE_CFLAGS   += -fsanitize=address -g
+QMAKE_LFLAGS   += -fsanitize=address -g
 
 RC_ICONS        =  swradio.ico
 RESOURCES       += resources.qrc
