@@ -143,7 +143,7 @@ int	failure		= 0;
 	(void)bitReservoirLevel;
 	(void)numChannels;
 	if (!theCRC. doCRC (v, 16) || (frameBorderCount == 0)) {
-//	   fprintf (stderr, "oei\n");
+//	   fprintf (stderr, "crc error or (%d = 0)", frameBorderCount);
 	   faadSuccess (false);
 	   return;
 	}
@@ -166,18 +166,16 @@ int	failure		= 0;
 	                    get_MSCBits (v, 8 * length - 16 - 16 * i + 12, 4);
 
 	   if (frameBorderCountRepeat != frameBorderCount) {
-//	      fprintf (stderr, "fout?\n");
 	      faadSuccess (false);
 	      return;
 	   }
-//	   fprintf (stderr, "border [%d] = %d\n",
-//	                           i, frameBorderIndex);
 	   borders [i] = frameBorderIndex;
 	}
 
 	for (int i = 0; i < frameBorderCount - 1; i ++)
 	   if (borders [i] >= borders [i + 1]) {
 	      faadSuccess (false);
+//	      fprintf (stderr, "Fout-2\n");
 	      return;
 	   }
 //
@@ -186,6 +184,7 @@ int	failure		= 0;
 	uint32_t directoryOffset = length - 2 * frameBorderCount - 2;
 	if (borders [frameBorderCount - 1] >= directoryOffset) {
 	   faadSuccess (false);
+//	   fprintf (stderr, "fout 3\n");
 	   return;
 	}
 
@@ -232,6 +231,7 @@ int	failure		= 0;
 	         success ++;
 	      else
 	         failure ++;
+	
 	      playOut (frameBuffer, frameBuffer. size (), 0);
 	      break;
 	}
@@ -385,7 +385,7 @@ void	xheaacProcessor::init	() {
 }
 
 static
-int16_t	localBuffer [8 * 32768];
+int16_t	localBuffer [16 * 32768];
 
 void	xheaacProcessor::decodeFrame (uint8_t	*audioFrame,
 	                              uint32_t	frameSize,
@@ -416,15 +416,15 @@ int	flags		= 0;
 #ifdef	__MINGW32__
 	     aacFunctions -> aacDecoder_DecodeFrame (handle,
 	                                             localBuffer,
-	                                             2048, flags);
+	                                             2 * 2048, flags);
 #else
-	     aacDecoder_DecodeFrame (handle, localBuffer, 2048, flags);
+	     aacDecoder_DecodeFrame (handle, localBuffer, 2 * 2048, flags);
 #endif
-#if 0
+//#if 0
 	if (errorStatus != 0)
 	   fprintf (stderr, "fdk-aac errorstatus %x\n",
 	                                errorStatus);
-#endif
+//#endif
 	if (errorStatus == AAC_DEC_NOT_ENOUGH_BITS) {
 	   *conversionOK	= false;
 	   *samples		= 0;

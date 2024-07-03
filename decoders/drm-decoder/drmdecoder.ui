@@ -367,6 +367,13 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
+      <widget class="QCheckBox" name="eqSelector">
+       <property name="text">
+        <string>linear</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="resetButton">
        <property name="text">
         <string>reset</string>

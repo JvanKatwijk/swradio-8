@@ -174,6 +174,7 @@ float     sampleclockOffset       = 0;
 	                                modeInf.Spectrum,
 	                                strengthSelector -> value (),
 	                                f_cutSelector -> value (),
+	                                eqSelector -> isChecked (),
 	                                &eqBuffer);
 	
 	         my_Equalizer. set_scopeMode (scopeMode);

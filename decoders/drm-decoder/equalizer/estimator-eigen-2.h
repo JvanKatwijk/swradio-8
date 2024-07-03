@@ -41,7 +41,10 @@ public:
 		~estimator_2	();
 	void	estimate	(std::complex<float> *,
 	                         std::complex<float> *,
+	                         std::vector<std::complex<float>> &,
 	                         std::vector<std::complex<float>> &);
+	void	estimate	(std::complex<float> *,
+	                         std::complex<float> *);
 	float	testQuality	(ourSignal *);
 private:
 	std::complex<float>     **refFrame;
@@ -64,8 +67,9 @@ private:
 	MatrixXd	S_p;
 	MatrixXd	A_p;
 	MatrixXd	A_p_inv;
-	std::complex<float>	*pilotVector;
-	int16_t		*pilotTable;
+	MatrixXd	CoV;
+	MatrixXd	CoV_r;
+	std::vector<int16_t>	pilotTable;
 };
 
 #endif
