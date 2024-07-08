@@ -39,7 +39,7 @@
 #include	"message-processor.h"
 
 class	drmDecoder;
-//class	upConverter;
+//class	drmConverter;
 class	rateConverter;
 class	stateDescriptor;
 
@@ -69,8 +69,8 @@ private:
                                                         int streamId);
 	std::vector<uint8_t>	frameBuffer;
 	std::vector<uint32_t> borders;
+//	drmConverter	*theConverter;
 	rateConverter	*theConverter;
-//	upConverter	*theConverter;
 	int		numFrames;
 	void		writeOut	(int16_t *, int16_t, int32_t);
 	void		toOutput	(std::complex<float> *, int16_t);

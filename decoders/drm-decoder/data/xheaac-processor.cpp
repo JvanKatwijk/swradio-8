@@ -292,11 +292,6 @@ float ff = 0;
 //	   fprintf (stderr, "%d out of %d were good\n", good, good + fout);
 	   good = 0; fout = 0;
 	}
-
-	if (good + fout >= 10) {
-//	   fprintf (stderr, "%d good out of %d\n", good, good + fout);
-	   good = 0; fout = 0;
-	}
 }
 
 void	xheaacProcessor::toOutput (std::complex<float> *b, int16_t cnt) {
@@ -327,7 +322,7 @@ void	xheaacProcessor::writeOut (int16_t *buffer, int16_t cnt,
 	fprintf (stderr, "processing %d samples (rate %d)\n",
 	                  cnt, pcmRate);
 #endif
-	std::complex<float> local [theConverter -> getOutputsize ()];
+	std::complex<float> local [theConverter -> getOutputsize () + 10];
 	for (int i = 0; i < cnt; i ++) {
 	   std::complex<float> tmp = 
 	                    std::complex<float> (buffer [2 * i] / 8192.0,
@@ -420,11 +415,11 @@ int	flags		= 0;
 #else
 	     aacDecoder_DecodeFrame (handle, localBuffer, 2 * 2048, flags);
 #endif
-//#if 0
+#if 0
 	if (errorStatus != 0)
 	   fprintf (stderr, "fdk-aac errorstatus %x\n",
 	                                errorStatus);
-//#endif
+#endif
 	if (errorStatus == AAC_DEC_NOT_ENOUGH_BITS) {
 	   *conversionOK	= false;
 	   *samples		= 0;

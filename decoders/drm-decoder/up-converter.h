@@ -62,6 +62,7 @@ bool	convert		(std::complex<float> v,
 virtual
 int	getOutputSize	();
 protected:
+	LowPassFIR LFfilter;
 	std::vector<std::complex<float>> buffer;
 	int inP;
 };

@@ -33,8 +33,8 @@ int	err;
 	fprintf (stderr, "ratio = %f\n", ratio);
 	outputLimit		= inSize * ratio;
 //	converter		= src_new (SRC_SINC_BEST_QUALITY, 2, &err);
-//	converter		= src_new (SRC_LINEAR, 2, &err);
-	converter		= src_new (SRC_SINC_MEDIUM_QUALITY, 2, &err);
+	converter		= src_new (SRC_LINEAR, 2, &err);
+//	converter		= src_new (SRC_SINC_MEDIUM_QUALITY, 2, &err);
 	src_data		= new SRC_DATA;
 	inBuffer		= new float [2 * inputLimit + 20];
 	outBuffer		= new float [2 * outputLimit + 20];
@@ -79,7 +79,7 @@ int	res;
 	return true;
 }
 
-int32_t	 rateConverter::getOutputsize (void) {
+int32_t	 rateConverter::getOutputsize () {
 	return outputLimit;
 }
 

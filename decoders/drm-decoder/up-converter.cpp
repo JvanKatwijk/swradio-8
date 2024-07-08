@@ -62,7 +62,8 @@ int	drmConverter::getOutputSize	() {
 	return workerHandle -> getOutputSize ();
 }
 
-	converter_base::converter_base	() {
+	converter_base::converter_base	():
+	                            LFfilter (5, 16000, 48000) {
 }
 
 	converter_base::~converter_base	() {
@@ -279,11 +280,11 @@ int	converter_32000::getOutputSize	() {
 }
 
 //	conversion from 38400 -> 48000 is 
-//	384000 -> 192000 -> 48000, i.e. 4 in 5 out
+//	384000 -> 192000 -> 48000, i.e. 5 in 4 out
 //
 	converter_38400::converter_38400	():
 	                                theFilter (15, 19200, 192000) {
-	buffer. resize (2000);
+	buffer. resize (2008);
 	inP	= 0;
 }
 	
@@ -293,14 +294,17 @@ bool	converter_38400::convert	(std::complex<float> v,
 	                                 std::complex<float> *out,
 	                                 int *amount) {
 	buffer [inP ++] = theFilter. Pass (v);
-	for (int i = 0; i < 5; i ++)
-	    buffer [inP ++] = theFilter. Pass (std::complex<float> (0, 0));
+	buffer [inP ++] = theFilter. Pass (std::complex<float> (0, 0));
+	buffer [inP ++] = theFilter. Pass (std::complex<float> (0, 0));
+	buffer [inP ++] = theFilter. Pass (std::complex<float> (0, 0));
+	buffer [inP ++] = theFilter. Pass (std::complex<float> (0, 0));
+
 	if (inP < 2000) {
 	   *amount = 0;
 	   return false;
 	}
 	for (int i = 0; i < 500; i ++)
-	   out [i] = buffer [4 * i];
+	   out [i] = LFfilter. Pass (buffer [4 * i]);
 	*amount = 500;
 	inP	= 0;
 	return true;

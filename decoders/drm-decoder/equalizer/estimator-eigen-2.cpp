@@ -123,8 +123,8 @@ int16_t	pilotIndex, tap;
 //	MatrixXd D	= MatrixXd (numberofTaps, numberofTaps);
 //	D	= F_p. transpose () * F_p;
 //	A_p_inv	= D. inverse () * F_p. transpose () * S_p. inverse ();
-	A_p	= S_p * F_p;
-//	A_p	= CoV * S_p * F_p;
+//	A_p	= S_p * F_p;
+	A_p	= CoV * S_p * F_p;
 	A_p_inv = A_p. transpose () * (A_p * A_p. transpose ()). inverse ();
 }
 
