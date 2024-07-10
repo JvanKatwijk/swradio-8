@@ -325,8 +325,8 @@ void	xheaacProcessor::writeOut (int16_t *buffer, int16_t cnt,
 	std::complex<float> local [theConverter -> getOutputsize () + 10];
 	for (int i = 0; i < cnt; i ++) {
 	   std::complex<float> tmp = 
-	                    std::complex<float> (buffer [2 * i] / 8192.0,
-	                                         buffer [2 * i + 1] / 8192.0);
+	                    std::complex<float> (buffer [2 * i] / (4 * 8192.0),
+	                                         buffer [2 * i + 1] / (4 * 8192.0));
 	   int amount;
 	   bool b = theConverter -> convert (tmp, local, &amount);
 	   if (b) {

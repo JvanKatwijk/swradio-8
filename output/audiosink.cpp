@@ -228,7 +228,7 @@ int32_t	available = _O_Buffer -> GetRingBufferWriteAvailable ();
 	if (2 * n > available)
 	   n = (available / 2) & ~01;
 	for (i = 0; i < n; i ++) {
-	   buffer [2 * i] = real (V [i]);
+	   buffer [2 * i]	= real (V [i]);
 	   buffer [2 * i + 1] = imag (V [i]);
 	}
 
