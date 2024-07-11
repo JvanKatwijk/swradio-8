@@ -55,7 +55,7 @@ uint16_t	res	= 0;
 	this	-> aacFunctions	= aacFunctions;
 #endif
 	this	-> audioOut	= out;
-#ifdef	__MINGW332__
+#ifdef	__MINGW32__
 	this	-> handle	= aacFunctions -> aacDecoder_Open (TT_DRM, 2);
 #else
 	this	-> handle	= aacDecoder_Open (TT_DRM, 2);
