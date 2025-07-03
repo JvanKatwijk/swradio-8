@@ -52,6 +52,8 @@ float	sum	= 0;
 	this	-> ip		= 0;
 	this	-> bufferSize	= bufferSize;
 
+	if (order < 5)
+	   return;
 	for (int i = 0; i < bufferSize; i ++)
 	   buffer [i] = std::complex<float> (0, 0);
 

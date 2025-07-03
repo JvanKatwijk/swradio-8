@@ -64,6 +64,9 @@
 #ifdef	HAVE_RTLSDR
 #include	"rtlsdr-handler.h"
 #endif
+#ifdef	HAVE_SPYSERVER
+#include	"spyserver-client.h"
+#endif
 #endif
 //
 //	decoders
@@ -157,6 +160,7 @@ QString	FrequencytoString (quint64 freq) {
 	audioRate		= 48000;
         audioData       = new RingBuffer<std::complex<float>> (audioRate);
 
+	theUpConverter		= nullptr;
 	agc. setMode (agcHandler::AGC_OFF);
 //	and the decoders
 	theDecoder	= new virtualDecoder (decoderRate,
@@ -358,7 +362,8 @@ QString	FrequencytoString (quint64 freq) {
 	secondsTimer. stop ();
         delete  mykeyPad;
         delete  myList;
-	delete	theUpConverter;
+//	if (theUpConverter != nullptr)
+//	   delete	theUpConverter;
 }
 //
 //	If the user quits before selecting a device ....
@@ -383,6 +388,7 @@ void	RadioInterface::handle_quitButton	(void) {
 #define	D_RTLSDR	"rtlsdr"
 #define	D_PMSDR		"pmsdr"
 #define	D_EXTIO		"extio"
+#define	D_SPYSERVER	"spyserver"
 
 deviceHandler	*RadioInterface::
 	          setDevice (RingBuffer<std::complex<float>> *hfBuffer) {
@@ -406,6 +412,9 @@ const char *deviceTable [] = {
 #endif
 #ifdef	HAVE_RTL_TCP
 	D_RTL_TCP,
+#endif
+#ifdef	HAVE_SPYSERVER
+	D_SPYSERVER,
 #endif
 #ifdef	HAVE_PMSDR
 	D_PMSDR,
@@ -464,6 +473,13 @@ const char *deviceTable [] = {
 #ifdef	HAVE_RTLSDR
 	      if (s == D_RTLSDR) {
 	         theDevice  = new rtlsdrHandler (this, inputRate,
+	                                    hfBuffer, settings);
+	         return theDevice; 
+	      }
+#endif
+#ifdef	HAVE_SPYSERVER
+	      if (s == D_SPYSERVER) {
+	         theDevice  = new spyServer_client (this, inputRate,
 	                                    hfBuffer, settings);
 	         return theDevice; 
 	      }

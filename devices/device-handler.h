@@ -24,8 +24,8 @@
  *	want the interface with different devices (including  filehandling)
  *	to be transparent
  */
-#ifndef	__DEVICE_HANDLER__
-#define	__DEVICE_HANDLER__
+
+#pragma once
 
 #include	<stdint.h>
 #include	"radio-constants.h"
@@ -71,5 +71,4 @@ signals:
 	void	set_stopHW		(void);
 	void	set_startHW		(void);
 };
-#endif
 

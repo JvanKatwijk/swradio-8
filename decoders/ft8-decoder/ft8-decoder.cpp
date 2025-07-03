@@ -46,7 +46,7 @@
 	this	-> outputRate	= 12000;
 	this	-> toneLength	= inputRate / 6.25;
 	for (int i = 0; i < nrBUFFERS; i ++)
-	   theBuffer [i] = new float [2 * toneLength];
+	   theBuffer [i] = new float [2 * toneLength + 1];
 	window			= new float [toneLength];
 	inputBuffer		= new std::complex<float> [toneLength];
 	inBuffer		= new std::complex<float> [toneLength / FRAMES_PER_TONE];
@@ -189,10 +189,20 @@ void	ft8_Decoder::process		(std::complex<float> z) {
 	for (int i = 0; i < 2 * toneLength; i ++)
 	   avg += theBuffer [fillIndex][i];
 	avg /= (2 * toneLength);
+	float min = 0;
+	int tt = 0;
+	for (int i = 0; i < 2 * toneLength; i ++) {
+	   if (theBuffer [fillIndex][i] < avg) {
+	      min += theBuffer [fillIndex][i];
+	      teller ++;
+	   }
+	}
+	min /= teller;
 	for (int i = 0; i < 2 * toneLength; i ++)
 	   theBuffer [fillIndex][i] /= avg;
 	
 	theBuffer [fillIndex] [0] = avg;
+	theBuffer [fillIndex] [2 * toneLength] = min;
 
 	fillIndex = (fillIndex + 1) % nrBUFFERS;
 	lineCounter ++;
@@ -240,7 +250,7 @@ float xxx [2 * toneLength];
 
 	float log174 [FT8_LDPC_BITS];
 	it. value = decodeTones (lineno, it. index, log174);
-	theProcessor . PassOn (lineCounter, it.value,
+	theProcessor . PassOn (lineCounter, it.value, it. strength,
 	                 (int)(it. index - toneLength) * BINWIDTH, log174);
 }
 
@@ -459,6 +469,8 @@ bool	flag	= false;
 	      E. index = maxIndex;
 	      E. value = theBuffer [readIndex][maxIndex];
 	      E. relative = V [maxIndex] / V [maxIndex + 5];
+	      float tt	= theBuffer [readIndex][maxIndex] * theBuffer [readIndex][0];
+	      E. strength = 10 * log10 (tt / theBuffer [readIndex][2 * toneLength]);
 	      flag = true;
 	   }
 	   index += 5;

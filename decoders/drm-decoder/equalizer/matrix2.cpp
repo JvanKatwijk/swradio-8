@@ -102,6 +102,23 @@ double **temp3	= new double * [order];
 	   for (int col = 0; col < order; col ++)
 	      M [row][col] = std::complex<float> (
 	                             temp2 [row][col], -temp3 [row][col]);
+
+	for (int i = 0; i < order; i ++) {
+	   delete [] RE     [i];
+	   delete [] IM     [i];
+	   delete [] RE_1   [i];
+	   delete [] IM_1   [i];
+	   delete [] temp1  [i];
+	   delete [] temp2  [i];
+	   delete [] temp3  [i];
+	}
+	delete [] RE;
+	delete [] RE_1; 
+	delete [] IM;
+	delete [] IM_1;
+	delete [] temp1;
+	delete [] temp2;
+	delete [] temp3;
 }
 
 void	inverse (float **mat, int dim) {
@@ -230,8 +247,8 @@ double   sum;
 int gjinv (float **aa, int n, float **bb) {
 int p;
 long double f, g, tol;
-long double *a  = new long  double [n * n];
-long double *b  = new long  double [n * n];
+long double a [n * n];
+long double b [n * n];
 
 	for (int row = 0; row < n; row ++) 
 	   for (int col = 0; col < n; col ++) 
@@ -308,7 +325,12 @@ long double *b  = new long  double [n * n];
 void	inverseOfMatrix (double** M, int order) {
 double **matrix = new double * [order];
 double temp;
-
+//
+//	just to be safe
+	if (order < 3) { 
+	   delete [] matrix;
+	   return;
+	}
 	for (int i = 0; i < order; i ++)
 	   matrix[i] = new double [2 * order];
 

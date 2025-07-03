@@ -167,6 +167,7 @@ CONFIG		+= sdrplay
 CONFIG		+= hackrf
 CONFIG		+= rtlsdr
 CONFIG		+= rtl_tcp
+CONFIG		+= spyServer
 #CONFIG		+= pmsdr
 #CONFIG		+= cardReader
 CONFIG		+= am-decoder
@@ -329,6 +330,20 @@ extio	{
         HEADERS         += ./devices/extio-handler/extio-handler.h 
         SOURCES         += ./devices/extio-handler/extio-handler.cpp 
 	CONFIG		+= cardreader
+}
+
+spyServer  {
+	DEFINES		+= HAVE_SPYSERVER
+	DEPENDPATH	+= ./devices/spy-server
+	INCLUDEPATH	+= ./devices/spy-server
+	HEADERS		+= ./devices/spy-server/spyserver-protocol.h 
+	HEADERS		+= ./devices/spy-server/tcp-client.h 
+	HEADERS		+= ./devices/spy-server/spy-handler.h 
+	HEADERS		+= ./devices/spy-server/spyserver-client.h
+	SOURCES		+= ./devices/spy-server/tcp-client.cpp 
+	SOURCES		+= ./devices/spy-server/spy-handler.cpp 
+	SOURCES		+= ./devices/spy-server/spyserver-client.cpp 
+	FORMS		+= ./devices/spy-server/spyserver-widget.ui
 }
 
 cardreader {
@@ -521,8 +536,8 @@ drm-decoder-fdk {
 	DEFINES		+= HAVE_DRM_DECODER
 	DEFINES		+= ESTIMATOR_1
 	DEFINES		+=  __WITH_FDK_AAC__
-#	LIBS		+= -lfdk-aac
-	LIBS		+= -lfdk-aac-2
+	LIBS		+= -lfdk-aac
+#	LIBS		+= -lfdk-aac-2
 	PKGCONFIG	+= fdk-aac
 	INCLUDEPATH	+= ./fdk-aac
 	INCLUDEPATH	+= /usr/include/eigen3

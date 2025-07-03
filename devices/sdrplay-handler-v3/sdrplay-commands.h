@@ -25,8 +25,8 @@
 //
 //	The file contains the definitions of the interface data between
 //	the calling and the callee thread
-#ifndef	__SDRPLAY_COMMANDS__
-#define	__SDRPLAY_COMMANDS__
+
+#pragma once
 
 #define RESTART_REQUEST         0100
 #define STOP_REQUEST            0101
@@ -156,5 +156,4 @@ public:
 	}
 	~biasTRequest () {}
 };
-#endif
 

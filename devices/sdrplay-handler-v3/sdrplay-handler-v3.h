@@ -1,6 +1,6 @@
 #
 /*
- *    Copyright (C) 2020
+ *    Copyright (C) 2020 .. 2025
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __SDRPLAY_HANDLER_V3__
-#define	__SDRPLAY_HANDLER_V3__
+#pragma once
 
 #include	"device-handler.h"
 #include	"fir-filters.h"
@@ -146,5 +145,4 @@ signals:
 	void			set_serial_signal	(const QString &);
 	void			set_apiVersion_signal	(float);
 };
-#endif
 

@@ -179,7 +179,7 @@ void	fileHulp::reset	(void) {
  */
 void	fileHulp::run (void) {
 int32_t	t, i;
-float	*bi;
+float	*bi	= nullptr;
 int32_t	bufferSize;
 int32_t	period;
 int64_t	nextStop;
@@ -234,11 +234,12 @@ int64_t	nextStop;
 	   float	bo [outputLimit];
 	   SRC_STATE	*converter	= src_new (SRC_SINC_BEST_QUALITY,
 	                                                           2, &error);
-	   SRC_DATA	*src_data	= new SRC_DATA;
 	   if (converter == 0) {
 	      fprintf (stderr, "error creating a converter %d\n", error);
+	      delete [] bi;
 	      return;
 	   }
+	   SRC_DATA	*src_data	= new SRC_DATA;
 
 	   fprintf (stderr,
 	               "Starting converter with ratio %f (in %d, out %d)\n",
@@ -289,10 +290,11 @@ int64_t	nextStop;
 	         usleep (nextStop - getMyTime ());
 	   }
 
-	   delete	bi;
 	   src_delete (converter);
 	   delete src_data;
 	}
+	if (bi != nullptr)
+	   delete[]	bi;
 	fprintf (stderr, "taak voor replay eindigt hier\n");
 }
 

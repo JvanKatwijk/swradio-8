@@ -1,5 +1,17 @@
 # swradio-9 [![Build Status](https://travis-ci.org/JvanKatwijk/swradio-9.svg?branch=master)](https://travis-ci.org/JvanKatwijk/swradio-8)
 
+----------------------------------------------------------------------
+Support for spyServer
+
+swradio now supports connections to a **spyServer****
+Since my antenna equipment is less than optimal, I added
+a client for the spyServer to the set of input devices.
+
+Note however, that since devices like V3 DABsticks and the regular
+AIRspy device do not support SW frequencies in interesting bands
+below app 24 MHz, one needs to connect to the Airspy HF.
+It turns out there are a few spyServers connected to AIRspyHF devices.
+
 --------------------------------------------------------------------
 Improved support for SDRplay RSP's
 ---------------------------------------------------------------------
@@ -7,7 +19,6 @@ Improved support for SDRplay RSP's
 Support for the SDRplay RSP's is rewritten (and improved). For the DX version,
 antennas A, B and C can be selected now, and its antenna setting is
 kept between invocations.
-
 
 -----------------------------------------------------------------
 Introduction (Revised version 9)

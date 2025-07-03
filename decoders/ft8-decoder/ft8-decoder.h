@@ -41,6 +41,7 @@ typedef struct {
 	int	index;
 	float	value;
 	float 	relative;
+	float	strength;
 } costasValue;
 
 class	RadioInterface;

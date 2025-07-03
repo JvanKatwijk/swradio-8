@@ -91,4 +91,3 @@ bool	faxBuffer::wait_too_long		(int deadLine) {
 	return false;
 }
 
-	

@@ -232,7 +232,7 @@ float     sampleclockOffset       = 0;
                               &sampleclockOffset,
 	                      displayVector);
 
-	      lc           = (lc + symbol_no) % symbol_no;
+	      lc           = (lc + symbol_no) % nrSymbols;
 	      symbol_no    = 0;
 	      frameReady   = false;
 	      while (running. load () && !frameReady) {

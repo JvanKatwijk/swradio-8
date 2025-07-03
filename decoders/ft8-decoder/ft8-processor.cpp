@@ -65,7 +65,8 @@ static int blocks_in	= 0;
 
 //	entry for processing
 void	ft8_processor::PassOn (int lineno,
-	                       float refVal, int frequency, float *log174) {
+	                       float refVal, float strengthValue,
+	                       int frequency, float *log174) {
 	if (blocks_in >= 4)
 	   return;
         while (!freeSlots. tryAcquire (200)) 
@@ -75,6 +76,7 @@ void	ft8_processor::PassOn (int lineno,
 	theBuffer [blockToWrite]. lineno	= lineno;
 	theBuffer [blockToWrite]. value 	= refVal;
 	theBuffer [blockToWrite]. frequency	= frequency;
+	theBuffer [blockToWrite]. strengthValue	= strengthValue;
 	for (int i = 0; i < FT8_LDPC_BITS; i ++)
 	   theBuffer [blockToWrite]. log174 [i] = log174 [i];
 	blockToWrite = (blockToWrite + 1 ) % nrBlocks;;
@@ -114,11 +116,10 @@ QString s;
 
 QString	makeLine (QString time,
 	          int value, int freq,
-	          QString message)  {
+	          QString message, int strength)  {
 char res [256];
-
 static
-int posTable [] = {0, 20, 30, 45, 75};
+int posTable [] = {0, 15, 20, 40, 75, 85};
 
 	for (int i = 0; i < 256; i ++)
 	   res [i] = ' ';
@@ -127,7 +128,8 @@ int posTable [] = {0, 20, 30, 45, 75};
 	insert_2_Number (res, posTable [1], value > 100 ? 101 : value);
 	insertNumber (res, posTable [2], freq);
 	insertString (res, posTable [3], message);
-	res [posTable [4]] = 0;
+	insert_2_Number (res, posTable [4], strength);
+	res [posTable [5]] = 0;
 	return QString (res);
 }
 
@@ -172,11 +174,13 @@ int	errors;
 	      bool is_CQ	= false;
 	      QString res = unpackHandler. unpackMessage (ldpcBits, is_CQ);
 	      if (res != "") {
-	         if ((cqSelector. load () && is_CQ) || !cqSelector. load ()) 
+	         if ((cqSelector. load () && is_CQ) || !cqSelector. load ()) {
 	            showLine (theBuffer [blockToRead]. lineno,
 	                      theBuffer [blockToRead]. value,
 	                      theBuffer [blockToRead]. frequency,
+	                      theBuffer [blockToRead]. strengthValue,
 	                      res);
+	         }
 	         if (theDecoder -> pskReporterReady ()) {
 	            QStringList call = unpackHandler. extractCall (ldpcBits);
 	            if (call. length () > 0) {
@@ -198,8 +202,8 @@ int	errors;
 void	ft8_processor::print_statistics () {
 }
 
-void    ft8_processor::showLine (int line, int val,
-                                         int freq, const QString &res) {
+void    ft8_processor::showLine (int line, int val, int freq,
+	                                  float strength, const QString &res) {
 	if (theCache. update (val, freq, res. toStdString ()))
 	   return;
 
@@ -211,7 +215,7 @@ void    ft8_processor::showLine (int line, int val,
 	timeinfo = localtime (&rawTime);
 	strftime (buffer, 80, "%I:%M:%S%p", timeinfo);
 	QString s = QString (buffer);
-	QString result = makeLine (s, val, currentFreq + freq, res);
+	QString result = makeLine (s, val, currentFreq + freq, res, (int)strength);
 	printLine (result);
 }
 
